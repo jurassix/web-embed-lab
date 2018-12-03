@@ -1,0 +1,53 @@
+
+body, html {
+	padding: 0;
+	margin: 0;
+}
+
+body {
+	font-family: sans-serif;
+	padding: 10px;
+}
+
+button {
+	margin-right: 8px;
+}
+
+.outer-wrapper {
+	display: grid;
+	grid-template: auto / 1fr 1fr;
+	gap: 10px;
+}
+
+.outer-wrapper > div {
+	border-left: solid 1px #EFEFEF;
+}
+
+.outer-wrapper > div:first-child {
+	border-left: none;
+}
+
+.section-title {
+	margin: 0 0 10px 0;
+	font-size: 18px;
+	font-weight: 400;
+}
+
+.section {
+	margin-bottom: 30px;
+}
+
+.focus {
+	height: calc(100vh - 20px);
+	overflow: auto;
+}
+
+.focus[data-content=kss], 
+.focus[data-content=style-tree] {
+	font-size: 16px;
+	line-height: 21px;
+	white-space: pre;
+}
+
+.context {
+}

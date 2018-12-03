@@ -1,0 +1,24 @@
+{
+	"description": "Page Formula tools for the Web Embed Lab",
+	"manifest_version": 2,
+	"name": "Formulator",
+	"version": "0.0.1",
+	"author": "Trevor F. Smith <trevor@transmutable.com>",
+	"homepage_url": "https://transmutable.com/wel-formulator",
+	"icons": {
+		"48": "icons/icon.png"
+	},
+	"background": {
+		"scripts": ["background/background.js"]
+	},		
+	"permissions": [
+			"<all_urls>",
+			"webNavigation"
+	],
+	"devtools_page": "devtools/devtools-page.html",
+	"applications": {
+		"gecko": {
+			"id": "wel-formulator@transmutable.com"
+		}
+	}
+}

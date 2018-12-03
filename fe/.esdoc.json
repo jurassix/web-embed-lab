@@ -1,0 +1,16 @@
+{
+	"brand": {
+		"title": "Web Embed Lab",
+		"description": "A testing tool for embedded javascripts",
+		"repository": "https://github.com/fullstorydev/web-embed-lab.git",
+		"author": "Trevor F. Smith <trevor@trevor.smith.name>"
+	},
+	"source": "./src",
+	"destination": "./dist/docs",
+	"plugins": [{
+		"name": "esdoc-standard-plugin",
+		"option": {
+			"accessor": { "access": ["public", "protected"] }
+		}
+	}]
+}

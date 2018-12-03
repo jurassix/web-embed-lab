@@ -1,0 +1,79 @@
+{
+  "name": "web-embed-lab",
+  "version": "0.1.0",
+  "description": "A testing tool for embedded javascripts",
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fullstorydev/web-embed-lab.git"
+  },
+  "keywords": [
+    "javascript",
+    "embedded",
+    "testing"
+  ],
+  "author": "Trevor F. Smith <trevor@trevor.smith.name>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fullstorydev/web-embed-lab/issues"
+  },
+  "homepage": "https://github.com/fullstorydev/web-embed-lab#readme",
+  "scripts": {
+    "build": "npm run build-target-colluder && npm run build-formulator-xpi",
+    "build-target-colluder": "rollup -c target-colluder-rollup.js",
+    "build-formulator-xpi": "mkdir ./dist; cd src/formulator && zip -r ../../dist/wel-formulator.xpi *",
+    "docs": "./node_modules/.bin/esdoc",
+    "lint": "eslint src",
+    "lint-fix": "eslint src --fix",
+    "prettier": "prettier --write src/*.js src/**/*.js"
+  },
+  "prettier": {
+    "semi": false,
+    "useTabs": true,
+    "printWidth": 240,
+    "singleQuote": true
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "prettier"
+    ],
+    "extends": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "prefer-const": "error",
+      "no-var": "error"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "linters": {
+      "src/*.js": ["prettier --write", "eslint --fix", "git add"]
+    },
+    "relative": true
+  },
+  "devDependencies": {
+    "esdoc": "^1.1.0",
+    "esdoc-standard-plugin": "^1.0.0",
+    "eslint": "^5.9.0",
+    "eslint-config-prettier": "^3.3.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "husky": "^1.2.0",
+    "lint-staged": "^8.1.0",
+    "prettier": "^1.15.3",
+    "rollup": "^0.67.4",
+    "rollup-plugin-cleanup": "^3.0.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-replace": "^2.1.0"
+  }
+}

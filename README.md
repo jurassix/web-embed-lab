@@ -13,5 +13,5 @@ The WEL works in two phases: test development and test running.
 
 **For running tests** the WEL provides a runner binary that hosts your page formulas and test probes. This is run in a container in a continuous integration system like CircleCI and calls out to a WebDriver-based browser testing host like Browserstack.
 
-![Overview diagram](https://fullstory.github.io/web-embed-lab/images/wel-component-002.png)
+![Overview diagram](https://fullstorydev.github.io/web-embed-lab/images/wel-components-002.png)
 

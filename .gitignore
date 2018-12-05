@@ -1,0 +1,12 @@
+# front end
+/fe/dist
+/fe/node_modules
+
+# go
+/go/bin
+/go/pkg
+
+# runtime
+/certs
+/streams
+/static

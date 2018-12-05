@@ -5,6 +5,8 @@ import (
 	"os"
 	"time"
 
+	weltls "wel/tls"
+
 	"wel/services/colluder"
 	"wel/services/proxy"
 )
@@ -15,7 +17,13 @@ func main() {
 	logger.Println("Starting")
 
 	os.Mkdir(proxy.StreamsDirPath, 0777)
-	os.Mkdir(colluder.StaticDirPath, 0777)
+	os.Mkdir(colluder.DistDirPath, 0777)
+
+	err := weltls.ReadOrGenerateCa()
+	if err != nil {
+		logger.Printf("Could not read or generate TLS certs: %s", err)
+		return
+	}
 
 	go colluder.Run()
 	go proxy.Run()

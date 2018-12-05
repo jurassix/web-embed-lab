@@ -37,7 +37,6 @@ var goproxySignerVersion = ":goroxy1"
 func SignHost(ca tls.Certificate, hosts []string) (cert tls.Certificate, err error) {
 	var x509ca *x509.Certificate
 
-	// Use the provided ca and not the global GoproxyCa for certificate generation.
 	if x509ca, err = x509.ParseCertificate(ca.Certificate[0]); err != nil {
 		return
 	}

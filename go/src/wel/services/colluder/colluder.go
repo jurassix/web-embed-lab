@@ -7,14 +7,16 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	weltls "wel/tls"
 )
 
-var StaticDirPath = "static"
+var DistDirPath = "fe/dist"
 
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 
 func Run() {
-	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	//log.Fatal(http.ListenAndServeTLS(":8443", "cert.pem", "key.pem", nil))
+	fs := http.FileServer(http.Dir(DistDirPath))
+	http.Handle("/", fs)
+	log.Fatal(http.ListenAndServeTLS(":8081", weltls.CaCertPath, weltls.CaKeyPath, nil))
 }

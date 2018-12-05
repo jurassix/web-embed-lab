@@ -32,7 +32,7 @@ func hashSortedBigInt(lst []string) *big.Int {
 	return rv
 }
 
-var goproxySignerVersion = ":goroxy1"
+var signerVersion = ":wel1"
 
 func SignHost(ca tls.Certificate, hosts []string) (cert tls.Certificate, err error) {
 	var x509ca *x509.Certificate
@@ -40,12 +40,12 @@ func SignHost(ca tls.Certificate, hosts []string) (cert tls.Certificate, err err
 	if x509ca, err = x509.ParseCertificate(ca.Certificate[0]); err != nil {
 		return
 	}
-	start := time.Unix(0, 0)
-	end, err := time.Parse("2006-01-02", "2049-12-31")
-	if err != nil {
-		panic(err)
-	}
-	hash := hashSorted(append(hosts, goproxySignerVersion, ":"+runtime.Version(), strconv.Itoa(rand.Int())))
+
+	start := time.Now()
+	end := time.Now()
+	end = end.Add(30 * 24 * time.Hour)
+
+	hash := hashSorted(append(hosts, signerVersion, ":"+runtime.Version(), strconv.Itoa(rand.Int())))
 	serial := new(big.Int)
 	serial.SetBytes(hash)
 	template := x509.Certificate{
@@ -53,7 +53,7 @@ func SignHost(ca tls.Certificate, hosts []string) (cert tls.Certificate, err err
 		SerialNumber: serial,
 		Issuer:       x509ca.Subject,
 		Subject: pkix.Name{
-			Organization: []string{"GoProxy untrusted MITM proxy Inc"},
+			Organization: []string{"Web Embed Lab"},
 		},
 		NotBefore: start,
 		NotAfter:  end,

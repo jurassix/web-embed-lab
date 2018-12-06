@@ -4,6 +4,16 @@
   "current-version-git-hash": "638ce770f4f5aed867c09a1e910976b967749719",
   "content-hash": "f963542ba8de9784e2705e850c5202794e6724a4"
  },
+ "github.com/gorilla/websocket": {
+  "git-remote": "https://github.com/gorilla/websocket",
+  "current-version-git-hash": "483fb8d7c32fcb4b5636cd293a92e3935932e2f4",
+  "content-hash": "54a6eb7dcba76e9973ed382cd7fd4a5f4f428b2a"
+ },
+ "github.com/nu7hatch/gouuid": {
+  "git-remote": "https://github.com/nu7hatch/gouuid",
+  "current-version-git-hash": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3",
+  "content-hash": "cf91babff2b5e6d5da2d196b28426d82a93aa461"
+ },
  "github.com/pkg/errors": {
   "git-remote": "https://github.com/pkg/errors",
   "current-version-git-hash": "059132a15dd08d6704c67711dae0cf35ab991756",

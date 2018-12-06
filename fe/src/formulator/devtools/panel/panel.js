@@ -1,3 +1,5 @@
+import ColluderClient from  './ColluderClient.js'
+
 const InitAction = 'wf-init'
 const RunTestAction = 'wf-run-test'
 
@@ -31,4 +33,14 @@ runTestButton.addEventListener('click', ev => {
 		action: RunTestAction,
 		tabId: browser.devtools.inspectedWindow.tabId
 	})
+})
+
+const colluderClient = new ColluderClient('wss://localhost:8082/ws', (...params) =>  {
+	console.log('Client message',  ...params)
+})
+
+colluderClient.open().then(() => {
+	console.log('Client opened')
+}).catch((...params) => {
+	console.error('Client failed', ...params)
 })

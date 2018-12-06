@@ -6,6 +6,7 @@ package proxy
 import (
 	"bufio"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -17,8 +18,9 @@ var StreamsDirPath = "streams"
 
 var logger = log.New(os.Stdout, "[proxy] ", 0)
 
-func Run() {
-	log.Fatal(http.ListenAndServe(":8080", NewProxyServer()))
+func Run(port int) {
+	logger.Println("Listening on", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), NewProxyServer()))
 }
 
 type ProxyServer struct {

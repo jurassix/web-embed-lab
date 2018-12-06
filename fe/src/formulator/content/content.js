@@ -20,6 +20,7 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 function injectScript(url) {
 	const script = document.createElement('script')
 	script.setAttribute('src', url)
+	script.setAttribute('type', 'module')
 	document.body.appendChild(script)
 }
 
@@ -46,5 +47,5 @@ if (window.ContentConstants === undefined) {
 	}
 	window.addEventListener('message', handleWindowMessage)
 	browser.runtime.onMessage.addListener(handleRuntimeMessage)
-	injectScript('http://127.0.0.1:8080/test-probes.js')
+	injectScript('https://127.0.0.1:8081/target-page-colluder.js')
 }

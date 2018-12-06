@@ -19,9 +19,10 @@
   },
   "homepage": "https://github.com/fullstorydev/web-embed-lab#readme",
   "scripts": {
-    "build": "npm run build-target-colluder && npm run build-formulator-xpi",
+    "build": "npm run build-target-colluder && npm run build-formulator-xpi && npm run copy-static",
     "build-target-colluder": "rollup -c target-colluder-rollup.js",
     "build-formulator-xpi": "mkdir ./dist; cd src/formulator && zip -r ../../dist/wel-formulator.xpi *",
+    "copy-static": "mkdir ./dist; cp -r static/* dist/",
     "docs": "./node_modules/.bin/esdoc",
     "lint": "eslint src",
     "lint-fix": "eslint src --fix",

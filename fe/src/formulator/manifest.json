@@ -12,8 +12,9 @@
 		"scripts": ["background/background.js"]
 	},		
 	"permissions": [
-			"<all_urls>",
-			"webNavigation"
+		"<all_urls>",
+		"webNavigation",
+		"activeTab"
 	],
 	"devtools_page": "devtools/devtools-page.html",
 	"applications": {

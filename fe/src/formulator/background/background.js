@@ -6,31 +6,31 @@ if (typeof browser === 'undefined') {
 	}
 }
 
-const SomeAction = 'wf-some-action'
 const InitAction = 'wf-init'
-const RunTestAction = 'wf-run-test'
+const ReceivedColluderMessage = 'wf-received-colluder-message'
+const SendColluderMessage = 'wf-send-colluder-message'
 
 function handleRuntimeMessage(request, sender, sendResponse) {
-	console.log('background handling page runtime message', request, sender, sendResponse)
+	//console.log('Background handling runtime message', request, sender, sendResponse)
 	if (sender.url === browser.runtime.getURL('/devtools/panel/panel.html')) {
 		handlePanelRuntimeMessage(request, sender, sendResponse)
 	} else {
-		handlePageRuntimeMessage(request, sender, sendResponse)
+		handleTabRuntimeMessage(request, sender, sendResponse)
 	}
 }
 browser.runtime.onMessage.addListener(handleRuntimeMessage)
 
-function handlePageRuntimeMessage(request, sender, sendResponse) {
+function handleTabRuntimeMessage(request, sender, sendResponse) {
 	if (typeof request.action === undefined) {
-		console.error('Unknown page request', request, sender, sendResponse)
+		console.error('Unknown tab message format', request, sender, sendResponse)
 		return
 	}
 	switch (request.action) {
-		case SomeAction:
-			browser.runtime.sendMessage({
-				action: SomeAction
-			})
+		case ReceivedColluderMessage:
+			browser.runtime.sendMessage(request)
 			break
+		default:
+			console.error('Background received unknown tab action', request.action, request, sender)
 	}
 }
 
@@ -40,15 +40,14 @@ function handlePanelRuntimeMessage(request, sender, sendResponse) {
 		return
 	}
 	switch (request.action) {
-		case SomeAction:
-		case RunTestAction:
+		case SendColluderMessage:
 			relayActionToTab(request)
 			break
 		case InitAction:
 			handleInitAction(request)
 			break
 		default:
-			console.error('unknown action', request)
+			console.error('Background received unknown action from panel', request)
 	}
 }
 

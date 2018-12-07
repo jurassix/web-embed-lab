@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"math/big"
 
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/rand"
 	"crypto/rsa"
@@ -19,9 +20,11 @@ import (
 )
 
 var (
-	CertsDirPath = "certs"
-	CaCertPath   = CertsDirPath + "/ca-cert.pem"
-	CaKeyPath    = CertsDirPath + "/ca-key.pem"
+	CertsDirPath      = "certs"
+	CaCertPath        = CertsDirPath + "/ca-cert.pem"
+	CaKeyPath         = CertsDirPath + "/ca-key.pem"
+	LocalhostCertPath = CertsDirPath + "/localhost-cert.pem"
+	LocalhostKeyPath  = CertsDirPath + "/localhost-key.pem"
 
 	CaCertificate tls.Certificate
 )
@@ -30,12 +33,12 @@ var (
 func ReadOrGenerateCa() error {
 	if fileExists(CaCertPath) && fileExists(CaKeyPath) {
 		log.Print("Using existing CA PEMs")
-		return ReadCaPEMs()
+		return readCaPEMs()
 	}
 
 	os.Mkdir(CertsDirPath, 0777)
 
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		log.Fatalf("failed to generate private key: %s", err)
 	}
@@ -64,39 +67,30 @@ func ReadOrGenerateCa() error {
 
 	template.DNSNames = append(template.DNSNames, "bogus-wel-bogus.com")
 
-	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
+	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(privateKey), privateKey)
 	if err != nil {
 		log.Fatalf("Failed to create certificate: %s", err)
 	}
 
-	certOut, err := os.Create(CaCertPath)
+	writePEMs(CaCertPath, CaKeyPath, certBytes, privateKey)
+
+	err = readCaPEMs()
 	if err != nil {
-		log.Fatalf("failed to open %s for writing: %s", CaCertPath, err)
-	}
-	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
-		log.Fatalf("failed to write data to %s: %s", CaCertPath, err)
-	}
-	if err := certOut.Close(); err != nil {
-		log.Fatalf("error closing %s: %s", CaCertPath, err)
+		return err
 	}
 
-	keyOut, err := os.OpenFile(CaKeyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	localhostCert, err := SignHost(CaCertificate, []string{"localhost"})
 	if err != nil {
-		log.Fatalf("failed to open %s for writing:", CaKeyPath, err)
+		log.Fatalf("error generating a certificate for localhost", err)
 	}
-	if err := pem.Encode(keyOut, pemBlockForKey(priv)); err != nil {
-		log.Fatalf("failed to write data to %s: %s", CaKeyPath, err)
-	}
-	if err := keyOut.Close(); err != nil {
-		log.Fatalf("error closing %s: %s", CaKeyPath, err)
-	}
+
+	writePEMs(LocalhostCertPath, LocalhostKeyPath, localhostCert.Certificate[0], localhostCert.PrivateKey)
 
 	logger.Printf("Generated new CA PEMs, you will need to add %s to your browser certificates", CaCertPath)
-
-	return ReadCaPEMs()
+	return nil
 }
 
-func ReadCaPEMs() error {
+func readCaPEMs() error {
 	var err error
 	CaCertificate, err = tls.LoadX509KeyPair(CaCertPath, CaKeyPath)
 	if err != nil {
@@ -106,6 +100,30 @@ func ReadCaPEMs() error {
 		return err
 	}
 	return nil
+}
+
+func writePEMs(certPath string, keyPath string, certBytes []byte, priv crypto.PrivateKey) {
+	certOut, err := os.Create(certPath)
+	if err != nil {
+		log.Fatalf("failed to open %s for writing: %s", certPath, err)
+	}
+	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes}); err != nil {
+		log.Fatalf("failed to write data to %s: %s", CaCertPath, err)
+	}
+	if err := certOut.Close(); err != nil {
+		log.Fatalf("error closing %s: %s", certPath, err)
+	}
+
+	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		log.Fatalf("failed to open %s for writing:", keyPath, err)
+	}
+	if err := pem.Encode(keyOut, pemBlockForKey(priv)); err != nil {
+		log.Fatalf("failed to write data to %s: %s", keyPath, err)
+	}
+	if err := keyOut.Close(); err != nil {
+		log.Fatalf("error closing %s: %s", keyPath, err)
+	}
 }
 
 func fileExists(path string) bool {

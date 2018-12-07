@@ -74,17 +74,17 @@ func SignHost(ca tls.Certificate, hosts []string) (cert tls.Certificate, err err
 	if csprng, err = NewCounterEncryptorRandFromKey(ca.PrivateKey, hash); err != nil {
 		return
 	}
-	var certpriv *rsa.PrivateKey
-	if certpriv, err = rsa.GenerateKey(&csprng, 2048); err != nil {
+	var certPrivateKey *rsa.PrivateKey
+	if certPrivateKey, err = rsa.GenerateKey(&csprng, 2048); err != nil {
 		return
 	}
-	var derBytes []byte
-	if derBytes, err = x509.CreateCertificate(&csprng, &template, x509ca, &certpriv.PublicKey, ca.PrivateKey); err != nil {
+	var certBytes []byte
+	if certBytes, err = x509.CreateCertificate(&csprng, &template, x509ca, &certPrivateKey.PublicKey, ca.PrivateKey); err != nil {
 		return
 	}
 	return tls.Certificate{
-		Certificate: [][]byte{derBytes, ca.Certificate[0]},
-		PrivateKey:  certpriv,
+		Certificate: [][]byte{certBytes, ca.Certificate[0]},
+		PrivateKey:  certPrivateKey,
 	}, nil
 }
 

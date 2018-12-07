@@ -25,8 +25,9 @@ func main() {
 		return
 	}
 
-	go colluder.Run()
-	go proxy.Run()
+	go colluder.RunHTTP(8081)
+	go colluder.RunWS(8082)
+	go proxy.Run(8080)
 
 	for {
 		time.Sleep(time.Hour)

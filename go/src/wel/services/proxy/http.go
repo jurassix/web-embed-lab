@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"os"
 	"strconv"
-	"sync"
 )
 
 func handleHTTP(writer http.ResponseWriter, clientRequest *http.Request, proxyServer *ProxyServer) {
@@ -55,35 +52,4 @@ func handleHTTP(writer http.ResponseWriter, clientRequest *http.Request, proxySe
 			logger.Printf("Error copying to client: %s", err)
 		}
 	}
-}
-
-func copyOrWarn(writer io.Writer, reader io.Reader, wg *sync.WaitGroup) {
-	if _, err := io.Copy(writer, reader); err != nil {
-		logger.Printf("Error copying to client: %s", err)
-	}
-	wg.Done()
-}
-
-func copyAndClose(writer, reader *net.TCPConn, host string, source string) {
-	defer writer.CloseWrite()
-	defer reader.CloseRead()
-
-	// Create a file writer to save the stream
-	filePath := createFileName(host, source)
-	fileHandle, err := os.Create(filePath)
-	if err != nil {
-		logger.Println("Error creating file", err)
-	}
-	fileWriter := io.Writer(fileHandle)
-	defer func() {
-		fileHandle.Close()
-	}()
-
-	// Create a tee to write to both the writer TCP and the file
-	teeReader := io.TeeReader(reader, fileWriter)
-
-	if _, err := io.Copy(writer, teeReader); err != nil {
-		logger.Printf("Error copying to client: %s", err)
-	}
-	logger.Println("Closing", host)
 }

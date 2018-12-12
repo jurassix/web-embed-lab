@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -117,20 +116,4 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		}
 	}
 	logger.Println("Closing", host)
-}
-
-var replacedNameChars = [...]string{
-	":",
-	"-",
-	"/",
-	"\\",
-	".",
-}
-
-func createFileName(host string, source string) string {
-	cleanedHost := host
-	for _, tar := range replacedNameChars {
-		cleanedHost = strings.Replace(cleanedHost, tar, "_", -1)
-	}
-	return fmt.Sprintf("%v/stream-%v-%v-%v.txt", StreamsDirPath, source, cleanedHost, rand.Int())
 }

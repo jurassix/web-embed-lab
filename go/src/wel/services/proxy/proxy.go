@@ -13,9 +13,6 @@ import (
 	"os"
 )
 
-// Where to write the captured stream files
-var StreamsDirPath = "streams"
-
 var logger = log.New(os.Stdout, "[proxy] ", 0)
 
 func Run(port int) {

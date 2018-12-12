@@ -1,9 +1,11 @@
 // Prevent redefinition on page change
 if (window.ContentConstants === undefined) {
 	window.ContentConstants = {
-		SomeAction: 'wf-some-action',
+		SendWindowMessage: 'wf-send-window-message',
 		ReceivedColluderMessage: 'wf-received-colluder-message',
-		SendColluderMessage: 'wf-send-colluder-message'
+		SendColluderMessage: 'wf-send-colluder-message',
+		WebSocketOpened: 'WebSocket-Opened',
+		WebSocketClosed: 'WebSocket-Closed'
 	}
 
 	if (typeof browser === 'undefined') {
@@ -20,14 +22,10 @@ if (window.ContentConstants === undefined) {
 			return
 		}
 		switch (data.action) {
-			case window.ContentConstants.SomeAction:
+			case window.ContentConstants.SendWindowMessage:
 				window.postMessage(data, '*')
 				break
 			case window.ContentConstants.SendColluderMessage:
-				if(colluderClient === null){
-					console.error('Colluder client is null')
-					return
-				}
 				colluderClient.sendData(data.message)
 				break
 			default:
@@ -59,38 +57,129 @@ if (window.ContentConstants === undefined) {
 		}
 	}
 
+	/**
+	ColluderClient manages a WebSocket connection to the colluder service
+	*/
 	class ColluderClient {
-		constructor(serviceURL, messageHandler){
+		/**
+		@param {string} serviceURL - A full WS url like wss://localhost:8082
+		@param {function(Event)} [messageHandler] - called with incoming messages
+		*/
+		constructor(serviceURL, messageHandler=null){
 			this._serviceURL = serviceURL
 			this._messageHandler = messageHandler
 			this._socket = null
+
+			/** True if the client will attempt to stay connected to the service, even across disconnects */
+			this.running = false
+
+			/** The interval ID during repeated attempts to connect */
+			this._reconnectIntervalID = null
 		}
 
-		open(){
-			return new Promise((resolve, reject) => {
-				if(this._socket !== null){
-					resolve()
+		/**
+		Causes the client to attempt to connect and stay connected across disconnects
+		*/
+		run(){
+			if(this.running) return
+			this.running = true
+			this._startInterval()
+		}
+
+		/**
+		Causes the client to close the connection and stay closed until run() is called
+		*/
+		stop(){
+			if(this.running === false) return
+			this.running = false
+			this._stopInterval()
+
+			if(this._socket === null) return
+			if(this._socket.readyState !== ColluderClient.CLOSING && this._socket.readyState !== ColluderClient.CLOSED){
+				this._socket.close()
+			}
+			this._socket = null
+		}
+
+		/**
+		Attempts to send a message to the colluder service
+		*/
+		sendData(data){
+			if(this._socket === null || this._socket.readyState !== ColluderClient.OPEN) {
+				console.error('Can not send message', this._socket)
+				return false
+			}
+			this._socket.send(JSON.stringify(data))
+			return true
+		}
+
+		_startInterval(){
+			if(this._reconnectIntervalID !== null) return
+			this._reconnectIntervalID = setInterval(this._open.bind(this), 1000)
+		}
+
+		_stopInterval(){
+			if(this._reconnectIntervalID === null) return
+			clearInterval(this._reconnectIntervalID)
+			this._reconnectIntervalID = null
+		}
+
+		async _open(){
+			if(this.running === false) return
+			if(this._socket !== null) return
+
+			this._socket = new WebSocket(this._serviceURL)
+
+			this._socket.onopen = () => {
+				if(this.running === false){
+					// Client was stopped during a connection attempt, abort
+					this._socket.close()
+					this._socket = null
 					return
 				}
-				this._socket = new WebSocket(this._serviceURL)
-				this._socket.onmessage = (...params) => {
-					if(this._messageHandler){
-						this._messageHandler(...params)
-					}
+
+				if(this._socket.readyState !== ColluderClient.OPEN){
+					// Unsuccessful connection
+					this._socket = null
+					return
 				}
-				this._socket.onopen = () => {
-					resolve()
+				this._stopInterval()
+
+				this._sendMessageToHandler({
+					'data': `{"type":"${ContentConstants.WebSocketOpened}"}`
+				})
+			}
+
+			this._socket.onerror = (...params) => {
+				this._socket = null
+				if(this.running){
+					this._startInterval()
 				}
-				this._socket.onerror = (...params) => {
-					reject(...params)
+			}
+
+			this._socket.onclose = (...params) => {
+				this._socket = null
+				if(this.running){
+					this._startInterval()
 				}
-			})
+				this._sendMessageToHandler({
+					'data': `{"type":"${ContentConstants.WebSocketClosed}"}`
+				})
+			}
+
+			this._socket.onmessage = this._sendMessageToHandler.bind(this)
 		}
 
-		sendData(data){
-			this._socket.send(JSON.stringify(data))
+		_sendMessageToHandler(message){
+			if(this._messageHandler === null) return
+			this._messageHandler(message)
 		}
 	}
+
+	ColluderClient.CONNECTING = 0
+	ColluderClient.OPEN = 1
+	ColluderClient.CLOSING = 2
+	ColluderClient.CLOSED = 3
 
 	window.addEventListener('message', handleWindowMessage)
 	browser.runtime.onMessage.addListener(handleRuntimeMessage)
@@ -105,7 +194,5 @@ if (window.ContentConstants === undefined) {
 		})
 	})
 
-	colluderClient.open().catch((...params) => {
-		console.error('Colluder client failed to connect', ...params)
-	})
+	colluderClient.run()
 }

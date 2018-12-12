@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"wel/services/colluder/session"
 )
 
 const DebugLogType = "Debug-Log" // Used during debugging when the client wants something logged on the back end
@@ -13,6 +15,9 @@ const AckType = "Ack"
 const UnknownMessageType = "Unknown-Message-Type"
 const ConnectedType = "Connected"
 const ClientDisconnectedType = "Client-Disconnected"
+const SessionStateType = "Session-State"
+
+const ToggleSessionType = "Toggle-Session"
 
 // All messages passed via WebSocket between the browser and the ws service must be of type ClientMessage
 type ClientMessage interface {
@@ -87,6 +92,34 @@ func NewUnknownMessageTypeMessage(unknownType string) *UnknownMessageTypeMessage
 	return &UnknownMessageTypeMessage{
 		TypedMessage{Type: UnknownMessageType},
 		unknownType,
+	}
+}
+
+// Sent when the formulator asks to toggle session capture
+type ToggleSessionMessage struct {
+	TypedMessage
+}
+
+func NewToggleSessionMessage() *ToggleSessionMessage {
+	return &ToggleSessionMessage{
+		TypedMessage{Type: ToggleSessionType},
+	}
+}
+
+// Sent to update the formulator about the state of the capture session
+type SessionStateMessage struct {
+	TypedMessage
+	DirectoryPath string
+	Capturing     bool
+	NumRequests   int
+}
+
+func NewSessionStateMessage(session *session.CaptureSession) *SessionStateMessage {
+	return &SessionStateMessage{
+		TypedMessage{Type: SessionStateType},
+		session.DirectoryPath,
+		session.Capturing,
+		session.NumRequests,
 	}
 }
 

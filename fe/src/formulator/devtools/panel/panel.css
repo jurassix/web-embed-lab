@@ -1,53 +1,37 @@
+@import 'ui.css';
 
-body, html {
-	padding: 0;
-	margin: 0;
-}
-
-body {
-	font-family: sans-serif;
-	padding: 10px;
-}
-
-button {
-	margin-right: 8px;
-}
-
-.outer-wrapper {
+.devpanel-component {
 	display: grid;
-	grid-template: auto / 1fr 1fr;
-	gap: 10px;
+	grid-template: auto / auto 1fr 1fr;
+	gap: var(--outer-margin);
 }
 
-.outer-wrapper > div {
-	border-left: solid 1px #EFEFEF;
+.devpanel-component > .section {
+	border-left: solid 1px var(--light-base-color);
 }
 
-.outer-wrapper > div:first-child {
+.devpanel-component > .section:first-child {
 	border-left: none;
 }
 
-.section-title {
-	margin: 0 0 10px 0;
-	font-size: 18px;
-	font-weight: 400;
+.devpanel-component > .section {
+	padding: var(--outer-padding);
+	margin-bottom: var(--outer-margin);
 }
 
-.section {
-	margin-bottom: 30px;
+.devpanel-component > .section > .section-title {
+	margin: 0 0 var(--outer-margin) 0;
+	font-size: var(--font-size-3);
+	font-weight: var(--font-weight-3);
 }
 
-.focus {
-	height: calc(100vh - 20px);
+.control-component {
+}
+
+.state-component {
+}
+
+.log-component {
+	height: calc(100vh - var(--outer-margin));
 	overflow: auto;
-}
-
-.focus[data-content=kss], 
-.focus[data-content=style-tree] {
-	font-size: 16px;
-	line-height: 21px;
-	white-space: pre;
-}
-
-.context {
 }

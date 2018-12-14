@@ -64,11 +64,50 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			logger.Printf("Error reading request %v %v", req.Host, err)
 			return
 		}
+
+		if clientReq.Header.Get("Upgrade") == "websocket" {
+			logger.Printf("WebSocket Upgrade: %v %v", clientReq.URL, host)
+
+			// Connect to the target WS service
+			targetConn, err := tls.Dial("tcp", host, &tls.Config{
+				InsecureSkipVerify: true,
+			})
+			if err != nil {
+				logger.Printf("Could not dial connect %v", host, err)
+				httpError(clientConn, err)
+				return
+			}
+
+			// Write the original client request to the target
+			requestLine := fmt.Sprintf("%v %v %v\r\nHost: %v\r\n", clientReq.Method, clientReq.URL.String(), clientReq.Proto, req.Host)
+			if _, err := io.WriteString(targetConn, requestLine); err != nil {
+				logger.Printf("Could not write the WS request: %v", err)
+				httpError(clientConn, err)
+				return
+			}
+
+			if err := clientReq.Header.Write(targetConn); err != nil {
+				logger.Println("Could not write the WS header", host, err)
+				httpError(clientConn, err)
+				return
+			}
+			_, err = io.WriteString(targetConn, "\r\n")
+			if err != nil {
+				logger.Println("Could not write the final header line", host, err)
+				httpError(clientConn, err)
+				return
+			}
+
+			// And then relay everything between the client and target
+			go transfer(targetConn, rawClientTls)
+			transfer(rawClientTls, targetConn)
+			return
+		}
+
 		clientReq.RemoteAddr = req.RemoteAddr
 		if !httpsRegexp.MatchString(clientReq.URL.String()) {
 			clientReq.URL, err = url.Parse("https://" + req.Host + clientReq.URL.String())
 		}
-
 		resp, err := proxyServer.Transport.RoundTrip(clientReq)
 		if err != nil {
 			logger.Printf("Cannot read TLS response from mitm'd server %v", err)
@@ -116,4 +155,10 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		}
 	}
 	logger.Println("Closing", host)
+}
+
+func transfer(destination io.WriteCloser, source io.ReadCloser) {
+	defer destination.Close()
+	defer source.Close()
+	io.Copy(destination, source)
 }

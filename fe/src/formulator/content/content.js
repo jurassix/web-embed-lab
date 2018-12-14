@@ -62,7 +62,7 @@ if (window.ContentConstants === undefined) {
 	*/
 	class ColluderClient {
 		/**
-		@param {string} serviceURL - A full WS url like wss://localhost:8082
+		@param {string} serviceURL - A full WS url like wss://127.0.0.1:8082
 		@param {function(Event)} [messageHandler] - called with incoming messages
 		*/
 		constructor(serviceURL, messageHandler=null){
@@ -187,7 +187,7 @@ if (window.ContentConstants === undefined) {
 	injectScript('https://127.0.0.1:8081/target-page-colluder.js')
 
 	//  The ColluderClient WebSocket listener relays messages back to the formulator background script
-	const colluderClient = new ColluderClient('wss://localhost:8082/ws', message =>  {
+	const colluderClient = new ColluderClient('wss://127.0.0.1:8082/ws', message =>  {
 		browser.runtime.sendMessage({
 			action: ContentConstants.ReceivedColluderMessage,
 			message: JSON.parse(message.data)

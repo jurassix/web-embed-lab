@@ -4,7 +4,11 @@ TargetPageColluder is injected by the Formulator WebExtension into the target pa
 
 class TargetPageColluder {
 	constructor() {
-		console.log('TargetPageColluder constructed')
+		window.addEventListener('message', this._handleWindowMessage.bind(this))
+	}
+
+	_handleWindowMessage(event){
+		console.log('target page colluder received window message', event)
 	}
 }
 

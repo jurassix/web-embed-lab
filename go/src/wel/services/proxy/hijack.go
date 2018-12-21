@@ -17,6 +17,9 @@ import (
 	"strconv"
 	"strings"
 
+	"wel/services/colluder"
+	"wel/services/colluder/session"
+	"wel/services/colluder/ws"
 	weltls "wel/tls"
 )
 
@@ -26,14 +29,34 @@ var (
 	tlsConfigs  = make(map[string]*tls.Config)
 )
 
-// TODO: HANDLE WEBSOCKETS
+func broadcastIfPossible(message ws.ClientMessage) bool {
+	if session.CurrentCaptureSession != nil && session.CurrentCaptureSession.Capturing && colluder.CurrentWebSocketService != nil {
+		colluder.CurrentWebSocketService.Handler.Broadcast(message)
+		return true
+	}
+	return false
+}
 
 func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxyServer) {
 	host := req.URL.Host
 	if !hasPort.MatchString(host) {
 		host += ":80"
 	}
-	logger.Println("Hijacking", host)
+
+	if session.CurrentCaptureSession != nil {
+		session.CurrentCaptureSession.IncrementHostCount(host)
+		defer func() {
+			if session.CurrentCaptureSession != nil {
+				session.CurrentCaptureSession.DecrementHostCount(host)
+			}
+		}()
+	}
+
+	if broadcastIfPossible(ws.NewProxyConnectionStateMessage(true, host)) {
+		defer func() {
+			broadcastIfPossible(ws.NewProxyConnectionStateMessage(false, host))
+		}()
+	}
 
 	tlsConfig, ok := tlsConfigs[host]
 	if ok == false {
@@ -54,7 +77,10 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		logger.Printf("Cannot handshake client requesting %v: %v", req.Host, err)
 		return
 	}
-	defer rawClientTls.Close()
+	defer func() {
+		rawClientTls.Close()
+	}()
+
 	clientTlsReader := bufio.NewReader(rawClientTls)
 
 	// Now loop while handling requests
@@ -65,9 +91,12 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			return
 		}
 
-		if clientReq.Header.Get("Upgrade") == "websocket" {
-			logger.Printf("WebSocket Upgrade: %v %v", clientReq.URL, host)
+		if session.CurrentCaptureSession != nil {
+			session.CurrentCaptureSession.IncrementHostRequests(host)
+		}
+		broadcastIfPossible(ws.NewProxyConnectionRequestMessage(host))
 
+		if clientReq.Header.Get("Upgrade") == "websocket" {
 			// Connect to the target WS service
 			targetConn, err := tls.Dial("tcp", host, &tls.Config{
 				InsecureSkipVerify: true,
@@ -154,7 +183,6 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			}
 		}
 	}
-	logger.Println("Closing", host)
 }
 
 func transfer(destination io.WriteCloser, source io.ReadCloser) {

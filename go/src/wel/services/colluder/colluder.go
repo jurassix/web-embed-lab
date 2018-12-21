@@ -17,6 +17,8 @@ var DistDirPath = "fe/dist"
 
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 
+var CurrentWebSocketService *ws.WebSocketService = nil
+
 func RunHTTP(port int64) {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.Dir(DistDirPath)))
@@ -25,6 +27,9 @@ func RunHTTP(port int64) {
 }
 
 func RunWS(port int64) {
-	wsService := ws.NewWebSocketService(port, weltls.LocalhostCertPath, weltls.LocalhostKeyPath)
-	wsService.Run()
+	if CurrentWebSocketService != nil {
+		return
+	}
+	CurrentWebSocketService = ws.NewWebSocketService(port, weltls.LocalhostCertPath, weltls.LocalhostKeyPath)
+	CurrentWebSocketService.Run()
 }

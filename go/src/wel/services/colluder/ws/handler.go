@@ -72,6 +72,15 @@ func (handler *WebSocketHandler) Distribute(clientUUIDs []string, message Client
 	}
 }
 
+/*
+Queues a ClientMessage for every live WebSocket conneection
+*/
+func (handler *WebSocketHandler) Broadcast(message ClientMessage) {
+	for _, connection := range handler.Connections {
+		connection.Outgoing <- message
+	}
+}
+
 func (handler *WebSocketHandler) AddWebSocketConnection(connection *WebSocketConnection) {
 	handler.Connections[connection.ClientUUID] = connection
 }

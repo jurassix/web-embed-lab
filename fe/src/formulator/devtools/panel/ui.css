@@ -83,3 +83,12 @@ h3, .h3 {
 
 .button-component {
 }
+
+.key-value-component {
+	display: block;
+	margin-bottom: var(--inner-margin);
+}
+
+.key-value-component .key-el {
+	padding-right: var(--inner-padding);
+}

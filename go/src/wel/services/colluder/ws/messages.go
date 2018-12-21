@@ -15,7 +15,10 @@ const AckType = "Ack"
 const UnknownMessageType = "Unknown-Message-Type"
 const ConnectedType = "Connected"
 const ClientDisconnectedType = "Client-Disconnected"
+const QuerySessionStateType = "Query-Session-State"
 const SessionStateType = "Session-State"
+const ProxyConnectionStateType = "Proxy-Connection-State"
+const ProxyConnectionRequestType = "Proxy-Connection-Request"
 
 const ToggleSessionType = "Toggle-Session"
 
@@ -106,21 +109,69 @@ func NewToggleSessionMessage() *ToggleSessionMessage {
 	}
 }
 
+// Sent when the proxy opens or closes a connection to a remote service
+type ProxyConnectionStateMessage struct {
+	TypedMessage
+	Open bool
+	Host string
+}
+
+func NewProxyConnectionStateMessage(open bool, host string) *ProxyConnectionStateMessage {
+	return &ProxyConnectionStateMessage{
+		TypedMessage{Type: ProxyConnectionStateType},
+		open,
+		host,
+	}
+}
+
+// Sent when the proxy handles a client HTTP request inside an open connection
+type ProxyConnectionRequestMessage struct {
+	TypedMessage
+	Host string
+}
+
+func NewProxyConnectionRequestMessage(host string) *ProxyConnectionRequestMessage {
+	return &ProxyConnectionRequestMessage{
+		TypedMessage{Type: ProxyConnectionRequestType},
+		host,
+	}
+}
+
+// Received from clients who want the state of the colluder session
+type QuerySessionStateMessage struct {
+	TypedMessage
+}
+
+func NewQuerySessionStateMessage() *QuerySessionStateMessage {
+	return &QuerySessionStateMessage{
+		TypedMessage{Type: QuerySessionStateType},
+	}
+}
+
 // Sent to update the formulator about the state of the capture session
 type SessionStateMessage struct {
 	TypedMessage
 	DirectoryPath string
 	Capturing     bool
 	NumRequests   int
+	HostCounts    []*session.HostCount
 }
 
-func NewSessionStateMessage(session *session.CaptureSession) *SessionStateMessage {
-	return &SessionStateMessage{
+func NewSessionStateMessage() *SessionStateMessage {
+	message := &SessionStateMessage{
 		TypedMessage{Type: SessionStateType},
-		session.DirectoryPath,
-		session.Capturing,
-		session.NumRequests,
+		"",
+		false,
+		0,
+		make([]*session.HostCount, 0),
 	}
+	if session.CurrentCaptureSession != nil {
+		message.DirectoryPath = session.CurrentCaptureSession.DirectoryPath
+		message.Capturing = session.CurrentCaptureSession.Capturing
+		message.NumRequests = session.CurrentCaptureSession.NumRequests
+		message.HostCounts = session.CurrentCaptureSession.HostCounts
+	}
+	return message
 }
 
 // ParseMessageJson takes in a raw string and returns a property typed ClientMessage based on the message.type value

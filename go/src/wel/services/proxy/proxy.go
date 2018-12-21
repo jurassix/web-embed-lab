@@ -15,9 +15,15 @@ import (
 
 var logger = log.New(os.Stdout, "[proxy] ", 0)
 
+var CurrentProxyServer *ProxyServer = nil
+
 func Run(port int) {
+	if CurrentProxyServer != nil {
+		return
+	}
+	CurrentProxyServer = NewProxyServer()
 	logger.Println("Listening on", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), NewProxyServer()))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), CurrentProxyServer))
 }
 
 type ProxyServer struct {

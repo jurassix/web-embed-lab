@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+
+	"wel/services/colluder/session"
 )
 
 func handleHTTP(writer http.ResponseWriter, clientRequest *http.Request, proxyServer *ProxyServer) {
@@ -13,7 +15,15 @@ func handleHTTP(writer http.ResponseWriter, clientRequest *http.Request, proxySe
 	if !hasPort.MatchString(host) {
 		host += ":80"
 	}
-	logger.Println("Service HTTP", host)
+
+	if session.CurrentCaptureSession != nil {
+		session.CurrentCaptureSession.IncrementHostCount(host)
+		defer func() {
+			if session.CurrentCaptureSession != nil {
+				session.CurrentCaptureSession.DecrementHostCount(host)
+			}
+		}()
+	}
 
 	if !clientRequest.URL.IsAbs() {
 		http.Error(writer, "This is a proxy server that not respond to non-proxy requests.", 500)

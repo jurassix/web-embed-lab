@@ -11,6 +11,8 @@ func RouteClientMessage(clientMessage ClientMessage, clientUUID string) ([]strin
 		return []string{clientUUID}, NewAckMessage(ping.Message), nil
 	case ClientDisconnectedType:
 		return nil, nil, nil
+	case QuerySessionStateType:
+		return []string{clientUUID}, NewSessionStateMessage(), nil
 	case ToggleSessionType:
 		if session.CurrentCaptureSession == nil {
 			var err error
@@ -19,12 +21,10 @@ func RouteClientMessage(clientMessage ClientMessage, clientUUID string) ([]strin
 				logger.Printf("Error toggling on", err)
 			}
 			session.CurrentCaptureSession.Capturing = true
-			logger.Printf("Toggling on: %v", session.CurrentCaptureSession.DirectoryPath)
-			return []string{clientUUID}, NewSessionStateMessage(session.CurrentCaptureSession), nil
+			return []string{clientUUID}, NewSessionStateMessage(), nil
 		} else {
-			logger.Printf("Toggling off: %v", session.CurrentCaptureSession.DirectoryPath)
 			session.CurrentCaptureSession.Capturing = false
-			statusMessage := NewSessionStateMessage(session.CurrentCaptureSession)
+			statusMessage := NewSessionStateMessage()
 			session.CurrentCaptureSession = nil
 			return []string{clientUUID}, statusMessage, nil
 		}

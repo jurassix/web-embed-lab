@@ -1,53 +1,67 @@
+@import 'ui.css';
 
 body, html {
+	width: 100%;
+	max-width: 100%;
+	height: 100vh;
+	max-height: 100vh;
+}
+
+body, html, div, p, h1, h2, h3 {
 	padding: 0;
 	margin: 0;
 }
 
-body {
-	font-family: sans-serif;
-	padding: 10px;
-}
-
-button {
-	margin-right: 8px;
-}
-
-.outer-wrapper {
+.devpanel-component {
+	max-width: 100%;
+	height: 100%;
 	display: grid;
-	grid-template: auto / 1fr 1fr;
-	gap: 10px;
+	grid-template: auto / auto 1fr 1fr;
+	gap: var(--outer-margin);
 }
 
-.outer-wrapper > div {
-	border-left: solid 1px #EFEFEF;
+.devpanel-component > .section {
+	height: 100vh;
+	max-height: calc(100vh - var(--outer-margin) * 2);
+	overflow: auto;
+	border-left: solid 1px var(--light-base-color);
+	padding: var(--outer-padding);
+	margin-bottom: var(--outer-margin);
 }
 
-.outer-wrapper > div:first-child {
+.devpanel-component > .section:first-child {
 	border-left: none;
 }
 
-.section-title {
-	margin: 0 0 10px 0;
-	font-size: 18px;
-	font-weight: 400;
+.devpanel-component > .section > h2 {
+	margin-top: 0;
+	padding: 0;
+	font-size: var(--font-size-base);
+	border-bottom: solid 1px var(--light-base-color);
+	margin-bottom: var(--inner-margin)
 }
 
-.section {
-	margin-bottom: 30px;
+.devpanel-component > .section > .section-title {
+	margin: 0 0 var(--outer-margin) 0;
+	font-size: var(--font-size-3);
+	font-weight: var(--font-weight-3);
 }
 
-.focus {
-	height: calc(100vh - 20px);
-	overflow: auto;
+.connections-component {
 }
 
-.focus[data-content=kss], 
-.focus[data-content=style-tree] {
-	font-size: 16px;
-	line-height: 21px;
-	white-space: pre;
+.connections-component > table {
+	width: 100%;
 }
 
-.context {
+.connections-component > table th,
+.connections-component > table td {
+	text-align: left;
+}
+
+.connections-component tr > th:first-child,
+.connections-component tr > td:first-child {
+	width: 18em;
+	max-width: 18em;
+	overflow: hidden;
 }

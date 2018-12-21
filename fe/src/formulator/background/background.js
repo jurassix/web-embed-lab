@@ -6,12 +6,21 @@ if (typeof browser === 'undefined') {
 	}
 }
 
+/**
+
+Information flows like so:
+devpanel <-> background.js <-> content.js <-> target-page-colluder.js 
+
+content.js is where messages to the colluder service are sent and received over WebSockets. Incoming colluder messages are generally relayed to the background.js that relays them to the devpanel's Communicator instance. 
+
+*/
+
 const InitAction = 'wf-init'
 const ReceivedColluderMessage = 'wf-received-colluder-message'
 const SendColluderMessage = 'wf-send-colluder-message'
+const SendWindowMessage = 'wf-send-window-message'
 
 function handleRuntimeMessage(request, sender, sendResponse) {
-	//console.log('Background handling runtime message', request, sender, sendResponse)
 	if (sender.url === browser.runtime.getURL('/devtools/panel/panel.html')) {
 		handlePanelRuntimeMessage(request, sender, sendResponse)
 	} else {
@@ -41,6 +50,7 @@ function handlePanelRuntimeMessage(request, sender, sendResponse) {
 	}
 	switch (request.action) {
 		case SendColluderMessage:
+		case SendWindowMessage:
 			relayActionToTab(request)
 			break
 		case InitAction:

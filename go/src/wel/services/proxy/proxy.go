@@ -13,18 +13,30 @@ import (
 	"os"
 )
 
-// Where to write the captured stream files
-var StreamsDirPath = "streams"
-
 var logger = log.New(os.Stdout, "[proxy] ", 0)
 
+var CurrentProxyServer *ProxyServer = nil
+
 func Run(port int) {
+	if CurrentProxyServer != nil {
+		return
+	}
+	CurrentProxyServer = NewProxyServer()
 	logger.Println("Listening on", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), NewProxyServer()))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), CurrentProxyServer))
 }
 
 type ProxyServer struct {
 	Transport *http.Transport
+}
+
+func NewProxyServer() *ProxyServer {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		Proxy:           http.ProxyFromEnvironment,
+	}
+
+	return &ProxyServer{transport}
 }
 
 /*
@@ -37,23 +49,14 @@ func (proxyServer *ProxyServer) ServeHTTP(writer http.ResponseWriter, request *h
 			panic("httpserver does not support hijacking")
 		}
 
-		proxyClient, _, e := hij.Hijack()
+		clientConn, _, e := hij.Hijack()
 		if e != nil {
 			panic("Cannot hijack connection " + e.Error())
 		}
-		hijackConnect(request, proxyClient, proxyServer)
+		hijackConnect(request, clientConn, proxyServer)
 	} else {
 		handleHTTP(writer, request, proxyServer)
 	}
-}
-
-func NewProxyServer() *ProxyServer {
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		Proxy:           http.ProxyFromEnvironment,
-	}
-
-	return &ProxyServer{transport}
 }
 
 func isEof(r *bufio.Reader) bool {

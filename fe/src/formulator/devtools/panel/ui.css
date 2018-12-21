@@ -1,0 +1,94 @@
+:root {
+	--outer-margin: 12px;
+	--outer-padding: 12px;
+	--inner-margin: 8px;
+	--inner-padding: 8px;
+
+	--light-base-color: #AAAAAA;
+	--base-color: #666666;
+	--dark-base-color: #222222;
+
+	--font-family: sans-serif;
+
+	--light-font-weight: 300;
+	--medium-font-weight: 400;
+	--heavy-font-weight: 600;
+
+	--font-weight-base: var(--light-font-weight);
+	--line-height-base: 1.1em;
+	--letter-spacing-base: normal;
+	--font-size-base: 16px;
+
+	--font-weight-5: var(--light-font-weight);
+	--line-height-5: 1rem;
+	--letter-spacing-5: normal;
+	--font-size-5: calc(var(--font-size-base) + 1.6em);
+
+	--font-weight-4: var(--light-font-weight);
+	--line-height-4: 1rem;
+	--letter-spacing-4: normal;
+	--font-size-4: calc(var(--font-size-base) + 1.2em);
+
+	--font-weight-3: var(--light-font-weight);
+	--line-height-3: 1rem;
+	--letter-spacing-3: normal;
+	--font-size-3: calc(var(--font-size-base) + 0.8em);
+
+	--font-weight-2: var(--light-font-weight);
+	--line-height-2: 1rem;
+	--letter-spacing-2: normal;
+	--font-size-2: calc(var(--font-size-base) + 0.4em);
+
+	--font-weight-0: var(--light-font-weight);
+	--line-height-0: 1rem;
+	--letter-spacing-0: normal;
+	--font-size-0: calc(var(--font-size-base) - 0.4em);
+}
+
+html {
+	padding: 0;
+	margin: 0;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	font-family: var(--font-family);
+	font-weight: var(--font-weight-base);
+	font-size: var(--font-size-base);
+	line-height: var(--line-height-base);
+	letter-spacing: var(--letter-spacing-base);
+}
+
+h1, .h1 {
+	font-weight: var(--font-weight-4);
+	font-size: var(--font-size-4);
+	line-height: var(--line-height-4);
+	letter-spacing: var(--letter-spacing-4);
+}
+
+h2, .h2 {
+	font-weight: var(--font-weight-3);
+	font-size: var(--font-size-3);
+	line-height: var(--line-height-3);
+	letter-spacing: var(--letter-spacing-3);
+}
+
+h3, .h3 {
+	font-weight: var(--font-weight-2);
+	font-size: var(--font-size-2);
+	line-height: var(--line-height-2);
+	letter-spacing: var(--letter-spacing-2);
+}
+
+.button-component {
+}
+
+.key-value-component {
+	display: block;
+	margin-bottom: var(--inner-margin);
+}
+
+.key-value-component .key-el {
+	padding-right: var(--inner-padding);
+}

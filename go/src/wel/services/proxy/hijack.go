@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -18,6 +17,9 @@ import (
 	"strconv"
 	"strings"
 
+	"wel/services/colluder"
+	"wel/services/colluder/session"
+	"wel/services/colluder/ws"
 	weltls "wel/tls"
 )
 
@@ -27,14 +29,34 @@ var (
 	tlsConfigs  = make(map[string]*tls.Config)
 )
 
-// TODO: HANDLE WEBSOCKETS
+func broadcastIfPossible(message ws.ClientMessage) bool {
+	if session.CurrentCaptureSession != nil && session.CurrentCaptureSession.Capturing && colluder.CurrentWebSocketService != nil {
+		colluder.CurrentWebSocketService.Handler.Broadcast(message)
+		return true
+	}
+	return false
+}
 
 func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxyServer) {
 	host := req.URL.Host
 	if !hasPort.MatchString(host) {
 		host += ":80"
 	}
-	logger.Println("Hijacking", host)
+
+	if session.CurrentCaptureSession != nil {
+		session.CurrentCaptureSession.IncrementHostCount(host)
+		defer func() {
+			if session.CurrentCaptureSession != nil {
+				session.CurrentCaptureSession.DecrementHostCount(host)
+			}
+		}()
+	}
+
+	if broadcastIfPossible(ws.NewProxyConnectionStateMessage(true, host)) {
+		defer func() {
+			broadcastIfPossible(ws.NewProxyConnectionStateMessage(false, host))
+		}()
+	}
 
 	tlsConfig, ok := tlsConfigs[host]
 	if ok == false {
@@ -55,7 +77,10 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		logger.Printf("Cannot handshake client requesting %v: %v", req.Host, err)
 		return
 	}
-	defer rawClientTls.Close()
+	defer func() {
+		rawClientTls.Close()
+	}()
+
 	clientTlsReader := bufio.NewReader(rawClientTls)
 
 	// Now loop while handling requests
@@ -65,11 +90,53 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			logger.Printf("Error reading request %v %v", req.Host, err)
 			return
 		}
+
+		if session.CurrentCaptureSession != nil {
+			session.CurrentCaptureSession.IncrementHostRequests(host)
+		}
+		broadcastIfPossible(ws.NewProxyConnectionRequestMessage(host))
+
+		if clientReq.Header.Get("Upgrade") == "websocket" {
+			// Connect to the target WS service
+			targetConn, err := tls.Dial("tcp", host, &tls.Config{
+				InsecureSkipVerify: true,
+			})
+			if err != nil {
+				logger.Printf("Could not dial connect %v", host, err)
+				httpError(clientConn, err)
+				return
+			}
+
+			// Write the original client request to the target
+			requestLine := fmt.Sprintf("%v %v %v\r\nHost: %v\r\n", clientReq.Method, clientReq.URL.String(), clientReq.Proto, req.Host)
+			if _, err := io.WriteString(targetConn, requestLine); err != nil {
+				logger.Printf("Could not write the WS request: %v", err)
+				httpError(clientConn, err)
+				return
+			}
+
+			if err := clientReq.Header.Write(targetConn); err != nil {
+				logger.Println("Could not write the WS header", host, err)
+				httpError(clientConn, err)
+				return
+			}
+			_, err = io.WriteString(targetConn, "\r\n")
+			if err != nil {
+				logger.Println("Could not write the final header line", host, err)
+				httpError(clientConn, err)
+				return
+			}
+
+			// And then relay everything between the client and target
+			go transfer(targetConn, rawClientTls)
+			transfer(rawClientTls, targetConn)
+			return
+		}
+
 		clientReq.RemoteAddr = req.RemoteAddr
 		if !httpsRegexp.MatchString(clientReq.URL.String()) {
 			clientReq.URL, err = url.Parse("https://" + req.Host + clientReq.URL.String())
 		}
-
 		resp, err := proxyServer.Transport.RoundTrip(clientReq)
 		if err != nil {
 			logger.Printf("Cannot read TLS response from mitm'd server %v", err)
@@ -116,21 +183,10 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			}
 		}
 	}
-	logger.Println("Closing", host)
 }
 
-var replacedNameChars = [...]string{
-	":",
-	"-",
-	"/",
-	"\\",
-	".",
-}
-
-func createFileName(host string, source string) string {
-	cleanedHost := host
-	for _, tar := range replacedNameChars {
-		cleanedHost = strings.Replace(cleanedHost, tar, "_", -1)
-	}
-	return fmt.Sprintf("%v/stream-%v-%v-%v.txt", StreamsDirPath, source, cleanedHost, rand.Int())
+func transfer(destination io.WriteCloser, source io.ReadCloser) {
+	defer destination.Close()
+	defer source.Close()
+	io.Copy(destination, source)
 }

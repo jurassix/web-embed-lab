@@ -16,7 +16,6 @@ var logger = log.New(os.Stdout, "[colluder] ", 0)
 func main() {
 	logger.Println("Starting")
 
-	os.Mkdir(proxy.StreamsDirPath, 0777)
 	os.Mkdir(colluder.DistDirPath, 0777)
 
 	err := weltls.ReadOrGenerateCa()

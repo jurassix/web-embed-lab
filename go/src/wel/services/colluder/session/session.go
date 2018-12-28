@@ -34,6 +34,7 @@ type CaptureSession struct {
 	NumRequests   int
 	NextFileId    int // A counter used when generating file names
 	HostCounts    []*HostCount
+	Timeline      *Timeline
 }
 
 func NewCaptureSession() (*CaptureSession, error) {
@@ -42,26 +43,34 @@ func NewCaptureSession() (*CaptureSession, error) {
 		return nil, err
 	}
 	return &CaptureSession{
-		Capturing:     false,
+		Capturing:     true,
 		DirectoryPath: capturePath,
 		NumRequests:   0,
 		NextFileId:    101, // start at a non-zero number
 		HostCounts:    make([]*HostCount, 0),
+		Timeline:      NewTimeline(),
 	}, nil
 }
 
-func (session *CaptureSession) StartCapturing() {
-	if session.Capturing {
-		return
+func (session *CaptureSession) WriteTimeline() error {
+	if session.Timeline.Ended == -1 {
+		session.Timeline.Ended = time.Now().Unix()
 	}
-	session.Capturing = true
-}
+	data, err := session.Timeline.JSON()
+	if err != nil {
+		return err
+	}
 
-func (session *CaptureSession) StopCapturing() {
-	if session.Capturing == false {
-		return
+	fileName := "timeline.json"
+	filePath := path.Join(session.DirectoryPath, fileName)
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
 	}
-	session.Capturing = false
+	defer file.Close()
+	file.Write(data)
+	logger.Printf("Wrote Timeline: %v", filePath)
+	return nil
 }
 
 func (session *CaptureSession) GetOrCreateHostCount(host string) (int, *HostCount) {

@@ -20,10 +20,13 @@ func RouteClientMessage(clientMessage ClientMessage, clientUUID string) ([]strin
 			if err != nil {
 				logger.Printf("Error toggling on", err)
 			}
-			session.CurrentCaptureSession.Capturing = true
 			return []string{clientUUID}, NewSessionStateMessage(), nil
 		} else {
 			session.CurrentCaptureSession.Capturing = false
+			err := session.CurrentCaptureSession.WriteTimeline()
+			if err != nil {
+				logger.Printf("Error writing timeline %v", err)
+			}
 			statusMessage := NewSessionStateMessage()
 			session.CurrentCaptureSession = nil
 			return []string{clientUUID}, statusMessage, nil

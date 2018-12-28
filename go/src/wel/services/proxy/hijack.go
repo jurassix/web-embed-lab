@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -135,7 +136,7 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 
 		clientReq.RemoteAddr = req.RemoteAddr
 		if !httpsRegexp.MatchString(clientReq.URL.String()) {
-			clientReq.URL, err = url.Parse("https://" + req.Host + clientReq.URL.String())
+			clientReq.URL, _ = url.Parse("https://" + req.Host + clientReq.URL.String())
 		}
 		resp, err := proxyServer.Transport.RoundTrip(clientReq)
 		if err != nil {
@@ -148,6 +149,27 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		statusCode := strconv.Itoa(resp.StatusCode) + " "
 		if strings.HasPrefix(text, statusCode) {
 			text = text[len(statusCode):]
+		}
+
+		// If capturing, set up a tee into a capture file
+		var bodyReader io.Reader
+		var outputFile *os.File = nil
+		var outputFileId int = -1
+		if resp.ContentLength == 0 || session.CurrentCaptureSession == nil {
+			bodyReader = resp.Body
+		} else {
+			outputFile, outputFileId, err = session.CurrentCaptureSession.OpenCaptureFile()
+			if err == nil {
+				bodyReader = io.TeeReader(resp.Body, outputFile)
+				defer outputFile.Close()
+			} else {
+				logger.Printf("Could not create an output file %v", err)
+				bodyReader = resp.Body
+			}
+		}
+
+		if session.CurrentCaptureSession != nil {
+			session.CurrentCaptureSession.Timeline.AddRequest(clientReq.URL.String(), resp.StatusCode, resp.Header.Get("Content-Type"), outputFileId)
 		}
 
 		// Send the response prelude to the client
@@ -164,12 +186,12 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 				logger.Printf("Cannot write content length: %v", err)
 				return
 			}
-			if _, err := io.CopyN(rawClientTls, resp.Body, resp.ContentLength); err != nil {
+			if _, err := io.CopyN(rawClientTls, bodyReader, resp.ContentLength); err != nil {
 				logger.Printf("Error copying to client: %s", err)
 			}
 		} else if resp.ContentLength < 0 {
 			// The server didn't supply a content length so we calculate one
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := ioutil.ReadAll(bodyReader)
 			if err != nil {
 				logger.Printf("Cannot read a body: %v", err)
 				return

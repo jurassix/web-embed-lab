@@ -1,0 +1,18 @@
+<html>
+	<head>
+		<!-- Use a value set in formula.json's "context-data" structure -->
+		<title>{{ .GetContextString "title" }}</title>
+		<link rel="stylesheet" href="./static/index.css" type='text/css'>
+		<script src='{{ .HostScriptURL }}'></script>
+	</head>
+
+	<body>
+		<h1>{{ .GetContextString "title" }}</h1>
+
+		<div id='random-words'>loading...</div>
+
+		<img width='400' height='300' src='/mock/image/400x300.gif' />
+
+		<script src='./static/index.js'></script>
+	</body>
+</html>

@@ -1,0 +1,58 @@
+{
+	"comment": "A page formula that demonstrates core features by serving a vanilla JS site",
+	"syntax-version": "0.1",
+
+	"routes": [
+		{
+			"comment": "Route to a go template",
+			"id": "splash",
+			"path": "^$",
+			"template": "index.html"
+		},
+		{
+			"comment": "Route to a Javascript service object",
+			"id": "random-words",
+			"path": "^service\\/random-words$",
+			"service": "UserAuthService"
+		},
+		{
+			"comment": "Route to a static blob",
+			"path": "^foo\\/bing-bong.png$",
+			"headers": {
+				"Content-Type": "image/png"
+			},
+			"static": "image/ABC-123"
+		},
+		{
+			"comment": "Route to mocked blob",
+			"path": "^bar\\/flower.jpg$",
+			"static": "mock/image/200x400.jpg"
+		}
+	],
+
+	"context-data": {
+		"global": {
+			"title": "Vanilla"
+		},
+		"route": {
+			"splash": {
+				"moon": "unit-zappa"
+			},
+			"random-words": {
+				"max-words": 15
+			}
+		}
+	},
+
+	"probe-basis": {
+		"dom-shape": {
+			"depth": 20,
+			"width": 45
+		},
+		"uncaught-exception": 3,
+		"selector": {
+			".main-component > .success-message:first-child": 1,
+			".footer h2.a": 6
+		}
+	}
+}

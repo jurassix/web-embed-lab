@@ -4,19 +4,19 @@
 	"routes": [
 		{
 			"comment": "Route to a go template",
-			"type": 1,
+			"type": 0,
 			"id": "123",
-			"path": "^$",
+			"path": "^/$",
 			"value": "index.html",
 			"parameters": {
-				"moon": "unit-zappa"
+				"title": "Vanilla Extract"
 			}
 		},
 		{
 			"comment": "Route to a Javascript service object",
-			"type": 2,
+			"type": 1,
 			"id": "456",
-			"path": "^service\\/random-words$",
+			"path": "^/service\\/random-words$",
 			"value": "RandomWordsService",
 			"parameters": {
 				"max-words": "15"
@@ -24,16 +24,16 @@
 		},
 		{
 			"comment": "Route to mocked image service",
-			"type": 3,
+			"type": 2,
 			"id": "789",
-			"path": "^bar\\/flower.jpg$",
+			"path": "^/bar\\/flower.jpg$",
 			"value": "mock/image/200x400.jpg"
 		},
 		{
 			"comment": "Route to a static blob",
-			"type": 4,
+			"type": 3,
 			"id": "101112", 
-			"path": "^foo\\/bing-bong.png$",
+			"path": "^/foo\\/bing-bong.png$",
 			"value": "files/ABC-123",
 			"headers": {
 				"Content-Type": "image/png"

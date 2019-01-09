@@ -1,13 +1,13 @@
 <html>
 	<head>
 		<!-- Use a value set in formula.json's "context-data" structure -->
-		<title>{{ .GetContextString "title" }}</title>
+		<title>{{ .title }}</title>
 		<link rel="stylesheet" href="./static/index.css" type='text/css'>
 		<script src='{{ .HostScriptURL }}'></script>
 	</head>
 
 	<body>
-		<h1>{{ .GetContextString "title" }}</h1>
+		<h1>{{ .title }}</h1>
 
 		<div id='random-words'>loading...</div>
 

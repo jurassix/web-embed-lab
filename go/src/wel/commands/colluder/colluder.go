@@ -1,5 +1,6 @@
 /*
-The cli package implements a Command Line Interface for the Web Extension Lab's host used while drafting page formulas.
+The Colluder works with the Formulator to capture a browsing session.
+That captured data is then used by the formula cli tool to draft a page formula.
 */
 package colluder
 

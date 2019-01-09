@@ -2,6 +2,8 @@ package session
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"time"
 )
 
@@ -30,6 +32,19 @@ func NewTimeline() *Timeline {
 		Started: time.Now().Unix(),
 		Ended:   -1,
 	}
+}
+
+func ParseTimeline(inputFile *os.File) (*Timeline, error) {
+	timeline := NewTimeline()
+	data, err := ioutil.ReadAll(inputFile)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(data, timeline)
+	if err != nil {
+		return nil, err
+	}
+	return timeline, nil
 }
 
 func (timeline *Timeline) AddRequest(requestURL string, statusCode int, contentType string, outputFileId int) {

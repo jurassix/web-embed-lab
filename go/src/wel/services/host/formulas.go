@@ -2,12 +2,16 @@ package host
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
 	"regexp"
+	"strconv"
+	"strings"
 
 	"wel/formulas"
 )
@@ -101,22 +105,70 @@ func (host *FormulaHost) MatchRoute(path string) *formulas.Route {
 func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	route := host.MatchRoute(request.URL.Path)
 	if route == nil {
+		if strings.HasPrefix(request.URL.Path, "/static/") && strings.Contains(request.URL.Path, "..") == false {
+			host.handleStaticRequest(writer, request)
+			return
+		}
 		writer.WriteHeader(http.StatusNotFound)
-		writer.Write([]byte("No route"))
+		writer.Write([]byte(fmt.Sprintf("No route: %v", request.URL.Path)))
 		return
 	}
 	switch route.Type {
 	case formulas.TemplateRoute:
 		host.handleTemplateRoute(route, writer, request)
+	case formulas.StaticRoute:
+		host.handleStaticRoute(route, writer, request)
 	default:
-		logger.Println("Unknown route", route.Type)
+		logger.Println("Unknown route type", route.Type)
 		writer.WriteHeader(http.StatusNotFound)
-		writer.Write([]byte("Unknown route"))
+		writer.Write([]byte(fmt.Sprintf("Not found: %v", request.URL.Path)))
+	}
+}
+
+func (host *FormulaHost) handleStaticRequest(writer http.ResponseWriter, request *http.Request) {
+	logger.Println("Static request", request.URL.Path)
+	blob, blobStat, err := host.openBlob(request.URL.Path)
+	if err != nil {
+		logger.Println("No static blob", request.URL.Path, err)
+		writer.WriteHeader(http.StatusNotFound)
+		writer.Write([]byte("Blob error"))
+		return
+	}
+	defer func() {
+		blob.Close()
+	}()
+
+	writer.WriteHeader(http.StatusOK)
+	if _, err := io.CopyN(writer, blob, blobStat.Size()); err != nil {
+		logger.Printf("Error writing blob: %s", err)
+	}
+}
+
+func (host *FormulaHost) handleStaticRoute(route *formulas.Route, writer http.ResponseWriter, request *http.Request) {
+	blob, blobStat, err := host.openBlob(route.Value)
+	if err != nil {
+		logger.Println("No routed static blob", route.Value, err)
+		writer.WriteHeader(http.StatusNotFound)
+		writer.Write([]byte("Blob error"))
+		return
+	}
+	defer func() {
+		blob.Close()
+	}()
+
+	writer.WriteHeader(http.StatusOK)
+	for key, value := range route.Headers {
+		writer.Header().Add(key, value)
+	}
+	writer.Header().Add("Content-Length", strconv.FormatInt(blobStat.Size(), 10))
+
+	if _, err := io.CopyN(writer, blob, blobStat.Size()); err != nil {
+		logger.Printf("Error writing blob: %s", err)
 	}
 }
 
 func (host *FormulaHost) handleTemplateRoute(route *formulas.Route, writer http.ResponseWriter, request *http.Request) {
-	routeTemplate, err := template.ParseFiles(path.Join(host.FormulasPath, host.CurrentFormula, "template", route.Value))
+	routeTemplate, err := template.ParseFiles(path.Join(host.FormulasPath, host.CurrentFormula, route.Value))
 	if err != nil {
 		logger.Println("Template error", err)
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -126,5 +178,22 @@ func (host *FormulaHost) handleTemplateRoute(route *formulas.Route, writer http.
 	err = routeTemplate.Execute(writer, route.Parameters)
 	if err != nil {
 		logger.Println("Template execution error", err)
+		writer.Write([]byte("Template failure"))
 	}
+}
+
+func (host *FormulaHost) openBlob(pathValue string) (*os.File, os.FileInfo, error) {
+	blobPath := path.Join(host.FormulasPath, host.CurrentFormula, pathValue)
+	blobStat, err := os.Stat(blobPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	if blobStat.IsDir() {
+		return nil, nil, errors.New("Unexpectedly found a directory")
+	}
+	blob, err := os.Open(blobPath)
+	if err != nil {
+		return nil, nil, err
+	}
+	return blob, blobStat, nil
 }

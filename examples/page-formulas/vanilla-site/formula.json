@@ -7,7 +7,7 @@
 			"type": 0,
 			"id": "123",
 			"path": "^/$",
-			"value": "index.html",
+			"value": "/template/index.html",
 			"parameters": {
 				"title": "Vanilla Extract"
 			}
@@ -26,15 +26,15 @@
 			"comment": "Route to mocked image service",
 			"type": 2,
 			"id": "789",
-			"path": "^/bar\\/flower.jpg$",
-			"value": "mock/image/200x400.jpg"
+			"path": "^/bar\\/flower.png$",
+			"value": "/image/200x100.png"
 		},
 		{
 			"comment": "Route to a static blob",
 			"type": 3,
 			"id": "101112", 
-			"path": "^/foo\\/bing-bong.png$",
-			"value": "files/ABC-123",
+			"path": "^/foo\\/butterfly.png$",
+			"value": "/static/ABC-101",
 			"headers": {
 				"Content-Type": "image/png"
 			}

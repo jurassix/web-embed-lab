@@ -2,8 +2,7 @@
 	<head>
 		<!-- Use a value set in formula.json's "context-data" structure -->
 		<title>{{ .title }}</title>
-		<link rel="stylesheet" href="./static/index.css" type='text/css'>
-		<script src='{{ .HostScriptURL }}'></script>
+		<link rel="stylesheet" href="/static/index.css" type='text/css'>
 	</head>
 
 	<body>
@@ -11,8 +10,10 @@
 
 		<div id='random-words'>loading...</div>
 
-		<img width='400' height='300' src='/mock/image/400x300.gif' />
+		<img width='200' src='/foo/butterfly.png' />
 
-		<script src='./static/index.js'></script>
+		<img width='200' src='/static/ABC-222' />
+
+		<script src='/static/index.js'></script>
 	</body>
 </html>

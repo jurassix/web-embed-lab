@@ -8,6 +8,6 @@ fetch('./service/random-words').then(response => {
 	return response.text()
 }).then(words => {
 	document.getElementById('random-words').innerText = words
-}).catch(...params => {
+}).catch((...params) => {
 	console.error('Error', ...params)
 })

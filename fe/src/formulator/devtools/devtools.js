@@ -1,6 +1,6 @@
 if (typeof browser === 'undefined') {
 	if (typeof chrome !== 'undefined') {
-		browser = chrome
+		window.browser = chrome
 	} else {
 		throw new Error('Could not find the WebExtension API')
 	}

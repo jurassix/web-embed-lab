@@ -105,7 +105,7 @@ func (host *FormulaHost) MatchRoute(path string) *formulas.Route {
 func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	route := host.MatchRoute(request.URL.Path)
 	if route == nil {
-		if strings.HasPrefix(request.URL.Path, "/static/") && strings.Contains(request.URL.Path, "..") == false {
+		if strings.HasPrefix(request.URL.Path, fmt.Sprintf("/%v/", formulas.StaticDirName)) && strings.Contains(request.URL.Path, "..") == false {
 			host.handleStaticRequest(writer, request)
 			return
 		}

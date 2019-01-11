@@ -13,10 +13,9 @@ var logger = log.New(os.Stdout, "[session] ", 0)
 
 var CapturesDirPath = "captures"
 var CapturesFilesDirName = "files"
+var TimelineFileName = "timeline.json"
 
 var CurrentCaptureSession *CaptureSession = nil
-
-var TimelineFileName = "timeline.json"
 
 /*
 HostCount tracks the number of current connections for a host as well as the number of requests made through the connection

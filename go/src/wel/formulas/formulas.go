@@ -16,6 +16,8 @@ import (
 var logger = log.New(os.Stdout, "[formulas] ", 0)
 
 var FormulaInfoFileName = "formula.json"
+var StaticDirName = "static"
+var TemplateDirName = "template"
 
 /*
 PageFormula holds a description of a web page and its resources hosted locally and accessed by a web browser during an experiment.
@@ -25,6 +27,10 @@ type PageFormula struct {
 	TemplateData map[string]string `json:"template-data"` // data passed to the formula's go templates
 	Routes       []Route           `json:"routes"`        // Determines what to do with incoming URL requests
 	//ProbeBases   []ProbeBasis      `json:"probe-bases"`   // Expected values for test probes used to compare new embedded scripts
+}
+
+func (formula *PageFormula) JSON() ([]byte, error) {
+	return json.Marshal(formula)
 }
 
 func NewPageFormula() *PageFormula {
@@ -65,6 +71,17 @@ type Route struct {
 	Value      string            `json:"value"`
 	Parameters map[string]string `json:"parameters"`
 	Headers    map[string]string `json:"headers"` // HTTP headers to include in the response
+}
+
+func NewRoute(id string, path string, routeType RouteType, value string) *Route {
+	return &Route{
+		ID:         id,
+		Path:       path,
+		Type:       routeType,
+		Value:      value,
+		Parameters: make(map[string]string, 0),
+		Headers:    make(map[string]string, 0),
+	}
 }
 
 /*

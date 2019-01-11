@@ -1,10 +1,17 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 
+	"wel/formulas"
 	"wel/services/colluder/session"
 )
 
@@ -16,6 +23,7 @@ func main() {
 		return
 	}
 
+	// Check that the capture path has the expected files and directories
 	capturePath := os.Args[1]
 	captureStat, err := os.Stat(capturePath)
 	if err != nil {
@@ -24,12 +32,6 @@ func main() {
 	}
 	if captureStat.IsDir() == false {
 		logger.Printf("Did not find a capture directory: %v", capturePath)
-		return
-	}
-
-	formulaPath := os.Args[2]
-	if os.MkdirAll(formulaPath, 0777) != nil {
-		logger.Printf("Could not find or create formula path: \"%v\"", formulaPath)
 		return
 	}
 
@@ -48,23 +50,157 @@ func main() {
 		logger.Printf("Could not open timeline: \"%v\"", timelinePath)
 		return
 	}
-	defer func() {
-		timelineFile.Close()
-	}()
-
-	logger.Printf("Formulating %v", capturePath)
+	defer timelineFile.Close()
 
 	timeline, err := session.ParseTimeline(timelineFile)
 	if err != nil {
 		logger.Printf("Could not parse timeline: \"&v\"", timelinePath)
 	}
 
-	for _, request := range timeline.Requests {
-		logger.Printf("Request: %v", request)
+	htmlRequests := timeline.FindRequestsByMimetype("text/html")
+	if len(htmlRequests) == 0 {
+		logger.Printf("There were no HTML requests, aborting")
+		return
+	}
+
+	// Load the files into a map keyed on their ID #s
+	filesPath := path.Join(capturePath, session.CapturesFilesDirName)
+	filesStat, err := os.Stat(filesPath)
+	if err != nil {
+		logger.Printf("Could not find files dir: \"%v\"", filesPath)
+		return
+	}
+	if filesStat.IsDir() == false {
+		logger.Printf("Did not find a files directory: %v", filesPath)
+		return
+	}
+	fileMap, err := mapFileIDs(filesPath)
+	if err != nil {
+		logger.Println("Could not map file IDs", err)
+		return
+	}
+
+	// Set up the destination formula directories
+	formulaPath := os.Args[2]
+	if os.MkdirAll(formulaPath, 0777) != nil {
+		logger.Printf("Could not find or create formula path: \"%v\"", formulaPath)
+		return
+	}
+	formulaInfoPath := path.Join(formulaPath, formulas.FormulaInfoFileName)
+	formulaStaticPath := path.Join(formulaPath, formulas.StaticDirName)
+	if os.MkdirAll(formulaStaticPath, 0777) != nil {
+		logger.Printf("Could not find or create formula static path: \"%v\"", formulaStaticPath)
+		return
+	}
+	formulaTemplatePath := path.Join(formulaPath, formulas.TemplateDirName)
+	if os.MkdirAll(formulaTemplatePath, 0777) != nil {
+		logger.Printf("Could not find or create formula template path: \"%v\"", formulaTemplatePath)
+		return
+	}
+
+	formula := formulas.NewPageFormula()
+
+	// Write HTML templates and create their routes
+	for _, request := range htmlRequests {
+		if request.StatusCode != 200 {
+			continue
+		}
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+		templateFileName := fmt.Sprintf("%v.html", request.OutputFileId)
+		err = copyFile(
+			path.Join(formulaTemplatePath, templateFileName),
+			path.Join(filesPath, sourceInfo.Name()),
+		)
+		if err != nil {
+			logger.Println("Could not copy template", err)
+			continue
+		}
+		regex := goRegexpForURL(request.URL)
+		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
+		logger.Println("New template route", route.Path, templateFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
+
+	// Write the formula info to JSON
+	formulaInfo, err := formula.JSON()
+	if err != nil {
+		logger.Println("Could not marshal formula JSON", err)
+		return
+	}
+	err = ioutil.WriteFile(formulaInfoPath, formulaInfo, 0644)
+	if err != nil {
+		logger.Println("Could not write formula info", err)
+		return
 	}
 }
 
 func printHelp() {
 	logger.Println("usage: formulate <source capture directory> <formula destination directory>")
 	logger.Println("Example: formulate ./captures/2018-12-28-5C266D4F-1C03/ ./formulas/spiffy-formula/")
+}
+
+func goRegexpForURL(url string) string {
+	if strings.HasPrefix(url, "http://") {
+		url = url[7:]
+	} else if strings.HasPrefix(url, "https://") {
+		url = url[8:]
+	}
+	logger.Println("regex for URL", url)
+	lastIndex := strings.LastIndex(url, "/")
+	if lastIndex == -1 {
+		return "/"
+	}
+	return url[lastIndex:]
+}
+
+func copyFile(destination string, source string) error {
+	sourceFile, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destinationFile, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer destinationFile.Close()
+	_, err = io.Copy(destinationFile, sourceFile)
+	return err
+}
+
+func mapFileIDs(filesPath string) (map[int]os.FileInfo, error) {
+	fileInfos, err := ioutil.ReadDir(filesPath)
+	if err != nil {
+		return nil, err
+	}
+	results := make(map[int]os.FileInfo, 0)
+	for _, fileInfo := range fileInfos {
+		if fileInfo.IsDir() {
+			continue
+		}
+		id, err := parseIDFromFileName(fileInfo.Name())
+		if err != nil {
+			logger.Println("Unrecognized file name (no ID)", fileInfo.Name())
+			continue
+		}
+		results[id] = fileInfo
+	}
+	return results, nil
+}
+
+func parseIDFromFileName(name string) (int, error) {
+	lastIndex := strings.LastIndex(name, "-")
+	if lastIndex == -1 {
+		return -1, errors.New(fmt.Sprintf("No dashes in name: %v", name))
+	}
+	id, err := strconv.ParseInt(name[lastIndex+1:], 10, 32)
+	if err != nil {
+		return -1, err
+	}
+	return int(id), nil
 }

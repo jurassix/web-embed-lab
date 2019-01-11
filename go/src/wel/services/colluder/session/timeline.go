@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -55,6 +56,18 @@ func (timeline *Timeline) AddRequest(requestURL string, statusCode int, contentT
 		ContentType:  contentType,
 		OutputFileId: outputFileId,
 	})
+}
+
+func (timeline *Timeline) FindRequestsByMimetype(mimetype string) []Request {
+	results := make([]Request, 0)
+
+	for _, request := range timeline.Requests {
+		if strings.HasPrefix(request.ContentType, mimetype) {
+			results = append(results, request)
+		}
+	}
+
+	return results
 }
 
 func (timeline *Timeline) JSON() ([]byte, error) {

@@ -13,6 +13,7 @@ var logger = log.New(os.Stdout, "[session] ", 0)
 
 var CapturesDirPath = "captures"
 var CapturesFilesDirName = "files"
+var TimelineFileName = "timeline.json"
 
 var CurrentCaptureSession *CaptureSession = nil
 
@@ -61,8 +62,7 @@ func (session *CaptureSession) WriteTimeline() error {
 		return err
 	}
 
-	fileName := "timeline.json"
-	filePath := path.Join(session.DirectoryPath, fileName)
+	filePath := path.Join(session.DirectoryPath, TimelineFileName)
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err

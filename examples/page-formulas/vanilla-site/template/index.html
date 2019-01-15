@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<!-- Use a value set in formula.json's "context-data" structure -->
+		<title>{{ .title }}</title>
+		<link rel="stylesheet" href="/static/index.css" type='text/css'>
+	</head>
+
+	<body>
+		<h1>{{ .title }}</h1>
+
+		<div id='random-words'>loading...</div>
+
+		<img width='200' src='/foo/butterfly.png' />
+
+		<img width='200' src='/static/ABC-222' />
+
+		<script src='/static/index.js'></script>
+	</body>
+</html>

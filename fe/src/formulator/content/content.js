@@ -10,7 +10,7 @@ if (window.ContentConstants === undefined) {
 
 	if (typeof browser === 'undefined') {
 		if (typeof chrome !== 'undefined') {
-			browser = chrome
+			window.browser = chrome
 		} else {
 			throw new Error('Could not find the WebExtension API')
 		}
@@ -184,10 +184,10 @@ if (window.ContentConstants === undefined) {
 	window.addEventListener('message', handleWindowMessage)
 	browser.runtime.onMessage.addListener(handleRuntimeMessage)
 
-	injectScript('https://127.0.0.1:8081/target-page-colluder.js')
+	injectScript('https://localhost:8081/target-page-colluder.js')
 
 	//  The ColluderClient WebSocket listener relays messages back to the formulator background script
-	const colluderClient = new ColluderClient('wss://127.0.0.1:8082/ws', message =>  {
+	const colluderClient = new ColluderClient('wss://localhost:8082/ws', message =>  {
 		browser.runtime.sendMessage({
 			action: ContentConstants.ReceivedColluderMessage,
 			message: JSON.parse(message.data)

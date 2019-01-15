@@ -66,7 +66,7 @@ const (
 
 type Route struct {
 	ID         string            `json:"id"`
-	Path       string            `json:"path"` // A JS regex used client side to route URLs
+	Path       string            `json:"path"` // A regex used route URLs
 	Type       RouteType         `json:"type"`
 	Value      string            `json:"value"`
 	Parameters map[string]string `json:"parameters"`

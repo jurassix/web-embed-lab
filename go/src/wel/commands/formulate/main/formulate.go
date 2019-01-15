@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -105,6 +106,12 @@ func main() {
 		if request.StatusCode != 200 {
 			continue
 		}
+
+		regex := goRegexpForURL(request.URL)
+		if regex == "^/favicon.ico$" {
+			continue
+		}
+
 		sourceInfo, ok := fileMap[request.OutputFileId]
 		if ok != true {
 			logger.Println("No such file ID", request.OutputFileId)
@@ -114,14 +121,70 @@ func main() {
 		err = copyFile(
 			path.Join(formulaTemplatePath, templateFileName),
 			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
 		)
 		if err != nil {
 			logger.Println("Could not copy template", err)
 			continue
 		}
-		regex := goRegexpForURL(request.URL)
 		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
 		logger.Println("New template route", route.Path, templateFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
+
+	// Write CSS files and create their routes
+	cssRequests := timeline.FindRequestsByMimetype("text/css")
+	for _, request := range cssRequests {
+		if request.StatusCode != 200 {
+			continue
+		}
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+		staticFileName := fmt.Sprintf("%v.css", request.OutputFileId)
+		err = copyFile(
+			path.Join(formulaStaticPath, staticFileName),
+			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
+		)
+		if err != nil {
+			logger.Println("Could not copy", err)
+			continue
+		}
+		regex := goRegexpForURL(request.URL)
+		logger.Println("Regex", request.URL, regex)
+		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
+		logger.Println("New CSS route", route.Path, staticFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
+
+	imageRequests := timeline.FindRequestsByMimetype("image/")
+	for _, request := range imageRequests {
+		if request.StatusCode != 200 {
+			continue
+		}
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+		staticFileName := fmt.Sprintf("%v.image", request.OutputFileId)
+		err = copyFile(
+			path.Join(formulaStaticPath, staticFileName),
+			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
+		)
+		if err != nil {
+			logger.Println("Could not copy", err)
+			continue
+		}
+		regex := goRegexpForURL(request.URL)
+		logger.Println("Regex", request.URL, regex)
+		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
+		route.Headers["Content-Type"] = request.ContentType
+		logger.Println("New CSS route", route.Path, staticFileName)
 		formula.Routes = append(formula.Routes, *route)
 	}
 
@@ -149,15 +212,19 @@ func goRegexpForURL(url string) string {
 	} else if strings.HasPrefix(url, "https://") {
 		url = url[8:]
 	}
-	logger.Println("regex for URL", url)
 	lastIndex := strings.LastIndex(url, "/")
 	if lastIndex == -1 {
-		return "/"
+		return "^/$"
 	}
-	return url[lastIndex:]
+	firstIndex := strings.Index(url, "/")
+	if firstIndex == lastIndex {
+		return fmt.Sprintf("^%v$", url[lastIndex:])
+	}
+	url = url[firstIndex:]
+	return fmt.Sprintf("^%v$", url)
 }
 
-func copyFile(destination string, source string) error {
+func copyFile(destination string, source string, contentEncoding string) error {
 	sourceFile, err := os.Open(source)
 	if err != nil {
 		return err
@@ -169,7 +236,17 @@ func copyFile(destination string, source string) error {
 		return err
 	}
 	defer destinationFile.Close()
-	_, err = io.Copy(destinationFile, sourceFile)
+
+	if contentEncoding == "gzip" {
+		gzipReader, err := gzip.NewReader(sourceFile)
+		if err != nil {
+			return err
+		}
+		defer gzipReader.Close()
+		_, err = io.Copy(destinationFile, gzipReader)
+	} else {
+		_, err = io.Copy(destinationFile, sourceFile)
+	}
 	return err
 }
 

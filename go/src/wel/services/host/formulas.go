@@ -81,6 +81,7 @@ func NewFormulaHost(formulasPath string) (*FormulaHost, error) {
 		return nil, errors.New("Read no page formulas")
 	}
 	host.CurrentFormula = firstName
+	logger.Println("Hosting", firstName)
 
 	return host, nil
 }

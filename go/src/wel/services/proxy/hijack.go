@@ -169,7 +169,13 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		}
 
 		if session.CurrentCaptureSession != nil {
-			session.CurrentCaptureSession.Timeline.AddRequest(clientReq.URL.String(), resp.StatusCode, resp.Header.Get("Content-Type"), outputFileId)
+			session.CurrentCaptureSession.Timeline.AddRequest(
+				clientReq.URL.String(),
+				resp.StatusCode,
+				resp.Header.Get("Content-Type"),
+				resp.Header.Get("Content-Encoding"),
+				outputFileId,
+			)
 		}
 
 		// Send the response prelude to the client

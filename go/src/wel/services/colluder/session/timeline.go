@@ -12,11 +12,12 @@ import (
 Request holds a record of a request to a remote service for use in a Timeline
 */
 type Request struct {
-	Timestamp    int64  `json:"timestamp"`
-	URL          string `json:"url"`
-	StatusCode   int    `json:"status-code"`
-	ContentType  string `json:"content-type"`
-	OutputFileId int    `json:"output-file-id"`
+	Timestamp       int64  `json:"timestamp"`
+	URL             string `json:"url"`
+	StatusCode      int    `json:"status-code"`
+	ContentType     string `json:"content-type"`
+	ContentEncoding string `json:"content-encoding"`
+	OutputFileId    int    `json:"output-file-id"`
 }
 
 /*
@@ -48,13 +49,14 @@ func ParseTimeline(inputFile *os.File) (*Timeline, error) {
 	return timeline, nil
 }
 
-func (timeline *Timeline) AddRequest(requestURL string, statusCode int, contentType string, outputFileId int) {
+func (timeline *Timeline) AddRequest(requestURL string, statusCode int, contentType string, contentEncoding string, outputFileId int) {
 	timeline.Requests = append(timeline.Requests, Request{
-		Timestamp:    time.Now().Unix(),
-		URL:          requestURL,
-		StatusCode:   statusCode,
-		ContentType:  contentType,
-		OutputFileId: outputFileId,
+		Timestamp:       time.Now().Unix(),
+		URL:             requestURL,
+		StatusCode:      statusCode,
+		ContentType:     contentType,
+		ContentEncoding: contentEncoding,
+		OutputFileId:    outputFileId,
 	})
 }
 

@@ -101,92 +101,11 @@ func main() {
 
 	formula := formulas.NewPageFormula()
 
-	// Write HTML templates and create their routes
-	for _, request := range htmlRequests {
-		if request.StatusCode != 200 {
-			continue
-		}
-
-		regex := goRegexpForURL(request.URL)
-		if regex == "^/favicon.ico$" {
-			continue
-		}
-
-		sourceInfo, ok := fileMap[request.OutputFileId]
-		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
-			continue
-		}
-		templateFileName := fmt.Sprintf("%v.html", request.OutputFileId)
-		err = copyFile(
-			path.Join(formulaTemplatePath, templateFileName),
-			path.Join(filesPath, sourceInfo.Name()),
-			request.ContentEncoding,
-		)
-		if err != nil {
-			logger.Println("Could not copy template", err)
-			continue
-		}
-		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
-		logger.Println("New template route", route.Path, templateFileName)
-		formula.Routes = append(formula.Routes, *route)
-	}
-
-	// Write CSS files and create their routes
-	cssRequests := timeline.FindRequestsByMimetype("text/css")
-	for _, request := range cssRequests {
-		if request.StatusCode != 200 {
-			continue
-		}
-		sourceInfo, ok := fileMap[request.OutputFileId]
-		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
-			continue
-		}
-		staticFileName := fmt.Sprintf("%v.css", request.OutputFileId)
-		err = copyFile(
-			path.Join(formulaStaticPath, staticFileName),
-			path.Join(filesPath, sourceInfo.Name()),
-			request.ContentEncoding,
-		)
-		if err != nil {
-			logger.Println("Could not copy", err)
-			continue
-		}
-		regex := goRegexpForURL(request.URL)
-		logger.Println("Regex", request.URL, regex)
-		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
-		logger.Println("New CSS route", route.Path, staticFileName)
-		formula.Routes = append(formula.Routes, *route)
-	}
-
-	imageRequests := timeline.FindRequestsByMimetype("image/")
-	for _, request := range imageRequests {
-		if request.StatusCode != 200 {
-			continue
-		}
-		sourceInfo, ok := fileMap[request.OutputFileId]
-		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
-			continue
-		}
-		staticFileName := fmt.Sprintf("%v.image", request.OutputFileId)
-		err = copyFile(
-			path.Join(formulaStaticPath, staticFileName),
-			path.Join(filesPath, sourceInfo.Name()),
-			request.ContentEncoding,
-		)
-		if err != nil {
-			logger.Println("Could not copy", err)
-			continue
-		}
-		regex := goRegexpForURL(request.URL)
-		logger.Println("Regex", request.URL, regex)
-		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
-		route.Headers["Content-Type"] = request.ContentType
-		logger.Println("New CSS route", route.Path, staticFileName)
-		formula.Routes = append(formula.Routes, *route)
-	}
+	// Create routes from timeline requests
+	createTemplateRoutes(formula, htmlRequests, fileMap, "html", formulaTemplatePath, filesPath)
+	createStaticRoutes(formula, timeline.FindRequestsByMimetype("text/css"), fileMap, "css", formulaStaticPath, filesPath)
+	createStaticRoutes(formula, timeline.FindRequestsByMimetype("image/"), fileMap, "image", formulaStaticPath, filesPath)
+	createStaticRoutes(formula, timeline.FindRequestsByMimetype("application/x-javascript"), fileMap, "js", formulaStaticPath, filesPath)
 
 	// Write the formula info to JSON
 	formulaInfo, err := formula.JSON()
@@ -204,6 +123,96 @@ func main() {
 func printHelp() {
 	logger.Println("usage: formulate <source capture directory> <formula destination directory>")
 	logger.Println("Example: formulate ./captures/2018-12-28-5C266D4F-1C03/ ./formulas/spiffy-formula/")
+}
+
+func createTemplateRoutes(
+	formula *formulas.PageFormula,
+	requests []session.Request,
+	fileMap map[int]os.FileInfo,
+	fileExtension string,
+	formulaTemplatePath string,
+	filesPath string,
+) {
+	// Write HTML templates and create their routes
+	for _, request := range requests {
+		if request.StatusCode != 200 {
+			continue
+		}
+
+		regex := goRegexpForURL(request.URL)
+		if regex == "^/favicon.ico$" {
+			continue
+		}
+
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+
+		var templateFileName string
+		if len(fileExtension) > 0 {
+			templateFileName = fmt.Sprintf("%v.%v", request.OutputFileId, fileExtension)
+		} else {
+			templateFileName = fmt.Sprintf("%v", request.OutputFileId)
+		}
+		err := copyFile(
+			path.Join(formulaTemplatePath, templateFileName),
+			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
+		)
+		if err != nil {
+			logger.Println("Could not copy template", err)
+			continue
+		}
+		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
+		logger.Println("Template route", route.Path, templateFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
+}
+
+func createStaticRoutes(
+	formula *formulas.PageFormula,
+	requests []session.Request,
+	fileMap map[int]os.FileInfo,
+	fileExtension string,
+	formulaStaticPath string,
+	filesPath string,
+) {
+	for _, request := range requests {
+		if request.StatusCode != 200 {
+			continue
+		}
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+
+		var staticFileName string
+		if len(fileExtension) > 0 {
+			staticFileName = fmt.Sprintf("%v.%v", request.OutputFileId, fileExtension)
+		} else {
+			staticFileName = fmt.Sprintf("%v", request.OutputFileId)
+		}
+
+		err := copyFile(
+			path.Join(formulaStaticPath, staticFileName),
+			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
+		)
+		if err != nil {
+			logger.Println("Could not copy", err)
+			continue
+		}
+		regex := goRegexpForURL(request.URL)
+		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
+		if len(request.ContentType) > 0 {
+			route.Headers["Content-Type"] = request.ContentType
+		}
+		logger.Println("Static route", route.Path, staticFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
 }
 
 func goRegexpForURL(url string) string {

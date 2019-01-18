@@ -10,7 +10,6 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"wel/formulas"
@@ -157,11 +156,10 @@ func (host *FormulaHost) handleStaticRoute(route *formulas.Route, writer http.Re
 		blob.Close()
 	}()
 
-	writer.WriteHeader(http.StatusOK)
 	for key, value := range route.Headers {
 		writer.Header().Add(key, value)
 	}
-	writer.Header().Add("Content-Length", strconv.FormatInt(blobStat.Size(), 10))
+	writer.WriteHeader(http.StatusOK)
 
 	if _, err := io.CopyN(writer, blob, blobStat.Size()); err != nil {
 		logger.Printf("Error writing blob: %s", err)

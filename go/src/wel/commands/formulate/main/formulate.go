@@ -9,11 +9,13 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"wel/formulas"
 	"wel/services/colluder/session"
+	"wel/services/host"
 )
 
 var logger = log.New(os.Stdout, "[formulate] ", 0)
@@ -165,10 +167,49 @@ func createTemplateRoutes(
 			logger.Println("Could not copy template", err)
 			continue
 		}
+
+		if fileExtension == "html" {
+			err = injectProbes(path.Join(formulaTemplatePath, templateFileName))
+			if err != nil {
+				logger.Println("Could not inject JS probe", templateFileName, err)
+			}
+		}
+
 		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
 		logger.Println("Template route", route.Path, templateFileName)
 		formula.Routes = append(formula.Routes, *route)
 	}
+}
+
+/*
+Writes a probe script element at the top of the `head` HTML element
+*/
+func injectProbes(templatePath string) error {
+	templateBytes, err := ioutil.ReadFile(templatePath)
+	if err != nil {
+		return err
+	}
+
+	// Find the <head>
+	headPattern := regexp.MustCompile(`(<head[^>]*>)`)
+	location := headPattern.FindIndex(templateBytes)
+	if location == nil {
+		return errors.New("No head element was found: " + templatePath)
+	}
+
+	newTemplate := fmt.Sprintf(
+		"%v\n<script src='%v'></script>\n<script src='%v'></script>\n%v",
+		string(templateBytes[0:location[1]]),
+		host.ProbesURL,
+		host.ProberURL,
+		string(templateBytes[location[1]+1:]),
+	)
+
+	err = ioutil.WriteFile(templatePath, []byte(newTemplate), 0666)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func createStaticRoutes(

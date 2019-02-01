@@ -134,6 +134,10 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			return
 		}
 
+		if len(clientReq.Header.Get("Accept-Encoding")) > 0 {
+			clientReq.Header.Set("Accept-Encoding", "gzip")
+		}
+
 		clientReq.RemoteAddr = req.RemoteAddr
 		if !httpsRegexp.MatchString(clientReq.URL.String()) {
 			clientReq.URL, _ = url.Parse("https://" + req.Host + clientReq.URL.String())

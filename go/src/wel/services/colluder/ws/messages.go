@@ -101,11 +101,13 @@ func NewUnknownMessageTypeMessage(unknownType string) *UnknownMessageTypeMessage
 // Sent when the formulator asks to toggle session capture
 type ToggleSessionMessage struct {
 	TypedMessage
+	Hostname string `json:"hostname"`
 }
 
-func NewToggleSessionMessage() *ToggleSessionMessage {
+func NewToggleSessionMessage(hostname string) *ToggleSessionMessage {
 	return &ToggleSessionMessage{
 		TypedMessage{Type: ToggleSessionType},
+		hostname,
 	}
 }
 
@@ -188,6 +190,8 @@ func ParseMessageJson(rawMessage string) (ClientMessage, error) {
 	switch typedMessage.Type {
 	case PingType:
 		parsedMessage = new(PingMessage)
+	case ToggleSessionType:
+		parsedMessage = new(ToggleSessionMessage)
 	default:
 		return typedMessage, nil
 	}

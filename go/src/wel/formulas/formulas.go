@@ -15,9 +15,13 @@ import (
 
 var logger = log.New(os.Stdout, "[formulas] ", 0)
 
+// Info about the serialized file structure
 var FormulaInfoFileName = "formula.json"
 var StaticDirName = "static"
 var TemplateDirName = "template"
+
+// The URL for rewritten absolute URLs hosted by the FormulaHost
+var AbsoluteURLRoot = "/__wel_absolute/"
 
 /*
 PageFormula holds a description of a web page and its resources hosted locally and accessed by a web browser during an experiment.

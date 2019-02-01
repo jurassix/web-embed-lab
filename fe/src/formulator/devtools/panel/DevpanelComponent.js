@@ -76,8 +76,13 @@ class ControlComponent extends ui.Component {
 			text: 'Toggle Capture'
 		}).appendTo(this)
 		this._toggleSessionButtonComponent.addListener(ui.ButtonComponent.ClickedEvent, (eventName, event, component) => {
-			this.options.communicator.sendColluderMessage({
-				type: ColluderMessageTypes.ToggleSession
+			browser.devtools.inspectedWindow.eval('document.location.hostname;').then(results => {
+				this.options.communicator.sendColluderMessage({
+					type: ColluderMessageTypes.ToggleSession,
+					hostname: results[0]
+				})
+			}).catch(err => {
+				console.error('Error getting hostname', err)
 			})
 		})
 	}

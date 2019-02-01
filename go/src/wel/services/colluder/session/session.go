@@ -38,7 +38,7 @@ type CaptureSession struct {
 	Timeline      *Timeline
 }
 
-func NewCaptureSession() (*CaptureSession, error) {
+func NewCaptureSession(hostname string) (*CaptureSession, error) {
 	capturePath, err := createCaptureDirectory()
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func NewCaptureSession() (*CaptureSession, error) {
 		NumRequests:   0,
 		NextFileId:    101, // start at a non-zero number
 		HostCounts:    make([]*HostCount, 0),
-		Timeline:      NewTimeline(),
+		Timeline:      NewTimeline(hostname),
 	}, nil
 }
 

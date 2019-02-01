@@ -109,6 +109,7 @@ func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Req
 			host.handleStaticRequest(writer, request)
 			return
 		}
+		logger.Println("No route", request.URL.Path)
 		writer.WriteHeader(http.StatusNotFound)
 		writer.Write([]byte(fmt.Sprintf("No route: %v", request.URL.Path)))
 		return

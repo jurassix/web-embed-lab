@@ -34,6 +34,7 @@ func RunHTTP(port int64, formulasPath string, probesPath string) {
 
 	// Serve test probes' JS
 	mux.HandleFunc(ProbesURL, func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Add("Content-Type", "text/javascript")
 		response.Write([]byte(probeScript))
 	})
 

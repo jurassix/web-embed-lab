@@ -28,6 +28,14 @@ var (
 	hasPort     = regexp.MustCompile(`:\d+$`)
 	httpsRegexp = regexp.MustCompile(`^https:\/\/`)
 	tlsConfigs  = make(map[string]*tls.Config)
+
+	// Headers excluded from remote service responses so that we can inject collusion code
+	excludedHeaders = []string{
+		"Content-Security-Policy",
+		"X-Content-Type-Options",
+		"X-Frame-Options",
+		"X-Xss-Protection",
+	}
 )
 
 func broadcastIfPossible(message ws.ClientMessage) bool {
@@ -153,6 +161,13 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		statusCode := strconv.Itoa(resp.StatusCode) + " "
 		if strings.HasPrefix(text, statusCode) {
 			text = text[len(statusCode):]
+		}
+
+		for _, excludedHeader := range excludedHeaders {
+			if len(resp.Header.Get(excludedHeader)) == 0 {
+				continue
+			}
+			resp.Header.Del(excludedHeader)
 		}
 
 		// If capturing, set up a tee into a capture file

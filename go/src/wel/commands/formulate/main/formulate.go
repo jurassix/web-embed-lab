@@ -24,10 +24,11 @@ var urlParameterRegexpFragment = "([\\?].*)?"
 
 // mimetype, file extension, is code
 var staticTypes = [...][2]string{
-	[2]string{"text/css", "css"},
-	[2]string{"text/javascript", "js"},
+	[2]string{"application/octet-stream", "blob"},
 	[2]string{"application/x-javascript", "js"},
 	[2]string{"application/javascript", "js"},
+	[2]string{"text/css", "css"},
+	[2]string{"text/javascript", "js"},
 	[2]string{"font/", "font"},
 	[2]string{"image/", "image"},
 }

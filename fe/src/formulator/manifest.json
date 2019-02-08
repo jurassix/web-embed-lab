@@ -14,7 +14,8 @@
 	"permissions": [
 		"<all_urls>",
 		"webNavigation",
-		"activeTab"
+		"activeTab",
+		"tabs"
 	],
 	"devtools_page": "devtools/devtools-page.html",
 	"applications": {

@@ -27,17 +27,19 @@ type Timeline struct {
 	Started  int64     `json:"started"`
 	Ended    int64     `json:"ended"`
 	Requests []Request `json:"requests"`
+	Hostname string    `json:"hostname"`
 }
 
-func NewTimeline() *Timeline {
+func NewTimeline(hostname string) *Timeline {
 	return &Timeline{
-		Started: time.Now().Unix(),
-		Ended:   -1,
+		Started:  time.Now().Unix(),
+		Ended:    -1,
+		Hostname: hostname,
 	}
 }
 
 func ParseTimeline(inputFile *os.File) (*Timeline, error) {
-	timeline := NewTimeline()
+	timeline := &Timeline{}
 	data, err := ioutil.ReadAll(inputFile)
 	if err != nil {
 		return nil, err

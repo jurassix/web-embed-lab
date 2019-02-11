@@ -9,14 +9,36 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"wel/formulas"
 	"wel/services/colluder/session"
+	"wel/services/host"
 )
 
 var logger = log.New(os.Stdout, "[formulate] ", 0)
+
+var urlParameterRegexpFragment = "([\\?].*)?"
+
+// mimetype, file extension, is code
+var staticTypes = [...][2]string{
+	[2]string{"application/octet-stream", "blob"},
+	[2]string{"application/x-javascript", "js"},
+	[2]string{"application/javascript", "js"},
+	[2]string{"text/css", "css"},
+	[2]string{"text/javascript", "js"},
+	[2]string{"font/", "font"},
+	[2]string{"image/", "image"},
+}
+
+var codedTypes = [...]string{
+	"text/css",
+	"text/javascript",
+	"application/javascript",
+	"application/x-javascript",
+}
 
 func main() {
 	if len(os.Args) != 3 {
@@ -101,91 +123,10 @@ func main() {
 
 	formula := formulas.NewPageFormula()
 
-	// Write HTML templates and create their routes
-	for _, request := range htmlRequests {
-		if request.StatusCode != 200 {
-			continue
-		}
-
-		regex := goRegexpForURL(request.URL)
-		if regex == "^/favicon.ico$" {
-			continue
-		}
-
-		sourceInfo, ok := fileMap[request.OutputFileId]
-		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
-			continue
-		}
-		templateFileName := fmt.Sprintf("%v.html", request.OutputFileId)
-		err = copyFile(
-			path.Join(formulaTemplatePath, templateFileName),
-			path.Join(filesPath, sourceInfo.Name()),
-			request.ContentEncoding,
-		)
-		if err != nil {
-			logger.Println("Could not copy template", err)
-			continue
-		}
-		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
-		logger.Println("New template route", route.Path, templateFileName)
-		formula.Routes = append(formula.Routes, *route)
-	}
-
-	// Write CSS files and create their routes
-	cssRequests := timeline.FindRequestsByMimetype("text/css")
-	for _, request := range cssRequests {
-		if request.StatusCode != 200 {
-			continue
-		}
-		sourceInfo, ok := fileMap[request.OutputFileId]
-		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
-			continue
-		}
-		staticFileName := fmt.Sprintf("%v.css", request.OutputFileId)
-		err = copyFile(
-			path.Join(formulaStaticPath, staticFileName),
-			path.Join(filesPath, sourceInfo.Name()),
-			request.ContentEncoding,
-		)
-		if err != nil {
-			logger.Println("Could not copy", err)
-			continue
-		}
-		regex := goRegexpForURL(request.URL)
-		logger.Println("Regex", request.URL, regex)
-		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
-		logger.Println("New CSS route", route.Path, staticFileName)
-		formula.Routes = append(formula.Routes, *route)
-	}
-
-	imageRequests := timeline.FindRequestsByMimetype("image/")
-	for _, request := range imageRequests {
-		if request.StatusCode != 200 {
-			continue
-		}
-		sourceInfo, ok := fileMap[request.OutputFileId]
-		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
-			continue
-		}
-		staticFileName := fmt.Sprintf("%v.image", request.OutputFileId)
-		err = copyFile(
-			path.Join(formulaStaticPath, staticFileName),
-			path.Join(filesPath, sourceInfo.Name()),
-			request.ContentEncoding,
-		)
-		if err != nil {
-			logger.Println("Could not copy", err)
-			continue
-		}
-		regex := goRegexpForURL(request.URL)
-		logger.Println("Regex", request.URL, regex)
-		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
-		route.Headers["Content-Type"] = request.ContentType
-		logger.Println("New CSS route", route.Path, staticFileName)
-		formula.Routes = append(formula.Routes, *route)
+	// Create routes from timeline requests
+	createTemplateRoutes(formula, htmlRequests, fileMap, "html", formulaTemplatePath, filesPath, timeline.Hostname)
+	for _, sType := range staticTypes {
+		createStaticRoutes(formula, timeline.FindRequestsByMimetype(sType[0]), fileMap, sType[1], formulaStaticPath, filesPath, timeline.Hostname)
 	}
 
 	// Write the formula info to JSON
@@ -206,22 +147,240 @@ func printHelp() {
 	logger.Println("Example: formulate ./captures/2018-12-28-5C266D4F-1C03/ ./formulas/spiffy-formula/")
 }
 
-func goRegexpForURL(url string) string {
+func isCodedType(mimetype string) bool {
+	for _, cType := range codedTypes {
+		if strings.HasPrefix(mimetype, cType) {
+			return true
+		}
+	}
+	return false
+}
+
+func createTemplateRoutes(
+	formula *formulas.PageFormula,
+	requests []session.Request,
+	fileMap map[int]os.FileInfo,
+	fileExtension string,
+	formulaTemplatePath string,
+	filesPath string,
+	hostname string,
+) {
+	// Write HTML templates and create their routes
+	for _, request := range requests {
+		if request.StatusCode != 200 {
+			continue
+		}
+
+		if request.URL == "/favicon.ico" {
+			return
+		}
+		regex := goRegexpForURL(request.URL, hostname)
+
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+
+		var templateFileName string
+		if len(fileExtension) > 0 {
+			templateFileName = fmt.Sprintf("%v.%v", request.OutputFileId, fileExtension)
+		} else {
+			templateFileName = fmt.Sprintf("%v", request.OutputFileId)
+		}
+
+		destinationPath := path.Join(formulaTemplatePath, templateFileName)
+		err := copyFile(
+			destinationPath,
+			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
+		)
+		if err != nil {
+			logger.Println("Could not copy template", err)
+			continue
+		}
+
+		if fileExtension == "html" {
+			err = injectProbes(destinationPath)
+			if err != nil {
+				logger.Println("Could not inject JS probe", templateFileName, err)
+			}
+			err = rewriteAbsoluteURLs(destinationPath, hostname)
+			if err != nil {
+				logger.Println("Could not rewrite template URLs", templateFileName, err)
+			}
+		}
+
+		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
+		//logger.Println("Template route", route.Path, templateFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
+}
+
+/*
+rewrite URLs replaces absolute URLs in the template with relative URLs using the formulate.AbsoluteURLRoot
+*/
+func rewriteAbsoluteURLs(templatePath string, hostname string) error {
+	templateBytes, err := ioutil.ReadFile(templatePath)
+	if err != nil {
+		return err
+	}
+
+	localhostURL := fmt.Sprintf("%v%v", formulas.AbsoluteURLRoot, hostname)
+
+	fullySpecifiedURLPattern := regexp.MustCompile("http[s]?://([^/\"'\\s]+)[/\"']{1}")
+	schemaPattern := regexp.MustCompile("http[s]?://")
+	templateBytes = fullySpecifiedURLPattern.ReplaceAllFunc(templateBytes, func(data []byte) []byte {
+		data = schemaPattern.ReplaceAll(data, []byte(formulas.AbsoluteURLRoot))
+		if strings.HasPrefix(string(data), localhostURL) {
+			data = data[len(localhostURL):]
+			if strings.HasPrefix(string(data), "/") == false {
+				data = []byte(fmt.Sprintf("/%v", string(data)))
+			}
+		}
+		return data
+	})
+
+	schemalessURLPattern := regexp.MustCompile("[\"']//([^/\"'\\s]+)[/\"']{1}")
+	templateBytes = schemalessURLPattern.ReplaceAllFunc(templateBytes, func(data []byte) []byte {
+		data = []byte(fmt.Sprintf("%v%v%v", string(data[0]), formulas.AbsoluteURLRoot, string(data[3:len(data)])))
+		if strings.HasPrefix(string(data), localhostURL) {
+			data = data[len(localhostURL):]
+			if strings.HasPrefix(string(data), "/") == false {
+				data = []byte(fmt.Sprintf("/%v", string(data)))
+			}
+		}
+		return data
+	})
+
+	err = ioutil.WriteFile(templatePath, templateBytes, 0666)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
+Writes a probe script element at the top of the `head` HTML element
+*/
+func injectProbes(templatePath string) error {
+	templateBytes, err := ioutil.ReadFile(templatePath)
+	if err != nil {
+		return err
+	}
+
+	// Find the <head>
+	headPattern := regexp.MustCompile(`(<head[^>]*>)`)
+	location := headPattern.FindIndex(templateBytes)
+	if location == nil {
+		return errors.New("No head element was found: " + templatePath)
+	}
+
+	newTemplate := fmt.Sprintf(
+		"%v\n<script src='%v'></script>\n<script src='%v'></script>\n%v",
+		string(templateBytes[0:location[1]]),
+		host.ProbesURL,
+		host.ProberURL,
+		string(templateBytes[location[1]+1:]),
+	)
+
+	err = ioutil.WriteFile(templatePath, []byte(newTemplate), 0666)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createStaticRoutes(
+	formula *formulas.PageFormula,
+	requests []session.Request,
+	fileMap map[int]os.FileInfo,
+	fileExtension string,
+	formulaStaticPath string,
+	filesPath string,
+	hostname string,
+) {
+	for _, request := range requests {
+		if request.StatusCode != 200 {
+			continue
+		}
+		sourceInfo, ok := fileMap[request.OutputFileId]
+		if ok != true {
+			logger.Println("No such file ID", request.OutputFileId)
+			continue
+		}
+
+		var staticFileName string
+		if len(fileExtension) > 0 {
+			staticFileName = fmt.Sprintf("%v.%v", request.OutputFileId, fileExtension)
+		} else {
+			staticFileName = fmt.Sprintf("%v", request.OutputFileId)
+		}
+
+		destinationPath := path.Join(formulaStaticPath, staticFileName)
+		err := copyFile(
+			destinationPath,
+			path.Join(filesPath, sourceInfo.Name()),
+			request.ContentEncoding,
+		)
+		if err != nil {
+			logger.Println("Could not copy", sourceInfo.Name(), err)
+			continue
+		}
+
+		if isCodedType(request.ContentType) {
+			err = rewriteAbsoluteURLs(destinationPath, hostname)
+			if err != nil {
+				logger.Println("Could not rewrite URLs", destinationPath, err)
+				continue
+			}
+		}
+
+		regex := goRegexpForURL(request.URL, hostname)
+		route := formulas.NewRoute(staticFileName, regex, formulas.StaticRoute, fmt.Sprintf("/%v/%v", formulas.StaticDirName, staticFileName))
+		if len(request.ContentType) > 0 {
+			route.Headers["Content-Type"] = request.ContentType
+		}
+		//logger.Println("Static route", route.Path, staticFileName)
+		formula.Routes = append(formula.Routes, *route)
+	}
+}
+
+func goRegexpForURL(url string, hostname string) string {
 	if strings.HasPrefix(url, "http://") {
 		url = url[7:]
 	} else if strings.HasPrefix(url, "https://") {
 		url = url[8:]
 	}
+	paramIndex := strings.Index(url, "?")
+	if paramIndex > 0 {
+		url = url[:paramIndex]
+	}
 	lastIndex := strings.LastIndex(url, "/")
 	if lastIndex == -1 {
-		return "^/$"
+		return fmt.Sprintf("^/%v$", urlParameterRegexpFragment)
 	}
 	firstIndex := strings.Index(url, "/")
-	if firstIndex == lastIndex {
-		return fmt.Sprintf("^%v$", url[lastIndex:])
+	if firstIndex == 0 {
+		return fmt.Sprintf("^%v%v$", url, urlParameterRegexpFragment)
 	}
-	url = url[firstIndex:]
-	return fmt.Sprintf("^%v$", url)
+
+	// Split out a hostname like foo.com
+	urlHost := url[0:firstIndex]
+	colonIndex := strings.Index(urlHost, ":")
+	if colonIndex != -1 {
+		urlHost = urlHost[0:colonIndex]
+	}
+	// Split out just the part starting from the path root
+	path := url[firstIndex:]
+
+	// Return a relative URL
+	if urlHost == hostname {
+		return fmt.Sprintf("^%v%v$", path, urlParameterRegexpFragment)
+	}
+
+	// Return a rewritten absolute URL
+	return fmt.Sprintf("^%v%v%v%v$", formulas.AbsoluteURLRoot, urlHost, path, urlParameterRegexpFragment)
 }
 
 func copyFile(destination string, source string, contentEncoding string) error {

@@ -13,7 +13,7 @@ import (
 	weltls "wel/tls"
 )
 
-var DistDirPath = "fe/dist"
+var DistDirPath = "fe/dist/colluder"
 
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 

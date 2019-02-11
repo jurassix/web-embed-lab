@@ -11,15 +11,15 @@ var logger = log.New(os.Stdout, "[runner] ", 0)
 
 func main() {
 
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		printHelp()
 		return
 	}
 
-	host.RunHTTP(443, os.Args[1])
+	host.RunHTTP(443, os.Args[1], os.Args[2])
 }
 
 func printHelp() {
-	logger.Println("usage: runner <formulas directory>")
-	logger.Println("Example: runner ./examples/page-formulas/")
+	logger.Println("usage: runner <formulas dir> <probes dir>")
+	logger.Println("Example: runner ./examples/page-formulas/ ./examples/test-probes/")
 }

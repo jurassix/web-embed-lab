@@ -14,9 +14,10 @@ func RouteClientMessage(clientMessage ClientMessage, clientUUID string) ([]strin
 	case QuerySessionStateType:
 		return []string{clientUUID}, NewSessionStateMessage(), nil
 	case ToggleSessionType:
+		toggle := clientMessage.(*ToggleSessionMessage)
 		if session.CurrentCaptureSession == nil {
 			var err error
-			session.CurrentCaptureSession, err = session.NewCaptureSession()
+			session.CurrentCaptureSession, err = session.NewCaptureSession(toggle.Hostname)
 			if err != nil {
 				logger.Printf("Error toggling on", err)
 			}

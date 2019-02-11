@@ -7,7 +7,7 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
   input: './src/colluder/colluder.js',
   output: {
-    file: './dist/target-page-colluder.js',
+    file: './dist/colluder/target-page-colluder.js',
     format: 'es'
   },
   plugins: [

@@ -14,9 +14,32 @@ import (
 
 var logger = log.New(os.Stdout, "[host] ", 0)
 
-func RunHTTP(port int64, formulasPath string) {
+// The scripts for the tests
+var ProbesURL = "/__wel_probes.js"
+
+// The resources for the prober script that runs the tests
+var ProberDistPath = "fe/dist/prober"
+var ProberDistURL = "/__wel/prober/"
+var ProberURL = fmt.Sprintf("%vprober.js", ProberDistURL)
+
+func RunHTTP(port int64, formulasPath string, probesPath string) {
+
+	probeScript, err := GenerateProbesScript(probesPath)
+	if err != nil {
+		logger.Println("Could not generate probe script at path", probesPath, err)
+		return
+	}
 
 	mux := http.NewServeMux()
+
+	// Serve test probes' JS
+	mux.HandleFunc(ProbesURL, func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Add("Content-Type", "text/javascript")
+		response.Write([]byte(probeScript))
+	})
+
+	// Serve prober JS that runs the tests
+	mux.Handle(ProberDistURL, http.StripPrefix(ProberDistURL, http.FileServer(http.Dir(ProberDistPath))))
 
 	// Serve page formulas
 	formulaHost, err := NewFormulaHost(formulasPath)
@@ -24,10 +47,6 @@ func RunHTTP(port int64, formulasPath string) {
 		log.Fatal(fmt.Sprintf("Error starting formula host: %v", err))
 	}
 	mux.Handle("/", formulaHost)
-
-	// TODO: Serve JS for in-page services
-
-	// TODO: Serve test probes
 
 	// TODO: Receive control messages to switch page formulas and probes
 

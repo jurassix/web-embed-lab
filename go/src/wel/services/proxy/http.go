@@ -97,5 +97,7 @@ func handleHTTP(writer http.ResponseWriter, clientRequest *http.Request, proxySe
 		if _, err := io.Copy(writer, bytes.NewReader(body)); err != nil {
 			logger.Printf("Error copying to client: %s", err)
 		}
+	} else {
+		writer.WriteHeader(targetResponse.StatusCode)
 	}
 }

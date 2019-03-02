@@ -1,0 +1,21 @@
+{
+	"page-formulas": [
+		{
+			"name": "vanilla-site"
+		}
+	],
+	"test-probes": [
+		{
+			"name": "dom-shape",
+			"basis": {}
+		}
+	],
+	"browser-configurations": [
+		{
+			 "browserName" : "android",
+			 "device" : "Samsung Galaxy S8",
+			 "realMobile" : "true",
+			 "os_version" : "7.0"
+		}
+	]
+}

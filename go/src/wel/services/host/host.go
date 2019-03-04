@@ -9,8 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	weltls "wel/tls"
+	//weltls "wel/tls"
 )
 
 var logger = log.New(os.Stdout, "[host] ", 0)
@@ -69,5 +68,6 @@ func RunHTTP(port int64, formulasPath string, probesPath string, embeddedScriptP
 	// TODO: Receive control messages to switch page formulas
 
 	logger.Println("Listening on", port)
-	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", port), weltls.LocalhostCertPath, weltls.LocalhostKeyPath, mux))
+	//log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", port), weltls.LocalhostCertPath, weltls.LocalhostKeyPath, mux))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
 }

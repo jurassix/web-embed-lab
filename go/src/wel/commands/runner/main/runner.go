@@ -8,6 +8,8 @@ import (
 	"wel/commands/runner"
 	"wel/experiments"
 	"wel/services/host"
+
+	"github.com/sclevine/agouti"
 )
 
 var logger = log.New(os.Stdout, "[runner] ", 0)
@@ -57,6 +59,7 @@ func main() {
 	logger.Println("Waiting for ngrok tunnels")
 	var tunnels *runner.NgrokTunnels = nil
 	tryCount := 0
+	pageHostURL := ""
 	for {
 		if tryCount > 100 {
 			logger.Println("Could not read ngrok process")
@@ -79,17 +82,26 @@ func main() {
 			continue
 		}
 		if len(tunnels.Tunnels) == 2 {
-			logger.Println("Found ngrok tunnels")
-			logger.Println("\t", tunnels.Tunnels[0].PublicURL)
-			logger.Println("\t", tunnels.Tunnels[1].PublicURL)
+			if tunnels.Tunnels[0].Protocol == "https" {
+				pageHostURL = tunnels.Tunnels[0].PublicURL
+			} else if tunnels.Tunnels[1].Protocol == "https" {
+				pageHostURL = tunnels.Tunnels[1].PublicURL
+			} else {
+				logger.Println("No ngrok tunnel is https")
+				return
+			}
+			logger.Println("Found ngrok tunnel:", pageHostURL)
 			break
 		}
 	}
 
 	/*
-		Read the WebDriver configuration and set up the connection
+		Read the WebDriver configuration
 	*/
-	// TODO
+	// TODO read config
+	seleniumURL := "http://hub-cloud.browserstack.com/wd/hub"
+	seleniumUser := "USERNAME"
+	seleniumAPIKey := "PASSWORD"
 
 	/*
 		Start the page formula host
@@ -104,14 +116,45 @@ func main() {
 		- run the test probes
 	*/
 	for _, browserConfiguration := range experiment.BrowserConfigurations {
-		// TODO: Spin up browser
-		logger.Println("Spinning up", browserConfiguration.BrowserName, "on", browserConfiguration.Device, "version", browserConfiguration.OSVersion)
+		logger.Println("Spinning up", browserConfiguration["browserName"], "via selenium")
+		capabilities := agouti.NewCapabilities()
+		capabilities["browserstack.user"] = seleniumUser
+		capabilities["browserstack.key"] = seleniumAPIKey
+		for key, value := range browserConfiguration {
+			capabilities[key] = value
+		}
+		page, err := agouti.NewPage(seleniumURL, []agouti.Option{agouti.Desired(capabilities)}...)
+		if err != nil {
+			logger.Println("Failed to open selenium:", err)
+			return
+		}
+		logger.Println("Opened", browserConfiguration["browserName"])
 
+		hasNavigated := false
 		for _, pageFormulaConfig := range experiment.PageFormulaConfigurations {
 			logger.Println("Hosting page formula:", pageFormulaConfig.Name)
 			// TODO: tell the host which page formula to use
+
 			logger.Println("Testing...")
-			// TODO: run the tests
+			if hasNavigated {
+				err = page.Reset()
+				if err != nil {
+					logger.Println("Failed to reset page", err)
+					return
+				}
+			}
+			err = page.Navigate(pageHostURL)
+			if err != nil {
+				logger.Println("Failed to navigate to hosted page formula", err)
+				return
+			}
+			hasNavigated = true
+
+			// TODO Run the actual tests
+			var number int
+			page.RunScript("return test;", map[string]interface{}{"test": 100}, &number)
+			logger.Println("Number", number)
+
 		}
 	}
 }

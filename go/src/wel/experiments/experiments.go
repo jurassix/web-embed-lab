@@ -14,16 +14,6 @@ type TestProbe struct {
 	//ProbeBasis formulas.ProbeBasis
 }
 
-/*
-BrowserConfiguration identifies a specific browser and OS on which to test
-*/
-type BrowserConfiguration struct {
-	BrowserName string `json:"browserName"`
-	Device      string `json:"device"`
-	RealMobile  string `json:"realMobile"`
-	OSVersion   string `json:"os_version"`
-}
-
 type PageFormulaConfiguration struct {
 	Name string `json:"name"`
 }
@@ -39,14 +29,14 @@ An experiment is handed to the runner process which will:
 type Experiment struct {
 	PageFormulaConfigurations []PageFormulaConfiguration `json:"page-formulas"`
 	TestProbes                []TestProbe                `json:"test-probes"`
-	BrowserConfigurations     []BrowserConfiguration     `json:"browser-configurations"`
+	BrowserConfigurations     []map[string]string        `json:"browser-configurations"`
 }
 
 func NewExperiment() *Experiment {
 	return &Experiment{
 		PageFormulaConfigurations: make([]PageFormulaConfiguration, 0),
 		TestProbes:                make([]TestProbe, 0),
-		BrowserConfigurations:     make([]BrowserConfiguration, 0),
+		BrowserConfigurations:     make([]map[string]string, 0),
 	}
 }
 

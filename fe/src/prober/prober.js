@@ -41,6 +41,26 @@ function patchFetch(){
 	}
 }
 
+window.runWebEmbedLabProbes = function(){
+	let results = {}
+	if(typeof window.__welProbes !== "object"){
+		results.error = "Failed to find probes"
+		return results
+	}
+	for(let key in window.__welProbes){
+		if(window.__welProbes.hasOwnProperty(key) === false) continue
+		try {
+			results[key] = window.__welProbes[key].probe()
+		} catch(err){
+			results[key] = {
+				passed: false,
+				error: '' + err
+			}
+		}
+	}
+	return results
+}
+
 /**
 If absolute, return the URL as a relative URL for the page formula host:
 	https://foo.com/one/two/three.jpg

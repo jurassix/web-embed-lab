@@ -20,9 +20,12 @@ class ExceptionsProbe {
 	/**
 	@param {object} results - the object on which to set result attributes
 	*/
-	probe(results){
+	probe(){
 		console.log('Probing exceptions')
-		results['exceptions-count'] = window._exceptionCount
+		return {
+			passed: true,
+			count: window._exceptionCount
+		}
 	}
 }
 

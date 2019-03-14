@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"time"
@@ -121,6 +122,8 @@ func main() {
 		- point the browser at the host
 		- run the test probes
 	*/
+	gatheredResults := []*runner.ProbeResults{}
+	gatheredReturnValues := []string{}
 	for _, browserConfiguration := range experiment.BrowserConfigurations {
 		logger.Println("Spinning up", browserConfiguration["browserName"], "via selenium")
 		capabilities := agouti.NewCapabilities()
@@ -157,12 +160,34 @@ func main() {
 			hasNavigated = true
 
 			// TODO Run the actual tests
-			var number int
-			page.RunScript("return test;", map[string]interface{}{"test": 100}, &number)
-			logger.Println("Number", number)
-
+			var returnValue string
+			page.RunScript("return JSON.stringify(runWebEmbedLabProbes());", map[string]interface{}{}, &returnValue)
+			probeResults := &runner.ProbeResults{}
+			err = json.Unmarshal([]byte(returnValue), probeResults)
+			if err != nil {
+				logger.Println("Error parsing probes result", err)
+				os.Exit(1)
+				return
+			} else {
+				gatheredResults = append(gatheredResults, probeResults)
+				gatheredReturnValues = append(gatheredReturnValues, returnValue)
+			}
 		}
 	}
+
+	logger.Println("Gathered return values", gatheredReturnValues)
+
+	hasFailure := false
+	for index, probeResults := range gatheredResults {
+		if probeResults.Passed() == false {
+			logger.Println("Failed:", gatheredReturnValues[index])
+			hasFailure = true
+		}
+	}
+	if hasFailure {
+		os.Exit(1)
+	}
+	os.Exit(0)
 }
 
 func printHelp() {

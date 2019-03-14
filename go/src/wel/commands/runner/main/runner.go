@@ -16,7 +16,21 @@ var logger = log.New(os.Stdout, "[runner] ", 0)
 
 var runnerPort int64 = 8090
 
+var browserstackURL = "http://hub-cloud.browserstack.com/wd/hub"
+var browserstackUserVar = "BROWSERSTACK_USER"
+var browserstackAPIKeyVar = "BROWSERSTACK_API_KEY"
+
 func main() {
+	/*
+		Read the WebDriver configuration
+	*/
+	browserstackUser := os.Getenv(browserstackUserVar)
+	browserstackAPIKey := os.Getenv(browserstackAPIKeyVar)
+	if browserstackUser == "" || browserstackAPIKey == "" {
+		logger.Println("Environment variables", browserstackUserVar, "and", browserstackAPIKeyVar, "are required")
+		os.Exit(1)
+		return
+	}
 
 	if len(os.Args) != 5 {
 		printHelp()
@@ -96,14 +110,6 @@ func main() {
 	}
 
 	/*
-		Read the WebDriver configuration
-	*/
-	// TODO read config
-	seleniumURL := "http://hub-cloud.browserstack.com/wd/hub"
-	seleniumUser := "USERNAME"
-	seleniumAPIKey := "PASSWORD"
-
-	/*
 		Start the page formula host
 	*/
 	go func() {
@@ -118,12 +124,12 @@ func main() {
 	for _, browserConfiguration := range experiment.BrowserConfigurations {
 		logger.Println("Spinning up", browserConfiguration["browserName"], "via selenium")
 		capabilities := agouti.NewCapabilities()
-		capabilities["browserstack.user"] = seleniumUser
-		capabilities["browserstack.key"] = seleniumAPIKey
+		capabilities["browserstack.user"] = browserstackUser
+		capabilities["browserstack.key"] = browserstackAPIKey
 		for key, value := range browserConfiguration {
 			capabilities[key] = value
 		}
-		page, err := agouti.NewPage(seleniumURL, []agouti.Option{agouti.Desired(capabilities)}...)
+		page, err := agouti.NewPage(browserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 		if err != nil {
 			logger.Println("Failed to open selenium:", err)
 			return

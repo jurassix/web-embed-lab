@@ -24,13 +24,13 @@ var urlParameterRegexpFragment = "([\\?].*)?"
 
 // mimetype, file extension, is code
 var staticTypes = [...][2]string{
-	[2]string{"application/octet-stream", "blob"},
-	[2]string{"application/x-javascript", "js"},
-	[2]string{"application/javascript", "js"},
-	[2]string{"text/css", "css"},
-	[2]string{"text/javascript", "js"},
-	[2]string{"font/", "font"},
-	[2]string{"image/", "image"},
+	{"application/octet-stream", "blob"},
+	{"application/x-javascript", "js"},
+	{"application/javascript", "js"},
+	{"text/css", "css"},
+	{"text/javascript", "js"},
+	{"font/", "font"},
+	{"image/", "image"},
 }
 
 var codedTypes = [...]string{
@@ -243,7 +243,7 @@ func rewriteAbsoluteURLs(templatePath string, hostname string) error {
 
 	schemalessURLPattern := regexp.MustCompile("[\"']//([^/\"'\\s]+)[/\"']{1}")
 	templateBytes = schemalessURLPattern.ReplaceAllFunc(templateBytes, func(data []byte) []byte {
-		data = []byte(fmt.Sprintf("%v%v%v", string(data[0]), formulas.AbsoluteURLRoot, string(data[3:len(data)])))
+		data = []byte(fmt.Sprintf("%v%v%v", string(data[0]), formulas.AbsoluteURLRoot, string(data[3:])))
 		if strings.HasPrefix(string(data), localhostURL) {
 			data = data[len(localhostURL):]
 			if strings.HasPrefix(string(data), "/") == false {
@@ -277,10 +277,11 @@ func injectProbes(templatePath string) error {
 	}
 
 	newTemplate := fmt.Sprintf(
-		"%v\n<script src='%v'></script>\n<script src='%v'></script>\n%v",
+		"%v\n<script src='%v'></script>\n<script src='%v'></script>\n<script async src='%v'></script>\n%v",
 		string(templateBytes[0:location[1]]),
 		host.ProbesURL,
 		host.ProberURL,
+		host.EmbeddedScriptURL,
 		string(templateBytes[location[1]+1:]),
 	)
 

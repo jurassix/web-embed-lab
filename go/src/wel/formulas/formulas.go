@@ -6,11 +6,10 @@ Writing usually occurs when converting a colluder session capture to an initial 
 package formulas
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"os"
-
-	"encoding/json"
 )
 
 var logger = log.New(os.Stdout, "[formulas] ", 0)

@@ -1,0 +1,13 @@
+# For running locally (not in continuous integration) copy this file and insert your user and API key
+# Then source this file from bash, don't run it as a script
+# For example:
+#	source setup-env.sh
+#	./go/bin/runner ./examples/page-formulas/ \
+#		./examples/test-probes/ \
+#		./examples/experiments/hello-world.json \
+#		./examples/embed_scripts/no-op.js
+#
+# In CI use the project settings to assign these environment variables
+
+export BROWSERSTACK_USER=""
+export BROWSERSTACK_API_KEY=""

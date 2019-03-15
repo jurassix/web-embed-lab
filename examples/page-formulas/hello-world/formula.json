@@ -1,0 +1,21 @@
+{
+	"comment": "An empty site",
+
+	"routes": [
+		{
+			"comment": "Route to a go template",
+			"type": 0,
+			"id": "123",
+			"path": "^/$",
+			"value": "/template/index.html",
+			"parameters": {
+			}
+		}
+	],
+
+	"template-data": {
+	},
+
+	"probe-bases": {
+	}
+}

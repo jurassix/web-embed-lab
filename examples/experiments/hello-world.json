@@ -1,0 +1,33 @@
+{
+	"page-formulas": [
+		{
+			"name": "vanilla-site"
+		},
+		{
+			"name": "hello-world"
+		}
+	],
+	"test-probes": [
+		{
+			"name": "dom-shape",
+			"basis": {}
+		}
+	],
+	"browser-configurations": [
+		{
+			 "os": "Windows",
+			 "os_version" : "10",
+			 "browserName" : "Chrome",
+			 "browserVersion" : "62.0",
+			 "resolution" : "1024x768"
+		}
+	],
+	"unused-browser-configurations": [
+		{
+			"browserName" : "android",
+			"device" : "Samsung Galaxy S8",
+			"realMobile" : "true",
+			"os_version" : "7.0"
+		}
+	]
+}

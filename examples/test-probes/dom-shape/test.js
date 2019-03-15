@@ -10,17 +10,20 @@ class DOMShapeProbe {
 	}
 
 	/**
-	@param {object} results - the object on which to set result attributes
+	@return {object} the results of the probe
 	*/
-	probe(results){
+	probe(){
 		console.log('Probing DOM shape')
 		let shape = this._findShape(document.body)
 		let maxWidth = 0;
 		for(let i=0; i < shape.rows.length; i++){
 			maxWidth = Math.max(maxWidth, shape.rows[i].length)
 		}
-		results['dom-shape-depth'] = shape.rows.length
-		results['dom-shape-width'] = maxWidth
+		return {
+			passed: true,
+			rows: shape.rows.length,
+			width: maxWidth
+		}
 	}
 
 	_findShape(element, depth=0, results={ rows: [] }){

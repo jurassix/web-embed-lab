@@ -18,5 +18,10 @@
   "git-remote": "https://github.com/pkg/errors",
   "current-version-git-hash": "059132a15dd08d6704c67711dae0cf35ab991756",
   "content-hash": "81a285e14ab63849d58b9b159ba39d51ac269195"
+ },
+ "github.com/sclevine/agouti": {
+  "git-remote": "https://github.com/sclevine/agouti",
+  "current-version-git-hash": "96599c91888f1b1cf2dccc7f1776ba7f511909e5",
+  "content-hash": "773606c5563cee91915d065aa4f0d64e66a528aa"
  }
 }

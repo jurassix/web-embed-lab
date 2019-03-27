@@ -22,6 +22,15 @@ var browserstackUserVar = "BROWSERSTACK_USER"
 var browserstackAPIKeyVar = "BROWSERSTACK_API_KEY"
 
 func main() {
+	if len(os.Args) == 3 {
+		// Run in developer host mode
+		host.RunHTTP(runnerPort, os.Args[1], os.Args[2], "")
+	} else if len(os.Args) != 5 {
+		printHelp()
+		os.Exit(1)
+		return
+	}
+
 	/*
 		Read the WebDriver configuration
 	*/
@@ -29,12 +38,6 @@ func main() {
 	browserstackAPIKey := os.Getenv(browserstackAPIKeyVar)
 	if browserstackUser == "" || browserstackAPIKey == "" {
 		logger.Println("Environment variables", browserstackUserVar, "and", browserstackAPIKeyVar, "are required")
-		os.Exit(1)
-		return
-	}
-
-	if len(os.Args) != 5 {
-		printHelp()
 		os.Exit(1)
 		return
 	}
@@ -93,7 +96,7 @@ func main() {
 		}
 		tunnels, err = runner.FetchNgrokTunnels()
 		if err != nil {
-			logger.Println("Error fetching tunnels", err)
+			//logger.Println("Error fetching tunnels", err)
 			continue
 		}
 		if len(tunnels.Tunnels) == 2 {
@@ -103,6 +106,7 @@ func main() {
 				pageHostURL = tunnels.Tunnels[1].PublicURL
 			} else {
 				logger.Println("No ngrok tunnel is https")
+				os.Exit(1)
 				return
 			}
 			logger.Println("Found ngrok tunnel:", pageHostURL)
@@ -135,6 +139,7 @@ func main() {
 		page, err := agouti.NewPage(browserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 		if err != nil {
 			logger.Println("Failed to open selenium:", err)
+			os.Exit(1)
 			return
 		}
 		logger.Println("Opened", browserConfiguration["browserName"])
@@ -142,19 +147,33 @@ func main() {
 		hasNavigated := false
 		for _, pageFormulaConfig := range experiment.PageFormulaConfigurations {
 			logger.Println("Hosting page formula:", pageFormulaConfig.Name)
-			// TODO: tell the host which page formula to use
+
+			// Tell the host which page formula to use
+			formulaSet, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
+			if err != nil {
+				logger.Println("Failed to reach host control API", err)
+				os.Exit(1)
+				return
+			}
+			if formulaSet == false {
+				logger.Println("Failed to host page formula", pageFormulaConfig.Name)
+				os.Exit(1)
+				return
+			}
 
 			logger.Println("Testing...")
 			if hasNavigated {
 				err = page.Reset()
 				if err != nil {
 					logger.Println("Failed to reset page", err)
+					os.Exit(1)
 					return
 				}
 			}
 			err = page.Navigate(pageHostURL)
 			if err != nil {
 				logger.Println("Failed to navigate to hosted page formula", err)
+				os.Exit(1)
 				return
 			}
 			hasNavigated = true
@@ -192,5 +211,7 @@ func main() {
 
 func printHelp() {
 	logger.Println("usage: runner <formulas dir> <probes dir> <experiment json> <embed script>")
-	logger.Println("Example: runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/experiments/hello-world.json ./examples/embed_scripts/no-op.js")
+	logger.Println("Example: runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/experiments/hello-world.json ./examples/embed_scripts/no-op.js\n")
+	logger.Println("usage (development mode): runner <formulas dir> <probes dir>")
+	logger.Println("Example: runner ./examples/page-formulas/ ./examples/test-probes/")
 }

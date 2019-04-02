@@ -147,6 +147,5 @@ The return value will list the formulas and which formula is currently hosted:
 
 You can change which page formula `runner` is hosting by PUTing to the same URL:
 
-	curl http://127.0.0.1:8090/__wel_control -X PUT \
-		--data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
+	curl http://127.0.0.1:8090/__wel_control -X PUT --data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
 

@@ -29,6 +29,7 @@ var staticTypes = [...][2]string{
 	{"application/javascript", "js"},
 	{"application/json", "json"},
 	{"application/x-font-woff", "woff"},
+	{"application/font-woff2", "woff"},
 	{"application/x-font-ttf", "ttf"},
 	{"text/css", "css"},
 	{"text/json", "json"},
@@ -249,11 +250,8 @@ func rewriteAbsoluteURLs(templatePath string, hostname string) error {
 	schemalessURLPattern := regexp.MustCompile("[\"']//([^/\"'\\s]+)[/\"']{1}")
 	templateBytes = schemalessURLPattern.ReplaceAllFunc(templateBytes, func(data []byte) []byte {
 		data = []byte(fmt.Sprintf("%v%v%v", string(data[0]), formulas.AbsoluteURLRoot, string(data[3:])))
-		if strings.HasPrefix(string(data), localhostURL) {
-			data = data[len(localhostURL):]
-			if strings.HasPrefix(string(data), "/") == false {
-				data = []byte(fmt.Sprintf("/%v", string(data)))
-			}
+		if strings.HasPrefix(string(data), localhostURL) || strings.HasPrefix(string(data), "'"+localhostURL) || strings.HasPrefix(string(data), "\""+localhostURL) {
+			data = []byte(strings.Replace(string(data), localhostURL, "", 1))
 		}
 		return data
 	})

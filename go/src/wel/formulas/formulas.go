@@ -30,7 +30,7 @@ type PageFormula struct {
 	TemplateData map[string]string `json:"template-data"` // data passed to the formula's go templates
 	Routes       []Route           `json:"routes"`        // Determines what to do with incoming URL requests
 	InitialPath  string            `json:"initial-path"`  // The URL path that the test runner should use for the main page of the formula
-	//ProbeBases   []ProbeBasis      `json:"probe-bases"`   // Expected values for test probes used to compare new embedded scripts
+	ProbeBasis   ProbeBasis        `json:"probe-basis"`   // Expected values for test probes used to compare new embedded scripts
 }
 
 func (formula *PageFormula) JSON() ([]byte, error) {
@@ -42,7 +42,7 @@ func NewPageFormula() *PageFormula {
 		TemplateData: map[string]string{},
 		Routes:       make([]Route, 0),
 		InitialPath:  "/",
-		//ProbeBases:   make([]ProbeBasis, 0),
+		ProbeBasis:   ProbeBasis{},
 	}
 }
 
@@ -93,12 +93,38 @@ func NewRoute(id string, path string, routeType RouteType, value string) *Route 
 ProbeBasis holds expected values from test probes.
 This information is usually used to check that future probes return similar values.
 */
-type ProbeBasis struct {
-	/*
-		DOM depth & shape
-		exceptions
-		selector existence
-	*/
+type ProbeBasis map[string]interface{}
+
+/**
+GetInt64 looks for an int64 at basis[name] and if present returns its value and true (meaning found)
+If basis[name] does not exist or is not an int64 then it returns defaultValue and false (meaning non-existent)
+*/
+func (basis ProbeBasis) GetInt64(name string, defaultValue int64) (int64, bool) {
+	val, ok := basis[name]
+	if ok == false {
+		return defaultValue, false
+	}
+	intVal, ok := val.(int64)
+	if ok == false {
+		return defaultValue, false
+	}
+	return intVal, true
+}
+
+/**
+GetString looks for a string at basis[name] and if present returns its value and true (meaning found)
+If basis[name] does not exist or is not a string then it returns defaultValue and false (meaning non-existent)
+*/
+func (basis ProbeBasis) GetString(name string, defaultValue string) (string, bool) {
+	val, ok := basis[name]
+	if ok == false {
+		return defaultValue, false
+	}
+	stringVal, ok := val.(string)
+	if ok == false {
+		return defaultValue, false
+	}
+	return stringVal, true
 }
 
 /*

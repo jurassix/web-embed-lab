@@ -1,8 +1,7 @@
 
 class ExceptionsProbe {
-	constructor(context, options){
-		this._context = context
-		this._options = options
+	constructor(basis){
+		this._basis = basis
 
 		window._exceptionCount = 0
 		window._oldErrorPrototype = window.Error.prototype

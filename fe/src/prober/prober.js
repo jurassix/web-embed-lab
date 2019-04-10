@@ -41,7 +41,7 @@ function patchFetch(){
 	}
 }
 
-window.runWebEmbedLabProbes = function(){
+window.runWebEmbedLabProbes = function(basis={}){
 	let results = {}
 	if(typeof window.__welProbes !== "object"){
 		results.error = "Failed to find probes"
@@ -50,7 +50,7 @@ window.runWebEmbedLabProbes = function(){
 	for(let key in window.__welProbes){
 		if(window.__welProbes.hasOwnProperty(key) === false) continue
 		try {
-			results[key] = window.__welProbes[key].probe()
+			results[key] = window.__welProbes[key].probe(basis[key] || {})
 		} catch(err){
 			results[key] = {
 				passed: false,

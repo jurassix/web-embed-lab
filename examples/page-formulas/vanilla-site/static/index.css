@@ -24,3 +24,7 @@ img {
 	max-width: 100%;
 	border: solid 1px #EFEFEF;
 }
+
+#random-words, section {
+	margin: 20px 0;
+}

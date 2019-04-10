@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"wel/formulas"
 )
 
 /*
@@ -39,6 +40,7 @@ func HandleControlRequest(response http.ResponseWriter, request *http.Request, f
 		Formulas:       []string{},
 		CurrentFormula: formulaHost.CurrentFormula,
 		InitialPath:    formulaHost.PageFormulas[formulaHost.CurrentFormula].InitialPath,
+		ProbeBasis:     formulaHost.PageFormulas[formulaHost.CurrentFormula].ProbeBasis,
 	}
 	for formulaName := range formulaHost.PageFormulas {
 		controlResponse.Formulas = append(controlResponse.Formulas, formulaName)
@@ -64,15 +66,16 @@ type ControlRequest struct {
 A serializable data structure for responding from the control API
 */
 type ControlResponse struct {
-	Formulas       []string `json:"formulas"`
-	CurrentFormula string   `json:"current-formula"`
-	InitialPath    string   `json:"initial-path"`
+	Formulas       []string            `json:"formulas"`
+	CurrentFormula string              `json:"current-formula"`
+	InitialPath    string              `json:"initial-path"`
+	ProbeBasis     formulas.ProbeBasis `json:"probe-basis"`
 }
 
 /*
 Uses the HTTP control API to request that the host change to a new page formula
 */
-func RequestPageFormulaChange(httpPort int64, formulaName string) (bool, string, error) {
+func RequestPageFormulaChange(httpPort int64, formulaName string) (bool, *ControlResponse, error) {
 
 	url := fmt.Sprintf("http://127.0.0.1:%v%v", httpPort, ControlURL)
 
@@ -80,33 +83,33 @@ func RequestPageFormulaChange(httpPort int64, formulaName string) (bool, string,
 		CurrentFormula: formulaName,
 	})
 	if err != nil {
-		return false, "", err
+		return false, nil, err
 	}
 
 	client := &http.Client{}
 	request, err := http.NewRequest("PUT", url, bytes.NewReader(data))
 	if err != nil {
-		return false, "", err
+		return false, nil, err
 	}
 	response, err := client.Do(request)
 	if err != nil {
-		return false, "", err
+		return false, nil, err
 	}
 	defer response.Body.Close()
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return false, "", err
+		return false, nil, err
 	}
 	controlResponse := &ControlResponse{}
 	err = json.Unmarshal(responseData, controlResponse)
 	if err != nil {
-		return false, "", err
+		return false, nil, err
 	}
 	if controlResponse.CurrentFormula == formulaName {
-		return true, controlResponse.InitialPath, nil
+		return true, controlResponse, nil
 	}
-	return false, "", nil
+	return false, nil, err
 }
 
 /*

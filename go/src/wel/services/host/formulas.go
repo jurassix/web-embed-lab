@@ -185,7 +185,17 @@ func (host *FormulaHost) handleTemplateRoute(route *formulas.Route, writer http.
 		writer.Write([]byte("Template error"))
 		return
 	}
-	err = routeTemplate.Execute(writer, route.Parameters)
+
+	// Set up the context by merging the route template data and the formula template data
+	context := map[string]string{}
+	for k, v := range host.PageFormulas[host.CurrentFormula].TemplateData {
+		context[k] = v
+	}
+	for k, v := range route.Parameters {
+		context[k] = v
+	}
+
+	err = routeTemplate.Execute(writer, context)
 	if err != nil {
 		logger.Println("Template execution error", err)
 		writer.Write([]byte("Template failure"))

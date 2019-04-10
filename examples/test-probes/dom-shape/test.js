@@ -3,9 +3,8 @@ DOM shape test probe
 */
 
 class DOMShapeProbe {
-	constructor(context, options){
-		this._context = context
-		this._options = options
+	constructor(basis){
+		this._basis = basis
 		console.log('Constructed DOM shape probe')
 	}
 

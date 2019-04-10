@@ -161,7 +161,7 @@ func main() {
 			logger.Println("Hosting page formula:", pageFormulaConfig.Name)
 
 			// Tell the host which page formula to use
-			formulaSet, initialPath, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
+			formulaSet, controlResponse, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
 			if err != nil {
 				logger.Println("Failed to reach host control API", err)
 				os.Exit(1)
@@ -182,8 +182,8 @@ func main() {
 					return
 				}
 			}
-			logger.Println("Navigating to:", pageHostURL+initialPath)
-			err = page.Navigate(pageHostURL + initialPath)
+			logger.Println("Navigating to:", pageHostURL+controlResponse.InitialPath)
+			err = page.Navigate(pageHostURL + controlResponse.InitialPath)
 			if err != nil {
 				logger.Println("Failed to navigate to hosted page formula", err)
 				os.Exit(1)
@@ -191,8 +191,15 @@ func main() {
 			}
 			hasNavigated = true
 
+			probeBasis, err := json.Marshal(controlResponse.ProbeBasis)
+			if err != nil {
+				logger.Println("Failed to unmarshal probe basis", err, controlResponse.ProbeBasis)
+				os.Exit(1)
+				return
+			}
+
 			var returnValue string
-			page.RunScript("return JSON.stringify(runWebEmbedLabProbes());", map[string]interface{}{}, &returnValue)
+			page.RunScript("return JSON.stringify(runWebEmbedLabProbes("+string(probeBasis)+"));", map[string]interface{}{}, &returnValue)
 			probeResults := &runner.ProbeResults{}
 			err = json.Unmarshal([]byte(returnValue), probeResults)
 			if err != nil {

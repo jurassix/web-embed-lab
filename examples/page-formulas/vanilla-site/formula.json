@@ -9,7 +9,8 @@
 			"path": "^/$",
 			"value": "/template/index.html",
 			"parameters": {
-				"title": "Vanilla Extract"
+				"title": "Vanilla Extract",
+				"complex-name": "Successfully fetched a complex parameter name"
 			}
 		},
 		{
@@ -42,18 +43,26 @@
 	],
 
 	"template-data": {
-		"title": "Vanilla"
+		"example-global": "Successfully read formula-global template data"
 	},
 
-	"probe-bases": {
+	"probe-basis": {
 		"dom-shape": {
 			"depth": 20,
 			"width": 45
 		},
-		"uncaught-exception": 3,
-		"selector": {
-			".main-component > .success-message:first-child": 1,
-			".footer h2.a": 6
+		"exceptions": {
+			"count": 3
+		},
+		"selector-count": {
+			"body > h1": 1,
+			"body > img": 2,
+			"#random-words": 1
+		},
+		"text-equals": {
+			"body > h1": "Vanilla Extract",
+			"#complex-name": "Successfully fetched a complex parameter name",
+			"#example-global": "Successfully read formula-global template data"
 		}
 	}
 }

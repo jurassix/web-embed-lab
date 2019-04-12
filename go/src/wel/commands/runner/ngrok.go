@@ -86,7 +86,6 @@ func (controller *NgrokController) Start(port int64) error {
 	controller.Command.Env = os.Environ()
 	go func() {
 		controller.Command.Run()
-		logger.Println("ngrok exited")
 	}()
 	return nil
 }
@@ -99,7 +98,6 @@ func (controller NgrokController) Stop() {
 	if controller.Context == nil {
 		return
 	}
-	logger.Println("Stopping ngrok")
 	controller.Context.Done()
 	controller.Context = nil
 	controller.Command = nil

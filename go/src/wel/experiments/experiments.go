@@ -28,6 +28,7 @@ An experiment is handed to the runner process which will:
 - use WebDriver to run tests on specific browsers.
 */
 type Experiment struct {
+	Name                      string                     `json:"name"`
 	PageFormulaConfigurations []PageFormulaConfiguration `json:"page-formulas"`
 	TestProbes                []TestProbe                `json:"test-probes"`
 	BrowserConfigurations     []map[string]string        `json:"browser-configurations"`
@@ -35,6 +36,7 @@ type Experiment struct {
 
 func NewExperiment() *Experiment {
 	return &Experiment{
+		Name:                      "",
 		PageFormulaConfigurations: make([]PageFormulaConfiguration, 0),
 		TestProbes:                make([]TestProbe, 0),
 		BrowserConfigurations:     make([]map[string]string, 0),

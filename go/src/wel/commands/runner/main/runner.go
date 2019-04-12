@@ -26,13 +26,32 @@ var frontEndDistPathVar = "FRONT_END_DIST"
 The runner command runs an experiment, using Selenium to run test probes in page formulas.
 */
 func main() {
+	results, success := run()
+	if results != "" {
+		logger.Println(results)
+	}
+	if success {
+		logger.Println("*PASSED*")
+		os.Exit(0)
+	} else {
+		logger.Println("*FAILED*")
+		os.Exit(1)
+	}
+}
+
+/*
+run does the work of running the experiment
+The returned string is either empty or a JSON string with test results
+The returned bool is true if all tests were run and passed
+*/
+func run() (string, bool) {
 	/*
 		Read the path of the front end dist directory
 	*/
 	frontEndDistPath := os.Getenv(frontEndDistPathVar)
 	if frontEndDistPath == "" {
 		logger.Println("Environment variable", frontEndDistPathVar, "is required")
-		os.Exit(1)
+		return "", false
 	}
 
 	if len(os.Args) == 3 {
@@ -40,8 +59,7 @@ func main() {
 		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], "")
 	} else if len(os.Args) != 5 {
 		printHelp()
-		os.Exit(1)
-		return
+		return "", false
 	}
 
 	/*
@@ -51,8 +69,7 @@ func main() {
 	browserstackAPIKey := os.Getenv(browserstackAPIKeyVar)
 	if browserstackUser == "" || browserstackAPIKey == "" {
 		logger.Println("Environment variables", browserstackUserVar, "and", browserstackAPIKeyVar, "are required")
-		os.Exit(1)
-		return
+		return "", false
 	}
 
 	/*
@@ -63,16 +80,14 @@ func main() {
 	if err != nil {
 		logger.Println("Error opening experiment JSON:", experimentPath, ":", err)
 		printHelp()
-		os.Exit(1)
-		return
+		return "", false
 	}
 	defer experimentFile.Close()
 	experiment, err := experiments.ParseExperiment(experimentFile)
 	if err != nil {
 		logger.Println("Error parsing experiment JSON:", experimentPath, ":", err)
 		printHelp()
-		os.Exit(1)
-		return
+		return "", false
 	}
 
 	/*
@@ -89,8 +104,7 @@ func main() {
 	err = ngrokController.Start(runnerPort)
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
-		os.Exit(1)
-		return
+		return "", false
 	}
 	defer ngrokController.Stop()
 
@@ -101,7 +115,7 @@ func main() {
 	for {
 		if tryCount > 100 {
 			logger.Println("Could not read ngrok process")
-			os.Exit(1)
+			return "", false
 		}
 		tryCount += 1
 		// wait for ngrok to start or fail
@@ -111,8 +125,7 @@ func main() {
 		}
 		if ngrokController.Command.ProcessState != nil {
 			logger.Println("ngrok process ended")
-			os.Exit(1)
-			return
+			return "", false
 		}
 		tunnels, err = runner.FetchNgrokTunnels()
 		if err != nil {
@@ -125,8 +138,7 @@ func main() {
 				pageHostURL = tunnels.Tunnels[1].PublicURL
 			} else {
 				logger.Println("No ngrok tunnel is https")
-				os.Exit(1)
-				return
+				return "", false
 			}
 			logger.Println("Found ngrok tunnel:", pageHostURL)
 			break
@@ -151,9 +163,9 @@ func main() {
 		page, err := agouti.NewPage(browserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 		if err != nil {
 			logger.Println("Failed to open selenium:", err)
-			os.Exit(1)
-			return
+			return "", false
 		}
+		defer page.Destroy() // Close the WebDriver session
 		logger.Println("Opened", browserConfiguration["browserName"])
 
 		hasNavigated := false
@@ -164,13 +176,11 @@ func main() {
 			formulaSet, controlResponse, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
 			if err != nil {
 				logger.Println("Failed to reach host control API", err)
-				os.Exit(1)
-				return
+				return "", false
 			}
 			if formulaSet == false {
 				logger.Println("Failed to host page formula", pageFormulaConfig.Name)
-				os.Exit(1)
-				return
+				return "", false
 			}
 
 			logger.Println("Testing...")
@@ -178,24 +188,21 @@ func main() {
 				err = page.Reset()
 				if err != nil {
 					logger.Println("Failed to reset page", err)
-					os.Exit(1)
-					return
+					return "", false
 				}
 			}
 			logger.Println("Navigating to:", pageHostURL+controlResponse.InitialPath)
 			err = page.Navigate(pageHostURL + controlResponse.InitialPath)
 			if err != nil {
 				logger.Println("Failed to navigate to hosted page formula", err)
-				os.Exit(1)
-				return
+				return "", false
 			}
 			hasNavigated = true
 
 			probeBasis, err := json.Marshal(controlResponse.ProbeBasis)
 			if err != nil {
 				logger.Println("Failed to unmarshal probe basis", err, controlResponse.ProbeBasis)
-				os.Exit(1)
-				return
+				return "", false
 			}
 
 			var returnValue string
@@ -204,9 +211,7 @@ func main() {
 			err = json.Unmarshal([]byte(returnValue), probeResults)
 			if err != nil {
 				logger.Println("Error parsing probes result", err, returnValue)
-				time.Sleep(100 * time.Minute)
-				os.Exit(1)
-				return
+				return "", false
 			} else {
 				gatheredResults = append(gatheredResults, probeResults)
 				gatheredReturnValues = append(gatheredReturnValues, returnValue)
@@ -214,19 +219,18 @@ func main() {
 		}
 	}
 
-	logger.Println("Gathered return values", gatheredReturnValues)
-
 	hasFailure := false
-	for index, probeResults := range gatheredResults {
+	for _, probeResults := range gatheredResults {
 		if probeResults.Passed() == false {
-			logger.Println("Failed:", gatheredReturnValues[index])
 			hasFailure = true
 		}
 	}
-	if hasFailure {
-		os.Exit(1)
+	returnJSON, err := json.Marshal(gatheredResults)
+	if err != nil {
+		logger.Println("Error serializing gathered results", err)
+		return "", hasFailure == false
 	}
-	os.Exit(0)
+	return string(returnJSON), hasFailure == false
 }
 
 func printHelp() {

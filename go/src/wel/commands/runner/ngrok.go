@@ -59,8 +59,9 @@ NGrokController runs the [ngrok](https://ngrok.com/) command line tool in a sepa
 ngrok provides a public HTTPS endpoint with valid certificates that tunnels to a local port.
 */
 type NgrokController struct {
-	Command *exec.Cmd
-	Context context.Context
+	Command    *exec.Cmd
+	Context    context.Context
+	CancelFunc context.CancelFunc
 }
 
 func NewNgrokController() *NgrokController {
@@ -78,7 +79,7 @@ func (controller *NgrokController) Start(port int64) error {
 	if controller.Command != nil {
 		return errors.New("Already started")
 	}
-	controller.Context, _ = context.WithCancel(context.Background())
+	controller.Context, controller.CancelFunc = context.WithCancel(context.Background())
 	arguments := make([]string, 2)
 	arguments[0] = "http"
 	arguments[1] = strconv.FormatInt(port, 10)
@@ -98,7 +99,7 @@ func (controller NgrokController) Stop() {
 	if controller.Context == nil {
 		return
 	}
-	controller.Context.Done()
+	controller.CancelFunc()
 	controller.Context = nil
 	controller.Command = nil
 }

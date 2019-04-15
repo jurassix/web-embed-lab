@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -90,6 +91,11 @@ func run() (string, bool) {
 		return "", false
 	}
 
+	if len(experiment.TestRuns) == 0 {
+		logger.Println("Experiment has not defined any test-runs:", experimentPath)
+		return "", false
+	}
+
 	/*
 		Start the page formula host
 	*/
@@ -146,76 +152,127 @@ func run() (string, bool) {
 	}
 
 	/*
-		For each {browser config, page formula} combination:
-		- point the browser at the host
-		- run the test probes
+		For each test run defined in the experiment:
+			For each browser in the test run:
+				Open a WebDriver connection
+				For each page formula:
+					Tell the host to host the page formula
+					Tell the browser to open the correct host URL
+					Run the specified test probes and collect results
 	*/
 	gatheredResults := []*runner.ProbeResults{}
 	gatheredReturnValues := []string{}
-	for _, browserConfiguration := range experiment.BrowserConfigurations {
-		logger.Println("Spinning up", browserConfiguration["browserName"], "via selenium")
-		capabilities := agouti.NewCapabilities()
-		capabilities["browserstack.user"] = browserstackUser
-		capabilities["browserstack.key"] = browserstackAPIKey
-		for key, value := range browserConfiguration {
-			capabilities[key] = value
-		}
-		page, err := agouti.NewPage(browserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
-		if err != nil {
-			logger.Println("Failed to open selenium:", err)
+
+	for index, testRun := range experiment.TestRuns {
+		logger.Println("Test Run #", index)
+		if len(testRun.PageFormulas) == 0 || len(testRun.TestProbes) == 0 || len(testRun.Browsers) == 0 {
+			logger.Println("Invalid Test Run:", testRun)
 			return "", false
 		}
-		defer page.Destroy() // Close the WebDriver session
-		logger.Println("Opened", browserConfiguration["browserName"])
 
-		hasNavigated := false
-		for _, pageFormulaConfig := range experiment.PageFormulaConfigurations {
-			logger.Println("Hosting page formula:", pageFormulaConfig.Name)
+		// Opening the browser is the slowest part of a test run so open each browser only once
+		for _, browserName := range testRun.Browsers {
+			// Make sure we have a browser configuration
+			browserConfiguration, ok := experiment.GetBrowserConfiguration(browserName)
+			if ok == false {
+				logger.Println("Unknown browser:", browserName)
+				return "", false
+			}
 
-			// Tell the host which page formula to use
-			formulaSet, controlResponse, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
+			// Open WebDriver connection to the browser
+			logger.Println("Connecting to browser:", browserName)
+			capabilities := agouti.NewCapabilities()
+			capabilities["browserstack.user"] = browserstackUser
+			capabilities["browserstack.key"] = browserstackAPIKey
+			for key, value := range browserConfiguration {
+				capabilities[key] = value
+			}
+			page, err := agouti.NewPage(browserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 			if err != nil {
-				logger.Println("Failed to reach host control API", err)
+				logger.Println("Failed to open selenium:", err)
 				return "", false
 			}
-			if formulaSet == false {
-				logger.Println("Failed to host page formula", pageFormulaConfig.Name)
+			defer page.Destroy() // Close the WebDriver session
+			logger.Println("Opened", browserName)
+
+			hasNavigated := false // true after the WebDriver session has navigated once
+
+			testsJSON, err := json.Marshal(testRun.TestProbes)
+			if err != nil {
+				logger.Println("Could not serialize tests:", err, testRun.TestProbes)
 				return "", false
 			}
 
-			logger.Println("Testing...")
-			if hasNavigated {
-				err = page.Reset()
-				if err != nil {
-					logger.Println("Failed to reset page", err)
+			for _, pageFormulaName := range testRun.PageFormulas {
+				pageFormulaConfig, ok := experiment.GetPageFormulaConfiguration(pageFormulaName)
+				if ok == false {
+					logger.Println("Unknown page formula:", pageFormulaName)
 					return "", false
 				}
-			}
-			logger.Println("Navigating to:", pageHostURL+controlResponse.InitialPath)
-			err = page.Navigate(pageHostURL + controlResponse.InitialPath)
-			if err != nil {
-				logger.Println("Failed to navigate to hosted page formula", err)
-				return "", false
-			}
-			hasNavigated = true
 
-			probeBasis, err := json.Marshal(controlResponse.ProbeBasis)
-			if err != nil {
-				logger.Println("Failed to unmarshal probe basis", err, controlResponse.ProbeBasis)
-				return "", false
-			}
+				// Host the right page formula and parse the test probe basis
+				logger.Println("Hosting page formula:", pageFormulaConfig.Name)
+				// Tell the host which page formula to use
+				formulaSet, controlResponse, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
+				if err != nil {
+					logger.Println("Failed to reach host control API", err)
+					return "", false
+				}
+				if formulaSet == false {
+					logger.Println("Failed to host page formula", pageFormulaConfig.Name)
+					return "", false
+				}
+				probeBasis, err := json.Marshal(controlResponse.ProbeBasis)
+				if err != nil {
+					logger.Println("Failed to unmarshal probe basis", err, controlResponse.ProbeBasis)
+					return "", false
+				}
 
-			var returnValue string
-			page.RunScript("return JSON.stringify(runWebEmbedLabProbes("+string(probeBasis)+"));", map[string]interface{}{}, &returnValue)
-			probeResults := &runner.ProbeResults{}
-			err = json.Unmarshal([]byte(returnValue), probeResults)
-			if err != nil {
-				logger.Println("Error parsing probes result", err, returnValue)
-				return "", false
-			} else {
-				gatheredResults = append(gatheredResults, probeResults)
-				gatheredReturnValues = append(gatheredReturnValues, returnValue)
+				// Navigate the browser to the right URL
+				logger.Println("Navigating to:", pageHostURL+controlResponse.InitialPath)
+				if hasNavigated {
+					err = page.Reset()
+					if err != nil {
+						logger.Println("Failed to reset page", err)
+						return "", false
+					}
+				}
+				err = page.Navigate(pageHostURL + controlResponse.InitialPath)
+				if err != nil {
+					logger.Println("Failed to navigate to hosted page formula", err)
+					return "", false
+				}
+				hasNavigated = true
+
+				// Run the tests
+				logger.Println("Running tests...")
+				var returnValue string
+				script := fmt.Sprintf(`
+					return JSON.stringify(
+						runWebEmbedLabProbes(
+							%s,
+							%s
+						)
+					);`, testsJSON, string(probeBasis))
+				page.RunScript(script, map[string]interface{}{}, &returnValue)
+				probeResults := &runner.ProbeResults{}
+				err = json.Unmarshal([]byte(returnValue), probeResults)
+				if err != nil {
+					logger.Println("Error parsing probes result", err, returnValue)
+					return "", false
+				} else {
+					for testName, result := range *probeResults {
+						if result.Passed {
+							logger.Println(testName+":", "passed")
+						} else {
+							logger.Println(testName+":", "FAILED")
+						}
+					}
+					gatheredResults = append(gatheredResults, probeResults)
+					gatheredReturnValues = append(gatheredReturnValues, returnValue)
+				}
 			}
+			page.Destroy()
 		}
 	}
 

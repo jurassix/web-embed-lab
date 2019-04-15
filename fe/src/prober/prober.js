@@ -41,14 +41,25 @@ function patchFetch(){
 	}
 }
 
-window.runWebEmbedLabProbes = function(basis={}){
+/**
+runWebEmbedLabProbes runs the tests
+@param {Array(string)} a list of test names to run. If tests is null or of length 0 then all tests are run.
+*/
+window.runWebEmbedLabProbes = function(tests=null, basis={}){
 	let results = {}
 	if(typeof window.__welProbes !== "object"){
 		results.error = "Failed to find probes"
 		return results
 	}
-	for(let key in window.__welProbes){
-		if(window.__welProbes.hasOwnProperty(key) === false) continue
+	if(tests === null || tests.length === 0){
+		tests = []
+		for(let key in window.__welProbes){
+			if(window.__welProbes.hasOwnProperty(key) === false) continue
+			tests.push(key)
+		}
+
+	}
+	for(let key of tests){
 		try {
 			results[key] = window.__welProbes[key].probe(basis[key] || {})
 		} catch(err){

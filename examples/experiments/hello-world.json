@@ -30,5 +30,12 @@
 			"browserVersion": "66",
 			"resolution": "1024x768"
 		}
+	],
+	"test-runs" : [
+		{
+			"page-formulas": ["vanilla-site", "hello-world"],
+			"test-probes": ["dom-shape", "exceptions", "selector-count", "text-equals"],
+			"browsers": ["Chrome 62", "Firefox 66"]
+		}
 	]
 }

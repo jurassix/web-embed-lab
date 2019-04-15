@@ -7,16 +7,30 @@ import (
 )
 
 /*
-TestProbe holds the indentifier and basis (aka config) for a JS test run in a hosted page formula
+TestProbe holds the name (and eventually configuration data) for a JS test that can be run in a hosted page formula
 */
 type TestProbe struct {
 	Name string `json:"name"`
 	//ProbeBasis formulas.ProbeBasis
 }
 
+/*
+PageFormulaConfiguration holds a reference (and eventually configuration data) for a page formula
+The Name references the name of the directory that holds the formula.json file.
+*/
 type PageFormulaConfiguration struct {
 	Name string `json:"name"`
 	//TemplateData
+}
+
+/*
+TestRun holds references to page formulas and test probes that should be run on a set of browsers
+The Experiment holds configurations for everything and the `runner` performs the test runs using those configurations.
+*/
+type TestRun struct {
+	PageFormulas []string `json:"page-formulas"` // Names of page formulas
+	TestProbes   []string `json:"test-probes"`   // Names of test probes
+	Browsers     []string `json:"browsers"`      // Names of browsers
 }
 
 /*
@@ -25,24 +39,48 @@ Experiment pulls together a set of page formulas, test probes, and browser confi
 An experiment is handed to the runner process which will:
 - host the page formulas
 - inject the test probes
-- use WebDriver to run tests on specific browsers.
+- use WebDriver to perform the test runs
 */
 type Experiment struct {
 	Name                      string                     `json:"name"`
 	PageFormulaConfigurations []PageFormulaConfiguration `json:"page-formulas"`
 	TestProbes                []TestProbe                `json:"test-probes"`
 	BrowserConfigurations     []map[string]string        `json:"browser-configurations"`
+	TestRuns                  []TestRun                  `json:"test-runs"`
 }
 
 func NewExperiment() *Experiment {
 	return &Experiment{
 		Name:                      "",
-		PageFormulaConfigurations: make([]PageFormulaConfiguration, 0),
-		TestProbes:                make([]TestProbe, 0),
-		BrowserConfigurations:     make([]map[string]string, 0),
+		PageFormulaConfigurations: []PageFormulaConfiguration{},
+		TestProbes:                []TestProbe{},
+		BrowserConfigurations:     []map[string]string{},
+		TestRuns:                  []TestRun{},
 	}
 }
 
+func (experiment Experiment) GetBrowserConfiguration(name string) (map[string]string, bool) {
+	for _, browserConfiguration := range experiment.BrowserConfigurations {
+		bcName, ok := browserConfiguration["name"]
+		if ok == true && name == bcName {
+			return browserConfiguration, true
+		}
+	}
+	return map[string]string{}, false
+}
+
+func (experiment Experiment) GetPageFormulaConfiguration(name string) (*PageFormulaConfiguration, bool) {
+	for _, configuration := range experiment.PageFormulaConfigurations {
+		if name == configuration.Name {
+			return &configuration, true
+		}
+	}
+	return nil, false
+}
+
+/*
+ParseExperiment reads a JSON file and returns an Experiment struct
+*/
 func ParseExperiment(inputFile *os.File) (*Experiment, error) {
 	experiment := NewExperiment()
 	data, err := ioutil.ReadAll(inputFile)

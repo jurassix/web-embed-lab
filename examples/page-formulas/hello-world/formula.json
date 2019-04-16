@@ -17,5 +17,19 @@
 	},
 
 	"probe-basis": {
+		"dom-shape": {
+			"depth": 2,
+			"width": 2
+		},
+		"exceptions": {
+			"count": 0
+		},
+		"selector-count": {
+			"body > h1": 1,
+			"body > img": 0
+		},
+		"text-equals": {
+			"body > h1": "Hello World"
+		}
 	}
 }

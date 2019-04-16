@@ -1,8 +1,6 @@
 
 class ExceptionsProbe {
-	constructor(basis){
-		this._basis = basis
-
+	constructor(){
 		window._exceptionCount = 0
 		window._oldErrorPrototype = window.Error.prototype
 		window.Error = function(...params){
@@ -19,12 +17,16 @@ class ExceptionsProbe {
 	/**
 	@param {object} results - the object on which to set result attributes
 	*/
-	probe(){
+	probe(basis){
 		console.log('Probing exceptions')
-		return {
+		const results = {
 			passed: true,
 			count: window._exceptionCount
 		}
+		if(basis && typeof basis.count === 'number'){
+			results.passed = basis.count === window._exceptionCount
+		}
+		return results
 	}
 }
 

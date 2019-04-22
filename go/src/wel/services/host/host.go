@@ -70,8 +70,6 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 		response.Write([]byte(embeddedScript))
 	})
 
-	logger.Println("ProbesURL", ProbesURL)
-
 	// Serve test probes' JS
 	mux.HandleFunc(ProbesURL, func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Add("Content-Type", "text/javascript")
@@ -98,7 +96,6 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 	// Serve page formulas
 	mux.Handle("/", formulaHost)
 
-	logger.Println("Listening on", port)
 	//log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", port), weltls.LocalhostCertPath, weltls.LocalhostKeyPath, mux))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
 }

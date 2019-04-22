@@ -230,7 +230,6 @@ func createTemplateRoutes(
 		}
 
 		route := formulas.NewRoute(templateFileName, regex, formulas.TemplateRoute, fmt.Sprintf("/%v/%v", formulas.TemplateDirName, templateFileName))
-		//logger.Println("Template route", route.Path, templateFileName)
 		formula.Routes = append(formula.Routes, *route)
 	}
 }
@@ -357,7 +356,6 @@ func createStaticRoutes(
 		if len(request.ContentType) > 0 {
 			route.Headers["Content-Type"] = request.ContentType
 		}
-		//logger.Println("Static route", route.Path, staticFileName)
 		formula.Routes = append(formula.Routes, *route)
 	}
 }

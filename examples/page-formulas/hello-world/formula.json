@@ -18,7 +18,7 @@
 
 	"probe-basis": {
 		"dom-shape": {
-			"depth": 2,
+			"depth": 24,
 			"width": 2
 		},
 		"exceptions": {

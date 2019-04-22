@@ -112,7 +112,6 @@ func run() (string, bool) {
 	}
 	defer ngrokController.Stop()
 
-	logger.Println("Waiting for ngrok tunnels")
 	var tunnels *runner.NgrokTunnels = nil
 	tryCount := 0
 	pageHostURL := ""
@@ -144,7 +143,6 @@ func run() (string, bool) {
 				logger.Println("No ngrok tunnel is https")
 				return "", false
 			}
-			logger.Println("Found ngrok tunnel:", pageHostURL)
 			break
 		}
 	}
@@ -191,7 +189,6 @@ func run() (string, bool) {
 				return "", false
 			}
 			defer page.Destroy() // Close the WebDriver session
-			logger.Println("Opened", browserName)
 
 			hasNavigated := false // true after the WebDriver session has navigated once
 
@@ -209,8 +206,6 @@ func run() (string, bool) {
 				}
 
 				// Host the right page formula and parse the test probe basis
-				logger.Println("Hosting page formula:", pageFormulaConfig.Name)
-				// Tell the host which page formula to use
 				formulaSet, controlResponse, err := host.RequestPageFormulaChange(runnerPort, pageFormulaConfig.Name)
 				if err != nil {
 					logger.Println("Failed to reach host control API", err)
@@ -227,7 +222,6 @@ func run() (string, bool) {
 				}
 
 				// Navigate the browser to the right URL
-				logger.Println("Navigating to:", pageHostURL+controlResponse.InitialPath)
 				if hasNavigated {
 					err = page.Reset()
 					if err != nil {
@@ -243,7 +237,7 @@ func run() (string, bool) {
 				hasNavigated = true
 
 				// Run the tests
-				logger.Println("Running tests...")
+				logger.Printf("Testing '%v' on '%v':", pageFormulaConfig.Name, browserName)
 				var returnValue string
 				script := fmt.Sprintf(`
 					return JSON.stringify(

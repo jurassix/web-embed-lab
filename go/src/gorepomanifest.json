@@ -9,6 +9,11 @@
   "current-version-git-hash": "483fb8d7c32fcb4b5636cd293a92e3935932e2f4",
   "content-hash": "54a6eb7dcba76e9973ed382cd7fd4a5f4f428b2a"
  },
+ "github.com/logrusorgru/aurora": {
+  "git-remote": "https://github.com/logrusorgru/aurora",
+  "current-version-git-hash": "e50442bb4cb59f85c65e834e7dacbbabde16d743",
+  "content-hash": "b34c38abd9a9b6d6f2eda7b5b13f875d0c08c581"
+ },
  "github.com/nu7hatch/gouuid": {
   "git-remote": "https://github.com/nu7hatch/gouuid",
   "current-version-git-hash": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3",

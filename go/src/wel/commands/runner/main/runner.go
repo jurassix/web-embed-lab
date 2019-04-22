@@ -11,6 +11,7 @@ import (
 	"wel/experiments"
 	"wel/services/host"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/sclevine/agouti"
 )
 
@@ -27,15 +28,12 @@ var frontEndDistPathVar = "FRONT_END_DIST"
 The runner command runs an experiment, using Selenium to run test probes in page formulas.
 */
 func main() {
-	results, success := run()
-	if results != "" {
-		logger.Println(results)
-	}
+	_, success := run()
 	if success {
-		logger.Println("*PASSED*")
+		logger.Println(aurora.Green("*PASSED*"))
 		os.Exit(0)
 	} else {
-		logger.Println("*FAILED*")
+		logger.Println(aurora.Red("*FAILED*"))
 		os.Exit(1)
 	}
 }
@@ -164,7 +162,7 @@ func run() (string, bool) {
 	gatheredReturnValues := []string{}
 
 	for index, testRun := range experiment.TestRuns {
-		logger.Println("Test Run #", index)
+		logger.Println(aurora.Bold("Test Run #"), aurora.Bold(index))
 		if len(testRun.PageFormulas) == 0 || len(testRun.TestProbes) == 0 || len(testRun.Browsers) == 0 {
 			logger.Println("Invalid Test Run:", testRun)
 			return "", false
@@ -262,10 +260,14 @@ func run() (string, bool) {
 					return "", false
 				} else {
 					for testName, result := range *probeResults {
-						if result.Passed {
-							logger.Println(testName+":", "passed")
+						if result.Passed() {
+							logger.Println(testName+":", aurora.Green("passed"))
 						} else {
-							logger.Println(testName+":", "FAILED")
+							logger.Println(testName+":", aurora.Red("failed"))
+							if basis, ok := controlResponse.ProbeBasis[testName]; ok == true {
+								logger.Println("Expected:", basis)
+							}
+							logger.Println("Received:", aurora.Red(result))
 						}
 					}
 					gatheredResults = append(gatheredResults, probeResults)
@@ -282,7 +284,7 @@ func run() (string, bool) {
 			hasFailure = true
 		}
 	}
-	returnJSON, err := json.Marshal(gatheredResults)
+	returnJSON, err := json.MarshalIndent(gatheredResults, "", "\t")
 	if err != nil {
 		logger.Println("Error serializing gathered results", err)
 		return "", hasFailure == false

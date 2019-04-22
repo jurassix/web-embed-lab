@@ -119,7 +119,7 @@ func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Req
 			host.handleStaticRequest(writer, request)
 			return
 		}
-		logger.Println("No route", request.URL.Path)
+		//logger.Println("No route", request.URL.Path)
 		writer.WriteHeader(http.StatusNotFound)
 		writer.Write([]byte(fmt.Sprintf("No route: %v", request.URL.Path)))
 		return
@@ -130,14 +130,12 @@ func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Req
 	case formulas.StaticRoute:
 		host.handleStaticRoute(route, writer, request)
 	default:
-		logger.Println("Unknown route type", route.Type)
 		writer.WriteHeader(http.StatusNotFound)
-		writer.Write([]byte(fmt.Sprintf("Not found: %v", request.URL.Path)))
+		writer.Write([]byte(fmt.Sprintf("Unknown route type: %v", request.URL.Path)))
 	}
 }
 
 func (host *FormulaHost) handleStaticRequest(writer http.ResponseWriter, request *http.Request) {
-	logger.Println("Static request", request.URL.Path)
 	blob, blobStat, err := host.openBlob(request.URL.Path)
 	if err != nil {
 		logger.Println("No static blob", request.URL.Path, err)
@@ -158,7 +156,7 @@ func (host *FormulaHost) handleStaticRequest(writer http.ResponseWriter, request
 func (host *FormulaHost) handleStaticRoute(route *formulas.Route, writer http.ResponseWriter, request *http.Request) {
 	blob, blobStat, err := host.openBlob(route.Value)
 	if err != nil {
-		logger.Println("No routed static blob", route.Value, err)
+		//logger.Println("No routed static blob", route.Value, err)
 		writer.WriteHeader(http.StatusNotFound)
 		writer.Write([]byte("Blob error"))
 		return

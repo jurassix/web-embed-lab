@@ -1,14 +1,41 @@
 package runner
 
-type ProbeResult struct {
-	Passed bool `json:"passed"`
+type ProbeResult map[string]interface{}
+
+func (probeResult ProbeResult) Passed() bool {
+	if value, ok := probeResult.GetBool("passed"); ok == true {
+		return value
+	}
+	return false
+}
+
+func (probeResult ProbeResult) GetBool(name string) (value bool, ok bool) {
+	if interfaceVal, ok := probeResult[name]; ok == true {
+		value, ok := interfaceVal.(bool)
+		if ok {
+			return value, ok
+		}
+		return false, false
+	}
+	return false, false
+}
+
+func (probeResult ProbeResult) GetInt64(name string) (value int64, ok bool) {
+	if interfaceVal, ok := probeResult[name]; ok == true {
+		value, ok := interfaceVal.(int64)
+		if ok {
+			return value, ok
+		}
+		return 0, false
+	}
+	return 0, false
 }
 
 type ProbeResults map[string]ProbeResult
 
 func (probeResults ProbeResults) Passed() bool {
 	for _, probeResult := range probeResults {
-		if probeResult.Passed == false {
+		if probeResult.Passed() == false {
 			return false
 		}
 	}

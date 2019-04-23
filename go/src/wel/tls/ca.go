@@ -51,11 +51,28 @@ func ReadOrGenerateCa() error {
 	if err != nil {
 		log.Fatalf("failed to generate serial number: %s", err)
 	}
+	issuerSerialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		log.Fatalf("failed to generate serial number: %s", err)
+	}
+	subjectSerialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		log.Fatalf("failed to generate serial number: %s", err)
+	}
+
+	logger.Println("Serial", serialNumber)
 
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
-		Subject: pkix.Name{
+		Issuer: pkix.Name{
+			CommonName:   "WEL",
 			Organization: []string{"Web Embed Lab"},
+			SerialNumber: fmt.Sprintf("%v", issuerSerialNumber),
+		},
+		Subject: pkix.Name{
+			CommonName:   "WEL",
+			Organization: []string{"Web Embed Lab"},
+			SerialNumber: fmt.Sprintf("%v", subjectSerialNumber),
 		},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,

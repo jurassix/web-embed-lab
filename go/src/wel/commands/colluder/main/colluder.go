@@ -13,6 +13,10 @@ import (
 
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 
+var ColluderProxyPort int = 9080
+var ColluderWebPort int64 = 9081
+var ColluderWebSocketPort int64 = 9082
+
 func main() {
 	logger.Println("Starting")
 
@@ -24,9 +28,9 @@ func main() {
 		return
 	}
 
-	go colluder.RunHTTP(8081)
-	go colluder.RunWS(8082)
-	go proxy.Run(8080)
+	go colluder.RunHTTP(ColluderWebPort)
+	go colluder.RunWS(ColluderWebSocketPort)
+	go proxy.Run(ColluderProxyPort)
 
 	for {
 		time.Sleep(time.Hour)

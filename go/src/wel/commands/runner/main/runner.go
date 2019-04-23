@@ -17,7 +17,7 @@ import (
 
 var logger = log.New(os.Stdout, "[runner] ", 0)
 
-var runnerPort int64 = 8090
+var runnerPort int64 = 9090
 
 var browserstackURL = "http://hub-cloud.browserstack.com/wd/hub"
 var browserstackUserVar = "BROWSERSTACK_USER"

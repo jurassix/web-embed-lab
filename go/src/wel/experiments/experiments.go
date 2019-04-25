@@ -45,7 +45,7 @@ type Experiment struct {
 	Name                      string                     `json:"name"`
 	PageFormulaConfigurations []PageFormulaConfiguration `json:"page-formulas"`
 	TestProbes                []TestProbe                `json:"test-probes"`
-	BrowserConfigurations     []map[string]string        `json:"browser-configurations"`
+	BrowserConfigurations     []map[string]interface{}   `json:"browser-configurations"`
 	TestRuns                  []TestRun                  `json:"test-runs"`
 }
 
@@ -54,19 +54,19 @@ func NewExperiment() *Experiment {
 		Name:                      "",
 		PageFormulaConfigurations: []PageFormulaConfiguration{},
 		TestProbes:                []TestProbe{},
-		BrowserConfigurations:     []map[string]string{},
+		BrowserConfigurations:     []map[string]interface{}{},
 		TestRuns:                  []TestRun{},
 	}
 }
 
-func (experiment Experiment) GetBrowserConfiguration(name string) (map[string]string, bool) {
+func (experiment Experiment) GetBrowserConfiguration(name string) (map[string]interface{}, bool) {
 	for _, browserConfiguration := range experiment.BrowserConfigurations {
 		bcName, ok := browserConfiguration["name"]
 		if ok == true && name == bcName {
 			return browserConfiguration, true
 		}
 	}
-	return map[string]string{}, false
+	return map[string]interface{}{}, false
 }
 
 func (experiment Experiment) GetPageFormulaConfiguration(name string) (*PageFormulaConfiguration, bool) {

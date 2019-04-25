@@ -55,6 +55,7 @@ func run() (string, bool) {
 
 	if len(os.Args) == 3 {
 		// Run in developer host mode
+		logger.Println("Developer mode on port", runnerPort)
 		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], "")
 	} else if len(os.Args) != 5 {
 		printHelp()
@@ -190,6 +191,17 @@ func run() (string, bool) {
 			}
 			defer page.Destroy() // Close the WebDriver session
 
+			hasBrowserLog := false
+			logTypes, err := page.LogTypes()
+			if err == nil {
+				for _, logType := range logTypes {
+					if logType == "browser" {
+						hasBrowserLog = true
+						break
+					}
+				}
+			}
+
 			hasNavigated := false // true after the WebDriver session has navigated once
 
 			testsJSON, err := json.Marshal(testRun.TestProbes)
@@ -228,6 +240,7 @@ func run() (string, bool) {
 						logger.Println("Failed to reset page", err)
 						return "", false
 					}
+					page.ReadNewLogs("browser")
 				}
 				err = page.Navigate(pageHostURL + controlResponse.InitialPath)
 				if err != nil {
@@ -252,20 +265,35 @@ func run() (string, bool) {
 				if err != nil {
 					logger.Println("Error parsing probes result", err, returnValue)
 					return "", false
-				} else {
-					for testName, result := range *probeResults {
-						if result.Passed() {
-							logger.Println(testName+":", aurora.Green("passed"))
-						} else {
-							logger.Println(testName+":", aurora.Red("failed"))
-							if basis, ok := controlResponse.ProbeBasis[testName]; ok == true {
-								logger.Println("Expected:", basis)
-							}
-							logger.Println("Received:", aurora.Red(result))
+				}
+				hasAFail := false
+				for testName, result := range *probeResults {
+					if result.Passed() {
+						logger.Println(testName+":", aurora.Green("passed"))
+					} else {
+						hasAFail = true
+						logger.Println(testName+":", aurora.Red("failed"))
+						if basis, ok := controlResponse.ProbeBasis[testName]; ok == true {
+							logger.Println("Expected:", basis)
 						}
+						logger.Println("Received:", aurora.Red(result))
 					}
-					gatheredResults = append(gatheredResults, probeResults)
-					gatheredReturnValues = append(gatheredReturnValues, returnValue)
+				}
+				gatheredResults = append(gatheredResults, probeResults)
+				gatheredReturnValues = append(gatheredReturnValues, returnValue)
+
+				if hasAFail {
+					if hasBrowserLog {
+						if logs, err := page.ReadNewLogs("browser"); err != nil {
+							logger.Println("Error fetching logs", err)
+						} else {
+							for _, log := range logs {
+								logger.Println("Log:", log.Message)
+							}
+						}
+					} else {
+						logger.Println("Browser does not provide logs :-(")
+					}
 				}
 			}
 			page.Destroy()

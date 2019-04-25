@@ -17,18 +17,19 @@
 		{
 			"name": "Chrome 62",
 			"os": "Windows",
-			"os_version": "10",
+			"osVersion": "10",
 			"browserName": "Chrome",
 			"browserVersion": "62.0",
-			"resolution": "1024x768"
-		},
+			"resolution": "1024x768",
+			"browserstack.console": "verbose"		},
 		{
 			"name": "Firefox 66",
 			"os": "Windows",
-			"os_version": "10",
+			"osVersion": "10",
 			"browserName": "Firefox",
 			"browserVersion": "66",
-			"resolution": "1024x768"
+			"resolution": "1024x768",
+			"browserstack.console": "verbose"
 		}
 	],
 	"test-runs" : [

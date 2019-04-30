@@ -13,8 +13,8 @@ You will often want to run WEL experiments in your continuous integration system
 First you will need to assemble these things:
 - page formulas
 - test probes
-- experiment definition
 - an embedded script
+- experiment definition
 
 You will find examples of all of these in web-embed-lab/examples/ and we will use those in the example commands below.
 
@@ -28,8 +28,8 @@ Here is an example of `runner` using the examples in the WEL repo:
 	./go/bin/runner \
 		./examples/page-formulas/ \
 		./examples/test-probes/ \
-		./examples/experiments/hello-world.json \
-		./examples/embed_scripts/no-op.js
+		./examples/embed_scripts/no-op.js \
+		./examples/experiments/hello-world.json
 
 This command told the `runner` where to find the page formulas, test probes, experiment, and the embed script that is the focus of the tests. It also told the runner that we're using Browserstack and what authorization info to use.
 

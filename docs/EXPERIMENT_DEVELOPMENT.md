@@ -149,3 +149,10 @@ You can change which page formula `runner` is hosting by PUTing to the same URL:
 
 	curl http://127.0.0.1:8090/__wel_control -X PUT --data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
 
+If you want to test a page formula with an embed script then use the embed mode of the `runner`:
+	cd web-embed-lab/
+	./go/bin/runner \
+		./examples/page-formulas/ \	# a directory holding page formula sub-directories
+		./examples/test-probes/	\	# a directory holding test probe sub-directories
+		./examples/embed_scripts/no-op.js # the embed script 
+

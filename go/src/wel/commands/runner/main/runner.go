@@ -54,9 +54,13 @@ func run() (string, bool) {
 	}
 
 	if len(os.Args) == 3 {
-		// Run in developer host mode
+		// Run in developer mode
 		logger.Println("Developer mode on port", runnerPort)
 		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], "")
+	} else if len(os.Args) == 4 {
+		// Run in developer mode
+		logger.Println("Embed mode on port", runnerPort)
+		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
 	} else if len(os.Args) != 5 {
 		printHelp()
 		return "", false
@@ -181,6 +185,8 @@ func run() (string, bool) {
 			capabilities := agouti.NewCapabilities()
 			capabilities["browserstack.user"] = browserstackUser
 			capabilities["browserstack.key"] = browserstackAPIKey
+			capabilities["browserstack.console"] = "verbose"
+			capabilities["browserstack.seleniumLogs"] = "true"
 			for key, value := range browserConfiguration {
 				capabilities[key] = value
 			}
@@ -315,10 +321,20 @@ func run() (string, bool) {
 }
 
 func printHelp() {
-	logger.Println("usage: runner <formulas dir> <probes dir> <experiment json> <embed script>")
-	logger.Println("Example: runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/experiments/hello-world.json ./examples/embed_scripts/no-op.js\n")
-	logger.Println("usage (development mode): runner <formulas dir> <probes dir>")
-	logger.Println("Example: runner ./examples/page-formulas/ ./examples/test-probes/")
+	logger.Println("usage (experiment mode): runs the experiment")
+	logger.Println(aurora.Bold("runner <formulas dir> <probes dir> <embed script> <experiment json>"))
+	logger.Println("Example:")
+	logger.Println("runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js ./examples/experiments/hello-world.json\n")
+
+	logger.Println("usage (development mode): runs the page formula host")
+	logger.Println(aurora.Bold("runner <formulas dir> <probes dir>"))
+	logger.Println("Example:")
+	logger.Println("runner ./examples/page-formulas/ ./examples/test-probes/\n")
+
+	logger.Println("usage (embed mode): runs the page formula host with an embed script")
+	logger.Println(aurora.Bold("runner <formulas dir> <probes dir> <embed script>"))
+	logger.Println("Example:")
+	logger.Println("runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js")
 }
 
 /*

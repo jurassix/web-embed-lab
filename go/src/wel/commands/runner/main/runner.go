@@ -79,7 +79,7 @@ func run() (string, bool) {
 	/*
 		Read and parse the experiment definition
 	*/
-	experimentPath := os.Args[3]
+	experimentPath := os.Args[4]
 	experimentFile, err := os.Open(experimentPath)
 	if err != nil {
 		logger.Println("Error opening experiment JSON:", experimentPath, ":", err)

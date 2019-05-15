@@ -13,11 +13,16 @@
 			"sites": [
 				{
 					"name": "transmutable",
-					"url": "https://transmutable.com/?wel-foo=bar"
+					"url": "https://transmutable.com/?wel=t",
+					"comment": "The URL parameters are not necessary, just hand for testing"
+				},
+				{
+					"name": "science-saints",
+					"url": "http://sciencesaints.com/?wel=s-s"
 				},
 				{
 					"name": "potassium-es",
-					"url": "https://potassiumes.org/?wel-bar=foo"
+					"url": "https://potassiumes.org/?wel=k"
 				}
 			]
 		}

@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
+	"strings"
 
 	"wel/formulas"
 	"wel/services/colluder"
+	"wel/services/colluder/session"
 	"wel/services/proxy"
 	"wel/tunnels"
 	"wel/webdriver"
@@ -104,8 +107,6 @@ func run() error {
 
 		capabilities["browserstack.user"] = browserstackUser
 		capabilities["browserstack.key"] = browserstackAPIKey
-		//capabilities["browserstack.console"] = "verbose"
-		//capabilities["browserstack.seleniumLogs"] = "true"
 		for key, value := range capture.BrowserConfiguration {
 			capabilities[key] = value
 		}
@@ -117,9 +118,19 @@ func run() error {
 
 		hasNavigated := false // true after the WebDriver session has navigated once
 		for _, site := range capture.Sites {
+			parsedURL, err := url.Parse(site.URL)
+			if err != nil {
+				logger.Println("Failed to parse URL", site.URL)
+				return err
+			}
+			siteHost := parsedURL.Host
+			if colonIndex := strings.Index(siteHost, ":"); colonIndex > 0 {
+				siteHost = siteHost[:colonIndex]
+			}
 			logger.Println("Capturing", site.Name, site.URL)
 
 			if hasNavigated {
+				// Empty the page to stop all previous network connections
 				err = page.Navigate("about:blank")
 				if err != nil {
 					logger.Println("Failed to blank", err)
@@ -127,7 +138,11 @@ func run() error {
 				}
 			}
 
-			// tell the colluder (via ws) to start a capture session with the site `name`
+			// tell the colluder to start a capture session with the site `name`
+			session.CurrentCaptureSession, err = session.NewCaptureSession(siteHost)
+			if err != nil {
+				logger.Printf("Error toggling on", err)
+			}
 
 			// tell the page to load the URL and wait for successful load or failure
 			err = page.Navigate(site.URL)
@@ -138,22 +153,18 @@ func run() error {
 			hasNavigated = true
 
 			// tell the colluder to stop the capture session
-
+			err = session.CurrentCaptureSession.WriteTimeline()
+			if err != nil {
+				logger.Printf("Error writing timeline %v", err)
+				return err
+			}
+			session.CurrentCaptureSession = nil
 		}
+
+		// TODO Now that we have the captures, formulate the page formulas
 
 	}
 
-	/*
-		if there's a list of URLs to capture
-			check all of the ENV settings
-			start ngrok
-			start browserstack: with proxy to ngrok and certs
-			for URL
-				tell the proxy (via ws) to start a session (needs a capture dir name)
-				tell the page to load the URL
-				wait for full page load
-				tell the proxy to start the session
-	*/
 	return nil
 }
 

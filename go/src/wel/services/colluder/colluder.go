@@ -14,10 +14,18 @@ import (
 )
 
 var DistDirPath = "fe/dist/colluder"
+var ColluderProxyPort int = 9080
+var ColluderWebPort int64 = 9081
+var ColluderWebSocketPort int64 = 9082
 
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 
 var CurrentWebSocketService *ws.WebSocketService = nil
+
+func PrepForCollusion() error {
+	os.Mkdir(DistDirPath, 0777)
+	return weltls.ReadOrGenerateCa()
+}
 
 func RunHTTP(port int64) {
 	mux := http.NewServeMux()

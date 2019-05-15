@@ -12,8 +12,6 @@ function initProber(){
 		console.error('Prober loaded but there are no tests in __welProbes')
 		return
 	}
-
-	console.log('Prober initialized')
 }
 
 /**

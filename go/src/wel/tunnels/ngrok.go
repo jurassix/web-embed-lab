@@ -1,4 +1,4 @@
-package runner
+package tunnels
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 var tunnelsURL = "http://localhost:4040/api/tunnels"
@@ -74,14 +75,15 @@ func NewNgrokController() *NgrokController {
 /*
 Start will spin off an ngrok process and return without blocking
 If the controller has already started and has not been stopped it will return an error
+protocol should be "http" or "tcp"
 */
-func (controller *NgrokController) Start(port int64) error {
+func (controller *NgrokController) Start(port int64, protocol string) error {
 	if controller.Command != nil {
 		return errors.New("Already started")
 	}
 	controller.Context, controller.CancelFunc = context.WithCancel(context.Background())
 	arguments := make([]string, 2)
-	arguments[0] = "http"
+	arguments[0] = protocol
 	arguments[1] = strconv.FormatInt(port, 10)
 	controller.Command = exec.CommandContext(controller.Context, "ngrok", arguments...)
 	controller.Command.Env = os.Environ()
@@ -102,6 +104,40 @@ func (controller NgrokController) Stop() {
 	controller.CancelFunc()
 	controller.Context = nil
 	controller.Command = nil
+}
+
+/*
+WaitForNgrokTunnels return the tunnels list and the page host URL of the HTTPS tunnel
+desiredProtocol should be "http", "https", or "tcp"
+*/
+func (controller *NgrokController) WaitForNgrokTunnels(desiredProtocol string) (*NgrokTunnels, string, error) {
+	var ngrokTunnels *NgrokTunnels = nil
+	var err error = nil
+	tryCount := 0
+	for {
+		if tryCount > 100 {
+			return nil, "", errors.New("Could not read ngrok process")
+		}
+		tryCount += 1
+		// wait for ngrok to start or fail
+		time.Sleep(100 * time.Millisecond)
+		if controller.Command == nil {
+			continue
+		}
+		if controller.Command.ProcessState != nil {
+			return nil, "", errors.New("ngrok process ended")
+		}
+		ngrokTunnels, err = FetchNgrokTunnels()
+		if err != nil || len(ngrokTunnels.Tunnels) == 0 {
+			continue
+		}
+		for _, tunnel := range ngrokTunnels.Tunnels {
+			if tunnel.Protocol == desiredProtocol {
+				return ngrokTunnels, tunnel.PublicURL, nil
+			}
+		}
+		return nil, "", errors.New("No ngrok tunnel is " + desiredProtocol)
+	}
 }
 
 /*

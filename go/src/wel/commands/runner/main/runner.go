@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"wel/commands/runner"
 	"wel/experiments"
 	"wel/services/host"
+	"wel/tunnels"
+	"wel/webdriver"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/sclevine/agouti"
@@ -19,9 +20,6 @@ var logger = log.New(os.Stdout, "[runner] ", 0)
 
 var runnerPort int64 = 9090
 
-var browserstackURL = "http://hub-cloud.browserstack.com/wd/hub"
-var browserstackUserVar = "BROWSERSTACK_USER"
-var browserstackAPIKeyVar = "BROWSERSTACK_API_KEY"
 var frontEndDistPathVar = "FRONT_END_DIST"
 
 /*
@@ -69,10 +67,10 @@ func run() (string, bool) {
 	/*
 		Read the WebDriver configuration
 	*/
-	browserstackUser := os.Getenv(browserstackUserVar)
-	browserstackAPIKey := os.Getenv(browserstackAPIKeyVar)
+	browserstackUser := os.Getenv(webdriver.BrowserstackUserVar)
+	browserstackAPIKey := os.Getenv(webdriver.BrowserstackAPIKeyVar)
 	if browserstackUser == "" || browserstackAPIKey == "" {
-		logger.Println("Environment variables", browserstackUserVar, "and", browserstackAPIKeyVar, "are required")
+		logger.Println("Environment variables", webdriver.BrowserstackUserVar, "and", webdriver.BrowserstackAPIKeyVar, "are required")
 		return "", false
 	}
 
@@ -107,49 +105,19 @@ func run() (string, bool) {
 	}()
 
 	/*
-		Set up the ngrok tunnel
+		Set up the ngrok tunnel and find its HTTPS endpoint URL
 	*/
-	ngrokController := runner.NewNgrokController()
-	err = ngrokController.Start(runnerPort)
+	ngrokController := tunnels.NewNgrokController()
+	err = ngrokController.Start(runnerPort, "http")
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
 		return "", false
 	}
 	defer ngrokController.Stop()
-
-	var tunnels *runner.NgrokTunnels = nil
-	tryCount := 0
-	pageHostURL := ""
-	for {
-		if tryCount > 100 {
-			logger.Println("Could not read ngrok process")
-			return "", false
-		}
-		tryCount += 1
-		// wait for ngrok to start or fail
-		time.Sleep(100 * time.Millisecond)
-		if ngrokController.Command == nil {
-			continue
-		}
-		if ngrokController.Command.ProcessState != nil {
-			logger.Println("ngrok process ended")
-			return "", false
-		}
-		tunnels, err = runner.FetchNgrokTunnels()
-		if err != nil {
-			continue
-		}
-		if len(tunnels.Tunnels) == 2 {
-			if tunnels.Tunnels[0].Protocol == "https" {
-				pageHostURL = tunnels.Tunnels[0].PublicURL
-			} else if tunnels.Tunnels[1].Protocol == "https" {
-				pageHostURL = tunnels.Tunnels[1].PublicURL
-			} else {
-				logger.Println("No ngrok tunnel is https")
-				return "", false
-			}
-			break
-		}
+	_, pageHostURL, err := ngrokController.WaitForNgrokTunnels("https")
+	if err != nil {
+		logger.Println("Error", err)
+		return "", false
 	}
 
 	/*
@@ -190,7 +158,7 @@ func run() (string, bool) {
 			for key, value := range browserConfiguration {
 				capabilities[key] = value
 			}
-			page, err := agouti.NewPage(browserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
+			page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 			if err != nil {
 				logger.Println("Failed to open selenium:", err)
 				return "", false

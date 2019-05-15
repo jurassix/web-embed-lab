@@ -1,0 +1,42 @@
+{
+	"captures": [
+		{
+			"browser-configuration": {
+				"name": "Chrome 62",
+				"os": "Windows",
+				"osVersion": "10",
+				"browserName": "Chrome",
+				"browserVersion": "62.0",
+				"resolution": "1024x768",
+				"browserstack.console": "verbose"
+			},
+			"sites": [
+				{
+					"name": "transmutable",
+					"url": "https://transmutable.com/?wel-foo=bar"
+				},
+				{
+					"name": "potassium-es",
+					"url": "https://potassiumes.org/?wel-bar=foo"
+				}
+			]
+		}
+	],
+	"formulations": [
+		{
+			"capture-name": "transmutable",
+			"formula-name": "transmutable-base",
+			"modifiers": "hand-waving-here"
+		},
+		{
+			"capture-name": "transmutable",
+			"formula-name": "transmutable-light",
+			"modifiers": "hand-waving-here"
+		},
+		{
+			"capture-name": "potassium-es",
+			"formula-name": "potassium-es-light",
+			"modifiers": "hand-waving-here"
+		}
+	]
+}

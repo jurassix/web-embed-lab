@@ -32,7 +32,6 @@ var (
 // If CaCertPath and CaKeyPath do not exist, generate the cert and key for a TLS CA
 func ReadOrGenerateCa() error {
 	if fileExists(CaCertPath) && fileExists(CaKeyPath) {
-		log.Print("Using existing CA PEMs")
 		return readCaPEMs()
 	}
 
@@ -59,8 +58,6 @@ func ReadOrGenerateCa() error {
 	if err != nil {
 		log.Fatalf("failed to generate serial number: %s", err)
 	}
-
-	logger.Println("Serial", serialNumber)
 
 	template := x509.Certificate{
 		SerialNumber: serialNumber,

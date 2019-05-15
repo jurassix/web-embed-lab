@@ -1,33 +1,14 @@
-package main
+/*
+tls contains certificate and TLS tools
+*/
+package tunnels
 
 import (
 	"log"
 	"os"
-	"time"
-
-	"wel/services/colluder"
-	"wel/services/proxy"
 )
 
-var logger = log.New(os.Stdout, "[colluder] ", 0)
-
-func main() {
-	logger.Println("Starting")
-
-	err := colluder.PrepForCollusion()
-	if err != nil {
-		logger.Printf("Could not prep for collusion: %s", err)
-		return
-	}
-
-	go colluder.RunHTTP(colluder.ColluderWebPort)
-	go colluder.RunWS(colluder.ColluderWebSocketPort)
-	go proxy.Run(colluder.ColluderProxyPort)
-
-	for {
-		time.Sleep(time.Hour)
-	}
-}
+var logger = log.New(os.Stdout, "[tunnels] ", 0)
 
 /*
 Copyright 2019 FullStory, Inc.

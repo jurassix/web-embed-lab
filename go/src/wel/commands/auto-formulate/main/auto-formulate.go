@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -31,7 +32,7 @@ func main() {
 }
 
 func run() error {
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		printHelp()
 		return errors.New("Incorrect arguments")
 	}
@@ -50,6 +51,13 @@ func run() error {
 	}
 	if len(config.Captures) == 0 || len(config.Formulations) == 0 {
 		return errors.New("Nothing in the config JSON to capture or formulate")
+	}
+
+	// Create the formula destination dir if necessary
+	formulaDirPath := os.Args[2]
+	if err = os.MkdirAll(formulaDirPath, 0777); err != nil {
+		logger.Printf("Could not find or create formula path: \"%v\"", formulaDirPath)
+		return err
 	}
 
 	// Read the Browserstack configuration info
@@ -91,6 +99,8 @@ func run() error {
 		HTTPProxy: pageHostURL,
 		SSLProxy:  pageHostURL,
 	}
+
+	captureDirPaths := map[string]string{} // capture name -> capture dir path
 
 	for _, capture := range config.Captures {
 		if len(capture.BrowserConfiguration) == 0 {
@@ -165,11 +175,23 @@ func run() error {
 				logger.Printf("Error writing timeline %v", err)
 				return err
 			}
+			captureDirPaths[site.Name] = session.CurrentCaptureSession.DirectoryPath
 			session.CurrentCaptureSession = nil
 		}
+	}
 
-		// TODO Now that we have the captures, formulate the page formulas
-
+	for _, formulation := range config.Formulations {
+		captureDirPath, ok := captureDirPaths[formulation.CaptureName]
+		if ok == false {
+			return errors.New(fmt.Sprintf("Invalid capture name (%v) in formulation (%v)", formulation.CaptureName, formulation.FormulaName))
+		}
+		logger.Println("Formulating", formulation.FormulaName)
+		formulaPath := path.Join(formulaDirPath, formulation.FormulaName)
+		err = formulas.Formulate(captureDirPath, formulaPath)
+		if err != nil {
+			logger.Println("Error formulating:", err)
+			return err
+		}
 	}
 
 	return nil
@@ -177,9 +199,9 @@ func run() error {
 
 func printHelp() {
 	logger.Println("usage:")
-	logger.Println(aurora.Bold("auto-formulate <configuration json path>"))
+	logger.Println(aurora.Bold("auto-formulate <configuration json path> <formula destination dir>"))
 	logger.Println("Example:")
-	logger.Println("auto-formulate ./examples/auto-formulate/hello-world-formulate.json\n")
+	logger.Println("auto-formulate ./examples/auto-formulate/hello-world-formulate.json ../pf/\n")
 }
 
 /*

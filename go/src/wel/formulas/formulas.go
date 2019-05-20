@@ -7,6 +7,7 @@ package formulas
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -21,6 +22,18 @@ var TemplateDirName = "template"
 
 // The URL for rewritten absolute URLs hosted by the FormulaHost
 var AbsoluteURLRoot = "/__wel_absolute/"
+
+// The URL for the embedded script that is being tested
+var EmbeddedScriptURL = "/__wel_embed.js"
+
+// The script that contains the test probes
+var ProbesURL = "/__wel_probes.js"
+
+// The resources for the prober script that runs the tests
+var ProberDistURL = "/__wel/prober/"
+
+// THe URL for the script that runs the tests. The test scripts are separately loaded at ProbesURL.
+var ProberURL = fmt.Sprintf("%vprober.js", ProberDistURL)
 
 /*
 PageFormula holds a description of a web page and its resources hosted locally and accessed by a web browser during an experiment.

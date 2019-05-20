@@ -9,25 +9,14 @@ import (
 	"log"
 	"net/http"
 	"os"
-	//weltls "wel/tls"
+
+	"wel/formulas"
 )
 
 var logger = log.New(os.Stdout, "[host] ", 0)
 
 // The URL for the embedded script that is being tested
-var EmbeddedScriptURL = "/__wel_embed.js"
-
-// The URL for the embedded script that is being tested
 var ControlURL = "/__wel_control"
-
-// The script that contains the test probes
-var ProbesURL = "/__wel_probes.js"
-
-// The resources for the prober script that runs the tests
-var ProberDistURL = "/__wel/prober/"
-
-// THe URL for the script that runs the tests. The test scripts are separately loaded at ProbesURL.
-var ProberURL = fmt.Sprintf("%vprober.js", ProberDistURL)
 
 /*
 RunHTTP brings up the page formula host service
@@ -65,20 +54,20 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 	mux := http.NewServeMux()
 
 	// Serve embedded script
-	mux.HandleFunc(EmbeddedScriptURL, func(response http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc(formulas.EmbeddedScriptURL, func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Add("Content-Type", "text/javascript")
 		response.Write([]byte(embeddedScript))
 	})
 
 	// Serve test probes' JS
-	mux.HandleFunc(ProbesURL, func(response http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc(formulas.ProbesURL, func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Add("Content-Type", "text/javascript")
 		response.Write([]byte(probeScript))
 	})
 
 	// Serve prober JS that runs the tests
 
-	mux.Handle(ProberDistURL, http.StripPrefix(ProberDistURL, http.FileServer(http.Dir(frontEndDistPath+"/prober/"))))
+	mux.Handle(formulas.ProberDistURL, http.StripPrefix(formulas.ProberDistURL, http.FileServer(http.Dir(frontEndDistPath+"/prober/"))))
 
 	formulaHost, err := NewFormulaHost(formulasPath)
 	if err != nil {

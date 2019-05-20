@@ -49,8 +49,30 @@ func run() error {
 		logger.Printf("Could not parse configuration JSON: \"%v\": %v", os.Args[1], err)
 		return err
 	}
-	if len(config.Captures) == 0 || len(config.Formulations) == 0 {
+	if len(config.Captures) == 0 && len(config.Formulations) == 0 {
 		return errors.New("Nothing in the config JSON to capture or formulate")
+	}
+
+	// Gather the names of all of the sites to capture
+	siteNames := []string{}
+	for _, capture := range config.Captures {
+		for _, site := range capture.Sites {
+			siteNames = append(siteNames, site.Name)
+		}
+	}
+
+	// Check that each formulation references a captured site name
+	for _, formulation := range config.Formulations {
+		matchesCapture := false
+		for _, siteName := range siteNames {
+			if formulation.CaptureName == siteName {
+				matchesCapture = true
+				break
+			}
+		}
+		if matchesCapture == false {
+			return errors.New(fmt.Sprintf("Invalid capture name (%v) referenced by formulation (%v)", formulation.CaptureName, formulation.FormulaName))
+		}
 	}
 
 	// Create the formula destination dir if necessary

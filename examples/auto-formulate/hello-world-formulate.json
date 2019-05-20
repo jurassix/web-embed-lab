@@ -31,19 +31,25 @@
 	],
 	"formulations": [
 		{
+			"comment": "We formulate transmutable twice with different modifiers",
 			"capture-name": "transmutable",
 			"formula-name": "transmutable-base",
-			"modifiers": "hand-waving-here"
+			"modifiers": "TODO hand-waving-here"
 		},
 		{
 			"capture-name": "transmutable",
 			"formula-name": "transmutable-light",
-			"modifiers": "hand-waving-here"
+			"modifiers": "TODO hand-waving-here"
+		},
+		{
+			"capture-name": "science-saints",
+			"formula-name": "science-saints",
+			"modifiers": "TODO hand-waving-here"
 		},
 		{
 			"capture-name": "potassium-es",
 			"formula-name": "potassium-es-light",
-			"modifiers": "hand-waving-here"
+			"modifiers": "TODO hand-waving-here"
 		}
 	]
 }

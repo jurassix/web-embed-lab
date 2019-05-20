@@ -14,11 +14,13 @@
 				{
 					"name": "transmutable",
 					"url": "https://transmutable.com/?wel=t",
-					"comment": "The URL parameters are not necessary, just hand for testing"
+					"comment": "The URL parameters are not necessary, just hand for testing",
+					"close-pause": 0
 				},
 				{
 					"name": "science-saints",
-					"url": "http://sciencesaints.com/?wel=s-s"
+					"url": "http://sciencesaints.com/?wel=s-s",
+					"close-pause": 2.5
 				},
 				{
 					"name": "potassium-es",

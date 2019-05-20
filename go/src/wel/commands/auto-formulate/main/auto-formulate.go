@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"wel/formulas"
 	"wel/services/colluder"
@@ -151,6 +152,12 @@ func run() error {
 				return err
 			}
 			hasNavigated = true
+
+			// Pause if the config has a close-pause
+			if site.ClosePause > 0 {
+				logger.Println("Pausing for", site.ClosePause, "seconds")
+				time.Sleep(time.Duration(site.ClosePause) * time.Second)
+			}
 
 			// tell the colluder to stop the capture session
 			err = session.CurrentCaptureSession.WriteTimeline()

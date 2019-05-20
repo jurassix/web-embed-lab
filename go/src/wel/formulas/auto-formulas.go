@@ -10,8 +10,9 @@ import (
 Site holds the configuration for a web site to collect, usually as part of a `Capture`
 */
 type Site struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Name       string  `json:"name"`
+	URL        string  `json:"url"`
+	ClosePause float32 `json:"close-pause,omitempty"` // A number of seconds between page load and capture close to give any JS time to work
 }
 
 /*

@@ -10,6 +10,8 @@ You'll need `make` which on macOS usually means installing iCode. On a Linux dis
 
 To run tests you'll need [ngrok](https://ngrok.com/download) in your PATH. `ngrok` sets up tunnels and TLS certs for a publicly accessible endpoint and routes traffic to the test runner.
 
+## Set up environment variables
+
 You will need to set a few environment variables. Look in `web-embed-lab/setup-env.sh.example` for a script that explains what variables need to be set. If you copy that file to `setup-env.sh` and update the variables then you can `source` that file.
 
 ## Clone and initial build

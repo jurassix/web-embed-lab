@@ -1,18 +1,25 @@
 package formulas
 
+/*
+Look in web-embed-lab/examples/auto-formulate/ for serialized examples of these structs
+*/
+
 import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+
+	"wel/modifiers"
 )
 
 /*
 Site holds the configuration for a web site to collect, usually as part of a `Capture`
 */
 type Site struct {
-	Name       string  `json:"name"`
-	URL        string  `json:"url"`
-	ClosePause float32 `json:"close-pause,omitempty"` // A number of seconds between page load and capture close to give any JS time to work
+	Name       string                   `json:"name"`
+	URL        string                   `json:"url"`
+	ClosePause float32                  `json:"close-pause,omitempty"` // A number of seconds between page load and capture close to give any JS time to work
+	Modifiers  []modifiers.FileModifier `json:"modifiers,omitempty"`
 }
 
 /*
@@ -29,9 +36,9 @@ Formulation holds the configuration for the conversion of capture data into a pa
 Usually it's a part of AutoFormulate
 */
 type Formulation struct {
-	CaptureName string `json:"capture-name"`
-	FormulaName string `json:"formula-name"`
-	// TODO Modifiers
+	CaptureName string                   `json:"capture-name"`
+	FormulaName string                   `json:"formula-name"`
+	Modifiers   []modifiers.FileModifier `json:"modifiers,omitempty"`
 }
 
 /*

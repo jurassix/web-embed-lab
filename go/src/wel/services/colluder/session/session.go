@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 	"time"
+
+	"wel/modifiers"
 )
 
 var logger = log.New(os.Stdout, "[session] ", 0)
@@ -36,6 +38,7 @@ type CaptureSession struct {
 	NextFileId    int // A counter used when generating file names
 	HostCounts    []*HostCount
 	Timeline      *Timeline
+	Modifiers     []modifiers.FileModifier
 }
 
 func NewCaptureSession(hostname string) (*CaptureSession, error) {
@@ -50,6 +53,7 @@ func NewCaptureSession(hostname string) (*CaptureSession, error) {
 		NextFileId:    101, // start at a non-zero number
 		HostCounts:    make([]*HostCount, 0),
 		Timeline:      NewTimeline(hostname),
+		Modifiers:     []modifiers.FileModifier{},
 	}, nil
 }
 

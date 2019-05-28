@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"wel/modifiers"
 	"wel/services/colluder/session"
 )
 
@@ -42,7 +43,7 @@ var codedTypes = [...]string{
 	"application/x-javascript",
 }
 
-func Formulate(capturePath string, formulaPath string) error {
+func Formulate(capturePath string, formulaPath string, modifiers []modifiers.FileModifier) error {
 	// Check that the capture path has the expected files and directories
 	captureStat, err := os.Stat(capturePath)
 	if err != nil {
@@ -118,9 +119,27 @@ func Formulate(capturePath string, formulaPath string) error {
 	formula := NewPageFormula()
 
 	// Create routes from timeline requests
-	createTemplateRoutes(formula, htmlRequests, fileMap, "html", formulaTemplatePath, filesPath, timeline.Hostname)
+	createTemplateRoutes(
+		formula,
+		htmlRequests,
+		fileMap,
+		"html",
+		formulaTemplatePath,
+		filesPath,
+		timeline.Hostname,
+		modifiers,
+	)
 	for _, sType := range staticTypes {
-		createStaticRoutes(formula, timeline.FindRequestsByMimetype(sType[0]), fileMap, sType[1], formulaStaticPath, filesPath, timeline.Hostname)
+		createStaticRoutes(
+			formula,
+			timeline.FindRequestsByMimetype(sType[0]),
+			fileMap,
+			sType[1],
+			formulaStaticPath,
+			filesPath,
+			timeline.Hostname,
+			modifiers,
+		)
 	}
 
 	// Write the formula info to JSON
@@ -154,6 +173,7 @@ func createTemplateRoutes(
 	formulaTemplatePath string,
 	filesPath string,
 	hostname string,
+	modifiers []modifiers.FileModifier,
 ) {
 	isFirst := true
 	// Write HTML templates and create their routes
@@ -195,6 +215,7 @@ func createTemplateRoutes(
 			destinationPath,
 			path.Join(filesPath, sourceInfo.Name()),
 			request.ContentEncoding,
+			modifiers,
 		)
 		if err != nil {
 			logger.Println("Could not copy template", err)
@@ -297,6 +318,7 @@ func createStaticRoutes(
 	formulaStaticPath string,
 	filesPath string,
 	hostname string,
+	modifiers []modifiers.FileModifier,
 ) {
 	for _, request := range requests {
 		if request.StatusCode != 200 {
@@ -320,6 +342,7 @@ func createStaticRoutes(
 			destinationPath,
 			path.Join(filesPath, sourceInfo.Name()),
 			request.ContentEncoding,
+			modifiers,
 		)
 		if err != nil {
 			logger.Println("Could not copy", sourceInfo.Name(), err)
@@ -380,12 +403,12 @@ func goRegexpForURL(url string, hostname string) string {
 	return fmt.Sprintf("^%v%v%v%v$", AbsoluteURLRoot, urlHost, path, urlParameterRegexpFragment)
 }
 
-func copyFile(destination string, source string, contentEncoding string) error {
+func copyFile(destination string, source string, contentEncoding string, modifiers []modifiers.FileModifier) error {
 	sourceFile, err := os.Open(source)
 	if err != nil {
 		return err
 	}
-	defer sourceFile.Close()
+	defer sourceFile.Close() // in case we bail early
 
 	destinationFile, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -398,12 +421,32 @@ func copyFile(destination string, source string, contentEncoding string) error {
 		if err != nil {
 			return err
 		}
-		defer gzipReader.Close()
 		_, err = io.Copy(destinationFile, gzipReader)
+		gzipReader.Close()
 	} else {
 		_, err = io.Copy(destinationFile, sourceFile)
 	}
-	return err
+
+	sourceFile.Close()
+
+	if err != nil {
+		return err
+	}
+
+	for _, modifier := range modifiers {
+		matches, err := modifier.MatchesFileName(destination)
+		if err != nil {
+			return err
+		}
+		if matches {
+			err = modifier.ModifyFile(destination, false)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func mapFileIDs(filesPath string) (map[int]os.FileInfo, error) {

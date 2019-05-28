@@ -176,6 +176,7 @@ func run() error {
 			if err != nil {
 				logger.Printf("Error toggling on", err)
 			}
+			session.CurrentCaptureSession.Modifiers = site.Modifiers
 
 			// tell the page to load the URL and wait for successful load or failure
 			err = page.Navigate(site.URL)
@@ -209,7 +210,7 @@ func run() error {
 		}
 		logger.Println("Formulating", formulation.FormulaName)
 		formulaPath := path.Join(formulaDirPath, formulation.FormulaName)
-		err = formulas.Formulate(captureDirPath, formulaPath)
+		err = formulas.Formulate(captureDirPath, formulaPath, formulation.Modifiers)
 		if err != nil {
 			logger.Println("Error formulating:", err)
 			return err

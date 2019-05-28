@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"wel/formulas"
+	"wel/modifiers"
 )
 
 var logger = log.New(os.Stdout, "[formulate] ", 0)
@@ -40,7 +41,7 @@ func main() {
 		printHelp()
 		return
 	}
-	err := formulas.Formulate(os.Args[1], os.Args[2])
+	err := formulas.Formulate(os.Args[1], os.Args[2], []modifiers.FileModifier{})
 	if err != nil {
 		logger.Println("Error:", err)
 		os.Exit(1)

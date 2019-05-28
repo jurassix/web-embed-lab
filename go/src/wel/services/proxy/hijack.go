@@ -180,7 +180,7 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			outputFile, outputFileId, err = session.CurrentCaptureSession.OpenCaptureFile()
 			if err == nil {
 				bodyReader = io.TeeReader(resp.Body, outputFile)
-				defer outputFile.Close()
+				defer outputFile.Close() // Close may be called twice so its ok to ignore an error here
 			} else {
 				logger.Printf("Could not create an output file %v", err)
 				bodyReader = resp.Body
@@ -232,6 +232,25 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			if _, err := io.WriteString(rawClientTls, "Content-Length: 0\r\n\r\n"); err != nil {
 				logger.Printf("Cannot write zero content length: %v", err)
 				return
+			}
+		}
+
+		if outputFile != nil && session.CurrentCaptureSession != nil {
+			outputFile.Close()
+			for _, modifier := range session.CurrentCaptureSession.Modifiers {
+				matches, err := modifier.MatchesMimeType(resp.Header.Get("Content-Type"))
+				if err != nil {
+					logger.Printf("Could not match", err)
+					continue
+				}
+				if matches == false {
+					continue
+				}
+				err = modifier.ModifyFile(outputFile.Name(), resp.Header.Get("Content-Encoding") == "gzip")
+				if err != nil {
+					logger.Printf("Could not modify", err)
+					continue
+				}
 			}
 		}
 	}

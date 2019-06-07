@@ -72,7 +72,7 @@ The `runner` only hosts one page formula at a time but it knows about all of the
 
 You can list the available page formulas and learn which formula is currently hosted by GETing this URL:
 
-	curl http://127.0.0.1:8090/__wel_control
+	curl http://127.0.0.1:9090/__wel_control
 
 The return value will list the formulas and which formula is currently hosted:
 
@@ -86,7 +86,7 @@ The return value will list the formulas and which formula is currently hosted:
 
 You can change which page formula `runner` is hosting by PUTing to the same URL:
 
-	curl http://127.0.0.1:8090/__wel_control -X PUT --data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
+	curl http://127.0.0.1:9090/__wel_control -X PUT --data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
 
 If you want to test a page formula with an embed script then use the embed mode of the `runner`:
 	cd web-embed-lab/

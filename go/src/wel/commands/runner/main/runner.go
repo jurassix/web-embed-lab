@@ -237,7 +237,7 @@ func run() (string, bool) {
 				probeResults := &runner.ProbeResults{}
 				err = json.Unmarshal([]byte(returnValue), probeResults)
 				if err != nil {
-					logger.Println("Error parsing probes result", err, returnValue)
+					logger.Println("Error parsing probes result:", err, fmt.Sprintf("\"%v\"", returnValue))
 					return "", false
 				}
 				hasAFail := false

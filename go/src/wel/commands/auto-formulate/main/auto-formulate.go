@@ -188,7 +188,7 @@ func run() error {
 
 			// Pause if the config has a close-pause
 			if site.ClosePause > 0 {
-				logger.Println("Pausing for", site.ClosePause, "seconds")
+				logger.Println(fmt.Sprintf("Pausing for %vs", site.ClosePause))
 				time.Sleep(time.Duration(site.ClosePause) * time.Second)
 			}
 

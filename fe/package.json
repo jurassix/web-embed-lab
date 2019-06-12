@@ -19,10 +19,11 @@
   },
   "homepage": "https://github.com/fullstorydev/web-embed-lab#readme",
   "scripts": {
-    "build": "npm run build-target-colluder && npm run build-prober && npm run build-formulator-xpi && npm run copy-static",
+    "build": "npm run build-target-colluder && npm run build-prober && npm run build-formulator-xpi && npm run build-prober-xpi && npm run copy-static",
     "build-target-colluder": "rollup -c target-colluder-rollup.js",
     "build-prober": "rollup -c prober-rollup.js",
     "build-formulator-xpi": "mkdir -p ./dist/formulator/; cd src/formulator && zip -r ../../dist/formulator/wel-formulator.xpi *",
+    "build-prober-xpi": "mkdir -p ./dist/prober-extension/; cd src/prober-extension && zip -r ../../dist/prober-extension/prober-extension.xpi *",
     "copy-colluder-static": "mkdir -p ./dist/colluder/; cp -r ./static/colluder/* ./dist/colluder/",
     "copy-prober-static": "mkdir -p ./dist/prober/; cp -r ./static/prober/* ./dist/prober/",
     "copy-static": "npm run copy-colluder-static && npm run copy-prober-static",

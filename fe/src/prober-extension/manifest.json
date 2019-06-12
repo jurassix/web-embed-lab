@@ -1,0 +1,26 @@
+{
+	"description": "Test Probe extension",
+	"manifest_version": 2,
+	"name": "prober-extension",
+	"version": "0.0.1",
+	"author": "Trevor F. Smith <trevor@transmutable.com>",
+	"homepage_url": "https://transmutable.com/wel-prober-extension",
+	"icons": {
+		"48": "icons/icon.png"
+	},
+	"background": {
+		"scripts": ["background/background.js"]
+	},		
+	"permissions": [
+		"<all_urls>",
+		"debugger",
+		"webNavigation",
+		"activeTab",
+		"tabs"
+	],
+	"applications": {
+		"gecko": {
+			"id": "wel-formulator@transmutable.com"
+		}
+	}
+}

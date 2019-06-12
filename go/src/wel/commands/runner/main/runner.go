@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -155,6 +156,18 @@ func run() (string, bool) {
 			capabilities["browserstack.key"] = browserstackAPIKey
 			capabilities["browserstack.console"] = "verbose"
 			capabilities["browserstack.seleniumLogs"] = "true"
+
+			// On Chrome, load the prober-extension
+			extensionPath := "fe/dist/prober-extension/prober-extension.xpi"
+			crxBytes, err := ioutil.ReadFile(extensionPath)
+			if err != nil {
+				logger.Println(aurora.Red(fmt.Sprintf("Error reading extension (%v): %v", extensionPath, err)))
+				return "", false
+			}
+			capabilities["chromeOptions"] = map[string][][]byte{
+				"extensions": {crxBytes},
+			}
+
 			for key, value := range browserConfiguration {
 				capabilities[key] = value
 			}

@@ -94,3 +94,5 @@ function rewriteAbsoluteURL(url){
 patchXMLHttpRequest()
 patchFetch()
 document.addEventListener('DOMContentLoaded', initProber)
+
+

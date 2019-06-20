@@ -1,20 +1,35 @@
-if (typeof browser === 'undefined') {
-	if (typeof chrome !== 'undefined') {
-		window.browser = chrome
-	} else {
-		throw new Error('Could not find the WebExtension API')
-	}
-}
-
 function handleRuntimeMessage(data, sender, sendResponse) {
-	console.log('Handling runtime message', data, sender, sendResponse)
+	if(!data.action) {
+		console.log('Unknown runtime message', data, sender)
+		return
+	}
+	switch(data.action){
+		case 'update-performance':
+			console.log('update perf', data)
+			break
+		default:
+			console.log('Unknown runtime message action', data, sender)
+	}
 }
 
 function handleWindowMessage(event) {
 	console.log('Handling window message', event)
 }
 
-window.addEventListener('message', handleWindowMessage)
-browser.runtime.onMessage.addListener(handleRuntimeMessage)
+function initContentScript(){
+	if(!chrome){
+		console.error('This extension only works in Chrome. :-( ')
+		return
+	}
+	window.addEventListener('message', handleWindowMessage)
+	chrome.runtime.onMessage.addListener(handleRuntimeMessage)
 
-console.log("Prober extension content script loaded")
+	console.log("Prober extension content script loaded")
+}
+
+if(!window.welContentScriptLoaded){
+	initContentScript()
+	window.welContentScriptLoaded = true
+} else {
+	// don't init this script more than once in a given window
+}

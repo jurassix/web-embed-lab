@@ -13,9 +13,12 @@
 	},		
 	"permissions": [
 		"<all_urls>",
+		"chrome://*/*",
+		"chrome-search://local-ntp/local-ntp.html",
 		"webNavigation",
 		"activeTab",
-		"tabs"
+		"tabs",
+		"matchAboutBlank"
 	],
 	"devtools_page": "devtools/devtools-page.html",
 	"applications": {

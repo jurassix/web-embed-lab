@@ -70,6 +70,22 @@ window.runWebEmbedLabProbes = function(tests=null, basis={}){
 	return results
 }
 
+// Performance data received from the prober-extension via posted window message 
+window._welPerformanceData = []
+
+function handleWindowMessage(event) {
+	if(!event.data || !event.data.action) return
+	switch(event.data.action){
+		case 'update-performance':
+			window._welPerformanceData.push(event.data)
+			break
+		default:
+			console.error('Unknown window event action', event)
+	}
+}
+// Listen for posted window messages from the prober-extension
+window.addEventListener('message', handleWindowMessage);
+
 /**
 If absolute, return the URL as a relative URL for the page formula host:
 	https://foo.com/one/two/three.jpg
@@ -94,5 +110,3 @@ function rewriteAbsoluteURL(url){
 patchXMLHttpRequest()
 patchFetch()
 document.addEventListener('DOMContentLoaded', initProber)
-
-

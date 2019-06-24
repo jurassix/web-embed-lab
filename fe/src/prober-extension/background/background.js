@@ -1,10 +1,3 @@
-function handleTabRuntimeMessage(request, sender, sendResponse) {
-	console.log('BG tab runtime message', request, sender, sendResponse)
-}
-
-function relayActionToTab(request) {
-	chrome.tabs.sendMessage(request.tabId, request)
-}
 
 let attachedTabId = null
 
@@ -117,13 +110,14 @@ async function getMemoryInfo() {
 	}
 }
 
-async function sendPerformanceInfo() {
+async function sendPerformanceInfo(subAction) {
 	if(performanceEnabled === false){
 		return
 	}
 	const perfMetrics = await getPerformanceMetrics()
 	chrome.tabs.sendMessage(attachedTabId, {
 		action: 'update-performance',
+		subAction: subAction,
 		metrics: perfMetrics.metrics
 	})
 }
@@ -141,11 +135,21 @@ async function sendMemoryInfo() {
 const childFrameIds = new Set()
 
 const ignoredEventMethods = new Set([
-	'Page.frameResized'
+	'Page.frameResized',
+	'Page.frameNavigated',
+	'DOM.documentUpdated'
 ])
 
 async function handleDebuggerEvent(source, method, params) {
 	if(ignoredEventMethods.has(method)) return
+	if (method === 'Inspector.detached') {
+		console.log('Debugger detached')
+		attachedTabId = null
+		performanceEnabled = false
+		samplingMemory = false
+		return
+	}
+
 	if(method === 'Page.frameAttached'){
 		// Keep track of attached child frames
 		if(params.parentFrameId) {
@@ -155,31 +159,30 @@ async function handleDebuggerEvent(source, method, params) {
 	}
 	if(method === 'Page.frameStartedLoading'){
 		if(childFrameIds.has(params.frameId)) return
-		console.log('enabled performance', source.tabId, params)
 		await enablePerformance()
-		return
-	}
-	if (method === 'Inspector.detached') {
-		console.log('Debugger detached')
-		attachedTabId = null
-		performanceEnabled = false
-		samplingMemory = false
+		await sendPerformanceInfo('frame-started-loading')
 		return
 	}
 	if (method === 'Page.frameStoppedLoading') {
 		if(childFrameIds.has(params.frameId)){
 			return
 		}
-		await sendPerformanceInfo()
+		await sendPerformanceInfo('frame-stopped-loading')
 		await disablePerformance()
-		console.log('sent performance info', source, method, params)
 		return
 	}
-	console.log('unhandled event:', source.tabId, method, params)
-}
 
-function handleRuntimeMessage(request, sender, sendResponse) {
-	console.log('BG runtime message', request, sender, sendResponse)
+	if (method === 'Page.domContentEventFired') {
+		await sendPerformanceInfo('dom-content')
+		return
+	}
+
+	if (method === 'Page.loadEventFired') {
+		await sendPerformanceInfo('load')
+		return
+	}
+
+	console.log('unhandled event:', source.tabId, method, params)
 }
 
 async function handleInitAction(request) {
@@ -201,7 +204,6 @@ async function handleInitAction(request) {
 			console.error('Error attaching debugger', e)
 			return
 		}
-		console.log('Attached debugger')
 		try {
 			await sendDebuggerCommand('Page.enable')
 			await sendDebuggerCommand('DOM.enable')
@@ -217,7 +219,6 @@ function initScript(){
 		console.error('This script does not work in browsers other than Chrome. :^( ')
 		return
 	}
-	chrome.runtime.onMessage.addListener(handleRuntimeMessage)
 	chrome.debugger.onEvent.addListener(handleDebuggerEvent)
 	chrome.webNavigation.onDOMContentLoaded.addListener(ev => {
 		handleInitAction({

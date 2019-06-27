@@ -36,8 +36,24 @@
 	"test-runs" : [
 		{
 			"page-formulas": ["vanilla-site", "hello-world"],
-			"test-probes": ["dom-shape", "exceptions", "selector-count", "text-equals"],
-			"browsers": ["Chrome 62", "Firefox 66"]
+			"test-probes": [
+				"dom-shape",
+				"exceptions",
+				"selector-count",
+				"text-equals",
+				"performance"
+			],
+			"browsers": ["Chrome 62"]
+		},
+		{
+			"page-formulas": ["vanilla-site", "hello-world"],
+			"test-probes": [
+				"dom-shape",
+				"exceptions",
+				"selector-count",
+				"text-equals"
+			],
+			"browsers": ["Firefox 66"]
 		}
 	]
 }

@@ -11,14 +11,12 @@ class ExceptionsProbe {
 			return window._oldErrorPrototype.constructor.call(this, ...params)
 		}
 		window.Error.prototype = window._oldErrorPrototype
-		console.log('Constructed exceptions probe')
 	}
 
 	/**
 	@param {object} results - the object on which to set result attributes
 	*/
 	probe(basis){
-		console.log('Probing exceptions')
 		const results = {
 			passed: true,
 			count: window._exceptionCount

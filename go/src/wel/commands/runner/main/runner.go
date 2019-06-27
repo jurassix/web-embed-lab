@@ -189,7 +189,15 @@ func run() (string, bool) {
 				}
 			}
 
-			hasNavigated := false // true after the WebDriver session has navigated once
+			/*
+				Navigate to a blank page.
+				This is necessary to let the prober-extension get its hooks into the page so that we can get sample early in loading the page formulas.
+			*/
+			err = page.Navigate(pageHostURL + host.BlankURL)
+			if err != nil {
+				logger.Println("Failed to navigate to blank page", err)
+				return "", false
+			}
 
 			testsJSON, err := json.Marshal(testRun.TestProbes)
 			if err != nil {
@@ -220,21 +228,20 @@ func run() (string, bool) {
 					return "", false
 				}
 
-				// Navigate the browser to the right URL
-				if hasNavigated {
-					err = page.Reset()
-					if err != nil {
-						logger.Println("Failed to reset page", err)
-						return "", false
-					}
-					page.ReadNewLogs("browser")
+				// Reset the browser
+				err = page.Reset()
+				if err != nil {
+					logger.Println("Failed to reset page", err)
+					return "", false
 				}
+				page.ReadNewLogs("browser")
+
+				// Navigate the browser to the right URL
 				err = page.Navigate(pageHostURL + controlResponse.InitialPath)
 				if err != nil {
 					logger.Println("Failed to navigate to hosted page formula", err)
 					return "", false
 				}
-				hasNavigated = true
 
 				// Run the tests
 				logger.Printf("Testing '%v' on '%v':", pageFormulaConfig.Name, browserName)

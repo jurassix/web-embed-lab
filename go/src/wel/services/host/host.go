@@ -18,6 +18,8 @@ var logger = log.New(os.Stdout, "[host] ", 0)
 // The URL for the embedded script that is being tested
 var ControlURL = "/__wel_control"
 
+var BlankURL = "/__wel_blank"
+
 /*
 RunHTTP brings up the page formula host service
 This function blocks until the service or process is killed.
@@ -74,6 +76,14 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 		log.Fatal(fmt.Sprintf("Error starting formula host: %v", err))
 		return
 	}
+
+	/*
+		The BlankURL serves up a mostly empty page.
+		It's usually used by the `runner` as a sort of browser state cleanser between test runs in hosted pages.
+	*/
+	mux.HandleFunc(BlankURL, func(response http.ResponseWriter, request *http.Request) {
+		response.Write([]byte("<html><body><h1>Blank</h1></body></html>"))
+	})
 
 	/*
 		The control web API is usually called by the runner command to change which page formula is being hosted

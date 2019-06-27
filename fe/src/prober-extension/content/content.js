@@ -22,7 +22,7 @@ function initContentScript(){
 		return
 	}
 	chrome.runtime.onMessage.addListener(handleRuntimeMessage)
-	console.log("Prober extension content script loaded", window)
+	console.log("Prober extension content script loaded")
 }
 
 // Init this script at most once in a given window

@@ -30,6 +30,12 @@
 		},
 		"text-equals": {
 			"body > h1": "Hello World"
+		},
+		"performance": {
+			"DomContentLoaded": {
+				"range": [0, 1],
+				"subtract": "NavigationStart"
+			}
 		}
 	}
 }

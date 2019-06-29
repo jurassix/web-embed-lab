@@ -210,7 +210,7 @@ func run() error {
 		}
 		logger.Println("Formulating", formulation.FormulaName)
 		formulaPath := path.Join(formulaDirPath, formulation.FormulaName)
-		err = formulas.Formulate(captureDirPath, formulaPath, formulation.Modifiers)
+		err = formulas.Formulate(captureDirPath, formulaPath, formulation.Modifiers, formulation.ProbeBasis)
 		if err != nil {
 			logger.Println("Error formulating:", err)
 			return err

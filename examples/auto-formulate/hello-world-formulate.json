@@ -55,7 +55,29 @@
 						}
 					]
 				}
-			]
+			],
+			"probe-basis": {
+				"dom-shape": {
+					"depth": 6,
+					"width": 13
+				},
+				"exceptions": {
+					"count": 0
+				},
+				"selector-count": {
+					"body h1": 1,
+					"body img": 4
+				},
+				"text-equals": {
+					"body h1": "Transmutable"
+				},
+				"performance": {
+					"DomContentLoaded": {
+						"range": [0, 2.5],
+						"subtract": "NavigationStart"
+					}
+				}
+			}
 		},
 		{
 			"capture-name": "transmutable",

@@ -4,3 +4,4 @@ This embed script does nothing except to set a flag to prove that it was execute
 
 */
 window.__wel_NOOP = true
+console.log('noop embed script')

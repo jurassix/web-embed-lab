@@ -41,7 +41,7 @@ func main() {
 		printHelp()
 		return
 	}
-	err := formulas.Formulate(os.Args[1], os.Args[2], []modifiers.FileModifier{})
+	err := formulas.Formulate(os.Args[1], os.Args[2], []modifiers.FileModifier{}, formulas.ProbeBasis{})
 	if err != nil {
 		logger.Println("Error:", err)
 		os.Exit(1)

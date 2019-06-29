@@ -39,6 +39,7 @@ type Formulation struct {
 	CaptureName string                   `json:"capture-name"`
 	FormulaName string                   `json:"formula-name"`
 	Modifiers   []modifiers.FileModifier `json:"modifiers,omitempty"`
+	ProbeBasis  ProbeBasis               `json:"probe-basis"`
 }
 
 /*

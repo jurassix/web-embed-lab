@@ -43,7 +43,7 @@ var codedTypes = [...]string{
 	"application/x-javascript",
 }
 
-func Formulate(capturePath string, formulaPath string, modifiers []modifiers.FileModifier) error {
+func Formulate(capturePath string, formulaPath string, modifiers []modifiers.FileModifier, probeBasis ProbeBasis) error {
 	// Check that the capture path has the expected files and directories
 	captureStat, err := os.Stat(capturePath)
 	if err != nil {
@@ -117,6 +117,7 @@ func Formulate(capturePath string, formulaPath string, modifiers []modifiers.Fil
 	}
 
 	formula := NewPageFormula()
+	formula.ProbeBasis = probeBasis
 
 	// Create routes from timeline requests
 	createTemplateRoutes(

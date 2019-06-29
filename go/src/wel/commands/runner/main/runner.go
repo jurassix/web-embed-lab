@@ -102,7 +102,7 @@ func run() (string, bool) {
 		Start the page formula host
 	*/
 	go func() {
-		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[4])
+		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
 	}()
 
 	/*
@@ -227,6 +227,9 @@ func run() (string, bool) {
 					logger.Println("Failed to unmarshal probe basis", err, controlResponse.ProbeBasis)
 					return "", false
 				}
+				if probeBasis == nil || string(probeBasis) == "null" {
+					probeBasis = []byte("{}")
+				}
 
 				// Reset the browser
 				err = page.Reset()
@@ -245,6 +248,7 @@ func run() (string, bool) {
 
 				// Run the tests
 				logger.Printf("Testing '%v' on '%v':", pageFormulaConfig.Name, browserName)
+
 				var returnValue string
 				script := fmt.Sprintf(`
 					return JSON.stringify(
@@ -268,9 +272,19 @@ func run() (string, bool) {
 						hasAFail = true
 						logger.Println(testName+":", aurora.Red("failed"))
 						if basis, ok := controlResponse.ProbeBasis[testName]; ok == true {
-							logger.Println("Expected:", basis)
+							marshalledBasis, err := json.Marshal(basis)
+							if err != nil {
+								logger.Println(aurora.Red("Expected:"), basis)
+							} else {
+								logger.Println(aurora.Red("Expected:"), string(marshalledBasis))
+							}
 						}
-						logger.Println("Received:", aurora.Red(result))
+						marshalledResult, err := json.Marshal(result)
+						if err != nil {
+							logger.Println(aurora.Red("Received:"), result)
+						} else {
+							logger.Println(aurora.Red("Received:"), string(marshalledResult))
+						}
 					}
 				}
 				gatheredResults = append(gatheredResults, probeResults)

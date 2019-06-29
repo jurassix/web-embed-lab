@@ -15,8 +15,6 @@ function _testPerformanceKey(key, basis={}){
 		}
 	}
 
-	console.log('perf key: ' + key + " " + basis.range + " " + (value - subtractionValue))
-
 	if(typeof basis.range !== 'undefined'){
 		return _matchesRange(basis.range, value - subtractionValue) 
 	}
@@ -35,7 +33,11 @@ function _matchesRange(range, value){
 		return false
 	}
 
-	return value >= range[0] && value <= range[1]
+	const result = value >= range[0] && value <= range[1]
+	if(result === false){
+		console.error('Range ("' + range + '") does not match: ' + value)
+	}
+	return result
 }
 
 function _latestPerformanceValue(key){
@@ -54,7 +56,7 @@ function _latestPerformanceData(){
 
 function _logPerformanceData(index=-1, name=null){
 	if(!window._welPerformanceData){
-		console.log('No performance data found')
+		console.error('No performance data found')
 		return
 	}
 	if(index < 0){
@@ -83,8 +85,12 @@ class PerformanceProbe {
 	*/
 	probe(basis) {
 		console.log('Probing performance')
-		const result = {
-			performanceData: window._welPerformanceData
+		const result = {}
+
+		if(window._welPerformanceData){
+			result.performanceData = window._welPerformanceData[window._welPerformanceData.length - 1]
+		} else {
+			result.performanceData = null
 		}
 
 		if(!basis) {

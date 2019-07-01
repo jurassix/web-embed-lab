@@ -47,7 +47,7 @@ type PageFormula struct {
 }
 
 func (formula *PageFormula) JSON() ([]byte, error) {
-	return json.Marshal(formula)
+	return json.MarshalIndent(formula, "", "\t")
 }
 
 func NewPageFormula() *PageFormula {

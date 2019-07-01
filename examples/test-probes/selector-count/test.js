@@ -14,18 +14,33 @@ class SelectorCountProbe {
 	*/
 	probe(basis){
 		console.log("Probing selector count")
-		if(!basis) return { passed: true }
 		const results = {
 			passed: true,
 			failed: [] // List of selectors with the wrong count
 		}
+		if(!basis) return results
+
 		for(let selector of Object.keys(basis)){
 			if(basis.hasOwnProperty(selector) === false) continue
 			const matchedElements = document.querySelectorAll(selector)
 			results[selector] = matchedElements.length
-			if(basis[selector] !== matchedElements.length) {
+
+			if(typeof basis[selector] === 'number' && basis[selector] !== matchedElements.length) {
 				results.passed = false
 				results.failed.push(selector)
+			} else if(Array.isArray(basis[selector])){
+				const range = basis[selector];
+				if(range.length !== 2 || range[0] > range[1]){
+					results.passed = false
+					results.error = 'Invalid range (' + selector + '): ' + basis[selector]
+					console.error(results.error)
+					return results
+				}
+
+				if(range[0] > matchedElements.length || range[1] < matchedElements.length){
+					results.passed = false
+					results.failed.push(selector)
+				}
 			}
 		}
 		return results

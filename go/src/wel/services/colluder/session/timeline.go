@@ -75,7 +75,7 @@ func (timeline *Timeline) FindRequestsByMimetype(mimetype string) []Request {
 }
 
 func (timeline *Timeline) JSON() ([]byte, error) {
-	return json.Marshal(timeline)
+	return json.MarshalIndent(timeline, "", "\t")
 }
 
 /*

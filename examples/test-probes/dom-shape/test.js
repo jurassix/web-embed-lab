@@ -22,9 +22,30 @@ class DOMShapeProbe {
 		}
 		if(typeof basis.depth === 'number' && basis.depth !== results.depth){
 			results.passed = false
+		} else if (Array.isArray(basis.depth)) {
+			if(basis.depth.length !== 2 || basis.depth[0] > basis.depth[1]){
+				console.error('Invalid depth range: ' + basis.depth)
+				results.passed = false
+				return results
+			}
+			if(basis.depth[0] > results.depth || basis.depth[1] < results.depth){
+				console.error('Depth range failed for ' + results.depth + ': ' + basis.depth)
+				results.passed = false
+			}
 		}
+
 		if(typeof basis.width === 'number' && basis.width !== results.width){
 			results.passed = false
+		} else if(Array.isArray(basis.width)){
+			if(basis.width.length !== 2 || basis.width[0] > basis.width[1]){
+				console.error('Invalid width range: ' + basis.width)
+				results.passed = false
+				return results
+			}
+			if(basis.width[0] > results.width || basis.width[1] < results.width){
+				console.error('Width range failed for ' + results.width + ': ' + basis.width)
+				results.passed = false
+			}
 		}
 		return results
 	}

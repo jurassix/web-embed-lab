@@ -272,14 +272,14 @@ func run() (string, bool) {
 						hasAFail = true
 						logger.Println(testName+":", aurora.Red("failed"))
 						if basis, ok := controlResponse.ProbeBasis[testName]; ok == true {
-							marshalledBasis, err := json.Marshal(basis)
+							marshalledBasis, err := json.MarshalIndent(basis, "", "\t")
 							if err != nil {
 								logger.Println(aurora.Red("Expected:"), basis)
 							} else {
 								logger.Println(aurora.Red("Expected:"), string(marshalledBasis))
 							}
 						}
-						marshalledResult, err := json.Marshal(result)
+						marshalledResult, err := json.MarshalIndent(result, "", "\t")
 						if err != nil {
 							logger.Println(aurora.Red("Received:"), result)
 						} else {

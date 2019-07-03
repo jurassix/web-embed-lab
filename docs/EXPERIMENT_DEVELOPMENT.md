@@ -81,7 +81,13 @@ The return value will list the formulas and which formula is currently hosted:
 			"vanilla-site",
 			"hello-world"
 		],
-		"current-formula":"vanilla-site"
+		"current-formula":"vanilla-site",
+		"initial-path": "/",
+		"probe-basis": {
+			"some-test-probe": {
+				"some-key": 23
+			}
+		}
 	}
 
 You can change which page formula `runner` is hosting by PUTing to the same URL:

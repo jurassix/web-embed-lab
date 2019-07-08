@@ -119,7 +119,13 @@ func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Req
 		}
 		//logger.Println("No route", request.URL.Path)
 		writer.WriteHeader(http.StatusNotFound)
-		writer.Write([]byte(fmt.Sprintf("No route: %v", request.URL.Path)))
+		writer.Write([]byte(fmt.Sprintf(`
+<html>
+	<body>
+		<h1>No route: %v</h1>
+		You might try the <a href="%v">initial path</a>.
+	</body>
+</html>`, request.URL.Path, host.PageFormulas[host.CurrentFormula].InitialPath)))
 		return
 	}
 	switch route.Type {

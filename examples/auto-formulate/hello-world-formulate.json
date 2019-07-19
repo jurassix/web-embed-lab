@@ -62,7 +62,7 @@
 					"width": 13
 				},
 				"exceptions": {
-					"count": 0
+					"range": [0, 1]
 				},
 				"selector-count": {
 					"body h1": 1,
@@ -76,6 +76,9 @@
 						"range": [0, 2.5],
 						"subtract": "NavigationStart"
 					}
+				},
+				"heap": {
+					"embedScriptMemory": [0, 1000000]
 				}
 			}
 		},

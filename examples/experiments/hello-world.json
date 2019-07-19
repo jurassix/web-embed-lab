@@ -41,8 +41,10 @@
 				"exceptions",
 				"selector-count",
 				"text-equals",
-				"performance"
+				"performance",
+				"heap"
 			],
+			"comment": "Performance and Heap only run on Chrome.",
 			"browsers": ["Chrome 62"]
 		},
 		{
@@ -53,6 +55,7 @@
 				"selector-count",
 				"text-equals"
 			],
+			"comment": "Performance and Heap only run on Chrome.",
 			"browsers": ["Firefox 66"]
 		}
 	]

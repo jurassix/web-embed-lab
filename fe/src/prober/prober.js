@@ -72,12 +72,18 @@ window.runWebEmbedLabProbes = function(tests=null, basis={}){
 
 // Performance data received from the prober-extension via posted window message 
 window._welPerformanceData = []
+window._welHeapMemoryData = []
 
 function handleWindowMessage(event) {
 	if(!event.data || !event.data.action) return
 	switch(event.data.action){
 		case 'update-performance':
 			window._welPerformanceData.push(event.data)
+			console.log('new performance memory: ' + event.data.subAction)
+			break
+		case 'update-heap-memory':
+			window._welHeapMemoryData.push(event.data)
+			console.log('new heap memory: ' + JSON.stringify(event.data))
 			break
 		default:
 			console.error('Unknown window event action', event)

@@ -9,10 +9,11 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 	}
 	switch(data.action){
 		case 'update-performance':
+		case 'update-heap-memory':
 			window.postMessage(data, '*')
 			break
 		default:
-			console.error('Unknown runtime message action', data, sender)
+			console.error('Unknown runtime message action: ' + JSON.stringify(data) + ': ' + JSON.stringify(sender))
 	}
 }
 

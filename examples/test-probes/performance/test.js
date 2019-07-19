@@ -54,6 +54,11 @@ function _latestPerformanceData(){
 	return window._welPerformanceData[window._welPerformanceData.length - 1]
 }
 
+function _latestEmbedScriptHeapMemory(){
+	if(!window._welHeapMemoryData) return null
+	return window._welHeapMemoryData[window._welHeapMemoryData.length - 1].embedScriptMemory
+}
+
 function _logPerformanceData(index=-1, name=null){
 	if(!window._welPerformanceData){
 		console.error('No performance data found')
@@ -113,6 +118,7 @@ class PerformanceProbe {
 		}
 
 		result.passed = passed
+
 		return result
 	}
 }

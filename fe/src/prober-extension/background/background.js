@@ -1,5 +1,6 @@
-
 let attachedTabId = null
+
+const EmbedScriptPath = '/__wel_embed.js';
 
 async function attachDebugger(tabId) {
 	return new Promise((resolve, reject) => {
@@ -10,7 +11,7 @@ async function attachDebugger(tabId) {
 			}
 			attachedTabId = tabId
 			chrome.debugger.attach({ tabId: tabId }, '1.0', () => {
-				if(typeof chrome.runtime.lastError !== 'undefined'){
+				if (typeof chrome.runtime.lastError !== 'undefined') {
 					attachedTabId = null
 					resolve(false, chrome.runtime.lastError)
 					return
@@ -50,7 +51,12 @@ async function sendDebuggerCommand(command, parameters = {}) {
 			return
 		}
 		chrome.debugger.sendCommand({ tabId: attachedTabId }, command, parameters, (...args) => {
-			resolve(...args)
+			if (typeof chrome.runtime.lastError === 'undefined') {
+				resolve(...args)
+			} else {
+				console.error('Debugger last error: ', chrome.runtime.lastError)
+				reject(chrome.runtime.lastError)
+			}
 		})
 	})
 }
@@ -59,24 +65,6 @@ function waitFor(milliseconds) {
 	return new Promise((resolve, reject) => {
 		setTimeout(resolve, milliseconds)
 	})
-}
-
-let samplingMemory = false
-
-async function sampleMemory(milliseconds) {
-	if (attachedTabId === null) return null
-	if (samplingMemory) {
-		console.log('Already sampling memory')
-		return null
-	}
-	samplingMemory = true
-	await sendDebuggerCommand('Memory.startSampling')
-	await waitFor(milliseconds)
-	await sendDebuggerCommand('Memory.stopSampling')
-	const samplingProfile = await sendDebuggerCommand('Memory.getSamplingProfile')
-	samplingMemory = false
-	console.log('samplingProfile', samplingProfile)
-	return samplingProfile.profile
 }
 
 let performanceEnabled = false
@@ -97,21 +85,13 @@ async function disablePerformance() {
 	return true
 }
 
-async function getPerformanceMetrics(milliseconds) {
+async function getPerformanceMetrics() {
 	if (performanceEnabled === false) return null
 	return await sendDebuggerCommand('Performance.getMetrics')
 }
 
-async function getMemoryInfo() {
-	if (attachedTabId === null) return null
-	const samplingProfile = await sampleMemory(5000) // TODO make this responsive
-	return {
-		samplingProfile: samplingProfile
-	}
-}
-
 async function sendPerformanceInfo(subAction) {
-	if(performanceEnabled === false){
+	if (performanceEnabled === false) {
 		return
 	}
 	const perfMetrics = await getPerformanceMetrics()
@@ -122,61 +102,107 @@ async function sendPerformanceInfo(subAction) {
 	})
 }
 
-async function sendMemoryInfo() {
-	const memoryInfo = await getMemoryInfo()
-	if (memoryInfo === null) return false
+async function sendHeapSnapshotInfo(subAction) {
+	// Try to clear out memory and GC a bit to create less variance in size
+	await sendDebuggerCommand('Memory.simulatePressureNotification', { level: 'critical' })
+	await sendDebuggerCommand('HeapProfiler.collectGarbage')
+	const result = await sendDebuggerCommand('HeapProfiler.takeHeapSnapshot')
+	const samplingProfile = await sendDebuggerCommand('HeapProfiler.getSamplingProfile')
+	const embedScriptMemory = calculateEmbedScriptMemory(samplingProfile.profile.head)	
+	const sampleTotalMemory = sumHeapSamplesSizes(samplingProfile.profile.samples)
 	chrome.tabs.sendMessage(attachedTabId, {
-		action: 'update-memory',
-		memory: memoryInfo
+		action: 'update-heap-memory',
+		subAction: subAction,
+		embedScriptMemory: embedScriptMemory,
+		sampleTotalMemory: sampleTotalMemory
 	})
-	return true
+}
+
+function calculateEmbedScriptMemory(frame){
+	let total = 0;
+	if(frame.callFrame.url.endsWith(EmbedScriptPath)){
+		total += frame.selfSize;
+	}
+	if(!frame.children) return
+	for(let i=0; i < frame.children.length; i++){
+		total += calculateEmbedScriptMemory(frame.children[i])
+	}
+	return total
+}
+
+function logCallFrames(frame, depth=0) {
+	let prefix = '';
+	for(let i=0; i < depth; i++){
+		prefix + '\t';
+	}
+	console.log(prefix + frame.callFrame.url)
+	if(!frame.children) return
+	for(let i=0; i < frame.children.length; i++){
+		logCallFrames(frame.children[i], depth + 1)
+	}
+}
+
+function sumHeapSamplesSizes(samples){
+	let size = 0;
+	for(let i=0; i < samples.length; i++){
+		size += samples[i].size;
+	}
+	return size;
 }
 
 const childFrameIds = new Set()
 
-const ignoredEventMethods = new Set([
-	'Page.frameResized',
-	'Page.frameNavigated',
-	'DOM.documentUpdated'
-])
+const ignoredEventMethods = new Set(
+	['DOM.documentUpdated',
+	'HeapProfiler.addHeapSnapshotChunk', 'HeapProfiler.lastSeenObjectId',
+	'HeapProfiler.heapStatsUpdate', 'HeapProfiler.reportHeapSnapshotProgress',
+	'Page.frameClearedScheduledNavigation', 'Page.frameResized',
+	'Page.frameScheduledNavigation', 'Page.frameRequestedNavigation',
+	'Page.frameDetached', 'Page.frameNavigated'])
 
 async function handleDebuggerEvent(source, method, params) {
-	if(ignoredEventMethods.has(method)) return
+	if (ignoredEventMethods.has(method)) return
 	if (method === 'Inspector.detached') {
-		console.log('Debugger detached')
 		attachedTabId = null
 		performanceEnabled = false
-		samplingMemory = false
 		return
 	}
-
-	if(method === 'Page.frameAttached'){
+	if (method === 'Page.frameAttached') {
 		// Keep track of attached child frames
-		if(params.parentFrameId) {
+		if (params.parentFrameId) {
 			childFrameIds.add(params.frameId)
 		}
+		await sendDebuggerCommand('HeapProfiler.startTrackingHeapObjects')
 		return
 	}
-	if(method === 'Page.frameStartedLoading'){
-		if(childFrameIds.has(params.frameId)) return
+	if (method === 'Page.frameStartedLoading') {
+		if (childFrameIds.has(params.frameId)) return
 		await enablePerformance()
 		await sendPerformanceInfo('frame-started-loading')
 		return
 	}
 	if (method === 'Page.frameStoppedLoading') {
-		if(childFrameIds.has(params.frameId)){
-			return
+		if (childFrameIds.has(params.frameId)) return
+
+		try {
+			await sendHeapSnapshotInfo('frame-stopped-loading')
+		} catch (e) {
+			console.log('Snapping error', e)
+			chrome.tabs.sendMessage(attachedTabId, {
+				action: 'snapping-error',
+				error: JSON.stringify(e)
+			})
 		}
+
 		await sendPerformanceInfo('frame-stopped-loading')
 		await disablePerformance()
+
 		return
 	}
-
 	if (method === 'Page.domContentEventFired') {
 		await sendPerformanceInfo('dom-content')
 		return
 	}
-
 	if (method === 'Page.loadEventFired') {
 		await sendPerformanceInfo('load')
 		return
@@ -207,15 +233,16 @@ async function handleInitAction(request) {
 		try {
 			await sendDebuggerCommand('Page.enable')
 			await sendDebuggerCommand('DOM.enable')
+			await sendDebuggerCommand('HeapProfiler.enable')
+			await sendDebuggerCommand('HeapProfiler.startSampling')
 		} catch (e) {
 			console.error('Error sending debugger setup commands', e)
 		}
 	}
 }
 
-
-function initScript(){
-	if(!chrome){
+function initScript() {
+	if (!chrome) {
 		console.error('This script does not work in browsers other than Chrome. :^( ')
 		return
 	}
@@ -228,7 +255,7 @@ function initScript(){
 }
 
 try {
-	initScript()	
+	initScript()
 } catch (e) {
-	console.error('Could not init background script')
+	console.error('Could not init background script', e)
 }

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"wel/commands/runner"
 	"wel/experiments"
@@ -158,7 +159,7 @@ func run() (string, bool) {
 			capabilities["browserstack.seleniumLogs"] = "true"
 
 			// On Chrome, load the prober-extension
-			extensionPath := "fe/dist/prober-extension/prober-extension.xpi"
+			extensionPath := frontEndDistPath + "prober-extension/prober-extension.xpi"
 			crxBytes, err := ioutil.ReadFile(extensionPath)
 			if err != nil {
 				logger.Println(aurora.Red(fmt.Sprintf("Error reading extension (%v): %v", extensionPath, err)))
@@ -246,17 +247,24 @@ func run() (string, bool) {
 					return "", false
 				}
 
+				time.Sleep(5 * time.Second)
+
 				// Run the tests
 				logger.Printf("Testing '%v' on '%v':", pageFormulaConfig.Name, browserName)
 
 				var returnValue string
 				script := fmt.Sprintf(`
-					return JSON.stringify(
-						runWebEmbedLabProbes(
-							%s,
-							%s
-						)
-					);`, testsJSON, string(probeBasis))
+					try {
+						return JSON.stringify(
+							runWebEmbedLabProbes(
+								%s,
+								%s
+							)
+						);
+					} catch (e) {
+						console.error('Error running probes: ' + e);
+						return JSON.stringify({ 'wel-failure': { passed: false, error: '' + e }});
+					}`, testsJSON, string(probeBasis))
 				page.RunScript(script, map[string]interface{}{}, &returnValue)
 				probeResults := &runner.ProbeResults{}
 				err = json.Unmarshal([]byte(returnValue), probeResults)

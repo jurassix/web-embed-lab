@@ -117,7 +117,13 @@ func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Req
 			host.handleStaticRequest(writer, request)
 			return
 		}
-		//logger.Println("No route", request.URL.Path)
+
+		if request.URL.Path == "/manifest.json" {
+			writer.WriteHeader(http.StatusOK)
+			writer.Write([]byte("{}"))
+			return
+		}
+
 		writer.WriteHeader(http.StatusNotFound)
 		writer.Write([]byte(fmt.Sprintf(`
 <html>
@@ -126,6 +132,7 @@ func (host *FormulaHost) ServeHTTP(writer http.ResponseWriter, request *http.Req
 		You might try the <a href="%v">initial path</a>.
 	</body>
 </html>`, request.URL.Path, host.PageFormulas[host.CurrentFormula].InitialPath)))
+
 		return
 	}
 	switch route.Type {

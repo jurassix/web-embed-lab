@@ -63,6 +63,9 @@
 			"body > h1": "Vanilla Extract",
 			"#complex-name": "Successfully fetched a complex parameter name",
 			"#example-global": "Successfully read formula-global template data"
+		},
+		"heap": {
+			"embedScriptMemory": [0, 1000000]
 		}
 	}
 }

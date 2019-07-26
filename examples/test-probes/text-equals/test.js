@@ -21,12 +21,13 @@ class TextEqualsProbe {
 		}
 		for(let selector of Object.keys(basis)){
 			if(basis.hasOwnProperty(selector) === false) continue
-			const matchedElements = document.querySelectorAll(selector)
-			if(matchedElements.length === 0 || matchedElements[0].innerText != basis[selector]){
+			const matchedElement = document.querySelector(selector)
+			if(matchedElement === null
+				|| (matchedElement.innerText != basis[selector] && matchedElement.innerHTML != basis[selector])){
 				results.passed = false
 				results.failed.push(selector)
 			}
-			results[selector] = matchedElements.length == 0 ? "" : matchedElements[0].innerText
+			results[selector] = matchedElement === null ? "" : (matchedElement.innerText || matchedElement.innerHTML)
 		}
 		return results
 	}

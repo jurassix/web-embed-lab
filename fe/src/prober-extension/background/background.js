@@ -103,19 +103,27 @@ async function sendPerformanceInfo(subAction) {
 }
 
 async function sendHeapSnapshotInfo(subAction) {
-	// Try to clear out memory and GC a bit to create less variance in size
-	await sendDebuggerCommand('Memory.simulatePressureNotification', { level: 'critical' })
-	await sendDebuggerCommand('HeapProfiler.collectGarbage')
-	const result = await sendDebuggerCommand('HeapProfiler.takeHeapSnapshot')
-	const samplingProfile = await sendDebuggerCommand('HeapProfiler.getSamplingProfile')
-	const embedScriptMemory = calculateEmbedScriptMemory(samplingProfile.profile.head)	
-	const sampleTotalMemory = sumHeapSamplesSizes(samplingProfile.profile.samples)
-	chrome.tabs.sendMessage(attachedTabId, {
-		action: 'update-heap-memory',
-		subAction: subAction,
-		embedScriptMemory: embedScriptMemory,
-		sampleTotalMemory: sampleTotalMemory
-	})
+	try {
+		// Try to clear out memory and GC a bit to create less variance in size (requires Chrome 75+)
+		await sendDebuggerCommand('Memory.simulatePressureNotification', { level: 'critical' })
+		await sendDebuggerCommand('HeapProfiler.collectGarbage')
+		const result = await sendDebuggerCommand('HeapProfiler.takeHeapSnapshot')
+		const samplingProfile = await sendDebuggerCommand('HeapProfiler.getSamplingProfile')
+		const embedScriptMemory = calculateEmbedScriptMemory(samplingProfile.profile.head)
+		const sampleTotalMemory = sumHeapSamplesSizes(samplingProfile.profile.samples)
+		chrome.tabs.sendMessage(attachedTabId, {
+			action: 'update-heap-memory',
+			subAction: subAction,
+			embedScriptMemory: embedScriptMemory,
+			sampleTotalMemory: sampleTotalMemory
+		})
+	} catch (e) {
+		console.error('Error snapshotting', e)
+		chrome.tabs.sendMessage(attachedTabId, {
+			action: 'heap-snapshot-error',
+			error: '' + e
+		})
+	}
 }
 
 function calculateEmbedScriptMemory(frame){
@@ -153,7 +161,7 @@ function sumHeapSamplesSizes(samples){
 const childFrameIds = new Set()
 
 const ignoredEventMethods = new Set(
-	['DOM.documentUpdated',
+	['DOM.documentUpdated', 'Debugger.scriptParsed',
 	'HeapProfiler.addHeapSnapshotChunk', 'HeapProfiler.lastSeenObjectId',
 	'HeapProfiler.heapStatsUpdate', 'HeapProfiler.reportHeapSnapshotProgress',
 	'Page.frameClearedScheduledNavigation', 'Page.frameResized',
@@ -162,6 +170,7 @@ const ignoredEventMethods = new Set(
 
 async function handleDebuggerEvent(source, method, params) {
 	if (ignoredEventMethods.has(method)) return
+
 	if (method === 'Inspector.detached') {
 		attachedTabId = null
 		performanceEnabled = false
@@ -184,16 +193,7 @@ async function handleDebuggerEvent(source, method, params) {
 	if (method === 'Page.frameStoppedLoading') {
 		if (childFrameIds.has(params.frameId)) return
 
-		try {
-			await sendHeapSnapshotInfo('frame-stopped-loading')
-		} catch (e) {
-			console.log('Snapping error', e)
-			chrome.tabs.sendMessage(attachedTabId, {
-				action: 'snapping-error',
-				error: JSON.stringify(e)
-			})
-		}
-
+		await sendHeapSnapshotInfo('frame-stopped-loading')
 		await sendPerformanceInfo('frame-stopped-loading')
 		await disablePerformance()
 

@@ -44,6 +44,7 @@ runWebEmbedLabProbes runs the tests
 @param {Array(string)} a list of test names to run. If tests is null or of length 0 then all tests are run.
 */
 window.runWebEmbedLabProbes = function(tests=null, basis={}){
+	console.log('Running probes')
 	let results = {}
 	if(typeof window.__welProbes !== "object"){
 		results.error = "Failed to find probes"
@@ -67,6 +68,7 @@ window.runWebEmbedLabProbes = function(tests=null, basis={}){
 			}
 		}
 	}
+	console.log('Ran probes')
 	return results
 }
 
@@ -79,7 +81,7 @@ function handleWindowMessage(event) {
 	switch(event.data.action){
 		case 'update-performance':
 			window._welPerformanceData.push(event.data)
-			console.log('new performance memory: ' + event.data.subAction)
+			console.log('new performance data: ' + event.data.subAction)
 			break
 		case 'update-heap-memory':
 			window._welHeapMemoryData.push(event.data)
@@ -116,3 +118,5 @@ function rewriteAbsoluteURL(url){
 patchXMLHttpRequest()
 patchFetch()
 document.addEventListener('DOMContentLoaded', initProber)
+
+console.log('WEL Test prober loaded')

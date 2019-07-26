@@ -2,11 +2,11 @@
 	"captures": [
 		{
 			"browser-configuration": {
-				"name": "Chrome 62",
+				"name": "Chrome 75",
 				"os": "Windows",
 				"osVersion": "10",
 				"browserName": "Chrome",
-				"browserVersion": "62.0",
+				"browserVersion": "75.0",
 				"resolution": "1024x768",
 				"browserstack.console": "verbose"
 			},
@@ -62,7 +62,7 @@
 					"width": 13
 				},
 				"exceptions": {
-					"range": [0, 1]
+					"count": [0, 1]
 				},
 				"selector-count": {
 					"body h1": 1,
@@ -84,15 +84,90 @@
 		},
 		{
 			"capture-name": "transmutable",
-			"formula-name": "transmutable-base"
+			"formula-name": "transmutable-base",
+			"probe-basis": {
+				"dom-shape": {
+					"depth": 6,
+					"width": 17
+				},
+				"exceptions": {
+					"count": [0, 1]
+				},
+				"selector-count": {
+					"body h1": 1,
+					"body img": 4
+				},
+				"text-equals": {
+					"body h1": "Transmutable"
+				},
+				"performance": {
+					"DomContentLoaded": {
+						"range": [0, 2.5],
+						"subtract": "NavigationStart"
+					}
+				},
+				"heap": {
+					"embedScriptMemory": [0, 1000000]
+				}
+			}
 		},
 		{
 			"capture-name": "science-saints",
-			"formula-name": "science-saints"
+			"formula-name": "science-saints",
+			"probe-basis": {
+				"dom-shape": {
+					"depth": 10,
+					"width": 13
+				},
+				"exceptions": {
+					"count": [0, 1]
+				},
+				"selector-count": {
+					"body h1": 1,
+					"body img": 6
+				},
+				"text-equals": {
+					".day-detail-deets > ul:nth-child(1) > h3:nth-child(1)": "Themes"
+				},
+				"performance": {
+					"DomContentLoaded": {
+						"range": [0, 2.5],
+						"subtract": "NavigationStart"
+					}
+				},
+				"heap": {
+					"embedScriptMemory": [0, 1000000]
+				}
+			}
 		},
 		{
 			"capture-name": "potassium-es",
-			"formula-name": "potassium-es-light"
+			"formula-name": "potassium-es-light",
+			"probe-basis": {
+				"dom-shape": {
+					"depth": 6,
+					"width": 13
+				},
+				"exceptions": {
+					"count": [0, 1]
+				},
+				"selector-count": {
+					"body h1": 1,
+					"body img": 4
+				},
+				"text-equals": {
+					"body h1": "Transmutable"
+				},
+				"performance": {
+					"DomContentLoaded": {
+						"range": [0, 2.5],
+						"subtract": "NavigationStart"
+					}
+				},
+				"heap": {
+					"embedScriptMemory": [0, 1000000]
+				}
+			}
 		}
 	]
 }

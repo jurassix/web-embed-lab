@@ -3,23 +3,31 @@ function _testPerformanceKey(key, basis={}){
 	const value = _latestPerformanceValue(key)
 	if(value === null) {
 		console.error('Invalid performance key: ' + key)
-		return false
+		return { passed: false, description: 'Invalid performance key: ' + key }
 	}
 
 	let subtractionValue = 0
 	if(typeof basis.subtract === 'string'){
 		subtractionValue = _latestPerformanceValue(basis.subtract)
 		if(subtractionValue === null){
-			console.error('Invalid subtract basis: ' + key + " " + basis.subtract)
-			return false
+			console.error('Invalid subtract basis: ' + key + ' ' + basis.subtract)
+			return { passed: 'Invalid subtract basis: ' + key + ' ' + basis.subtract }
 		}
 	}
 
 	if(typeof basis.range !== 'undefined'){
-		return _matchesRange(basis.range, value - subtractionValue) 
+		if(_matchesRange(basis.range, value - subtractionValue)){
+			return { passed: true }
+		} else {
+			return {
+				passed: false,
+				description: '' + (value - subtractionValue) + ' is not in range ' + basis.range
+			}
+		}
+
 	}
 
-	return true
+	return { passed: true }
 }
 
 function _matchesRange(range, value){
@@ -90,7 +98,9 @@ class PerformanceProbe {
 	*/
 	probe(basis) {
 		console.log('Probing performance')
-		const result = {}
+		const result = {
+			description: ''
+		}
 
 		if(window._welPerformanceData){
 			result.performanceData = window._welPerformanceData[window._welPerformanceData.length - 1]
@@ -112,8 +122,11 @@ class PerformanceProbe {
 		let passed = true
 		for(let key of Object.keys(basis)) {
 			const individualPass = _testPerformanceKey(key, basis[key])
-			if(individualPass === false){
+			if(individualPass.passed === false){
 				passed = false
+				if(individualPass.description){
+					result.description += individualPass.description + ' '
+				}
 			}
 		}
 

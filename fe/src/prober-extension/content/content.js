@@ -12,6 +12,9 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 		case 'update-heap-memory':
 			window.postMessage(data, '*')
 			break
+		case 'heap-snapshot-update':
+			console.log('Heap snapshot:', data.subAction)
+			break
 		default:
 			console.error('Unknown runtime message action: ' + JSON.stringify(data) + ': ' + JSON.stringify(sender))
 	}

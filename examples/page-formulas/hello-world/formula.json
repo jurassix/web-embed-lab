@@ -36,6 +36,9 @@
 				"range": [0, 1],
 				"subtract": "NavigationStart"
 			}
+		},
+		"heap": {
+			"embedScriptMemory": [0, 1000000]
 		}
 	}
 }

@@ -1,17 +1,9 @@
 {
 	"page-formulas": [
-		{
-			"name": "vanilla-site"
-		},
-		{
-			"name": "hello-world"
-		}
-	],
-	"test-probes": [
-		{
-			"name": "dom-shape",
-			"basis": {}
-		}
+		{ "name": "transmutable-light" },
+		{ "name": "transmutable-base" },
+		{ "name": "transmutable-light" },
+		{ "name": "science-saints" }
 	],
 	"browser-configurations": [
 		{
@@ -35,7 +27,7 @@
 	],
 	"test-runs" : [
 		{
-			"page-formulas": ["vanilla-site", "hello-world"],
+			"page-formulas": ["transmutable-light", "transmutable-base"],
 			"test-probes": [
 				"dom-shape",
 				"exceptions",
@@ -44,18 +36,16 @@
 				"performance",
 				"heap"
 			],
-			"comment": "Performance and Heap only run on Chrome.",
 			"browsers": ["Chrome 75"]
 		},
 		{
-			"page-formulas": ["vanilla-site", "hello-world"],
+			"page-formulas": ["science-saints"],
 			"test-probes": [
 				"dom-shape",
 				"exceptions",
 				"selector-count",
 				"text-equals"
 			],
-			"comment": "Performance and Heap only run on Chrome.",
 			"browsers": ["Firefox 66"]
 		}
 	]

@@ -301,7 +301,7 @@ func injectProbes(templatePath string) error {
 		ProbesURL,         // test probe scripts
 		ProberURL,         // test runner script
 		EmbeddedScriptURL, // embedded script that is being tested
-		string(templateBytes[location[1]+1:]),
+		string(templateBytes[location[1]:]),
 	)
 
 	err = ioutil.WriteFile(templatePath, []byte(newTemplate), 0666)

@@ -16,7 +16,7 @@ class ExceptionsProbe {
 	/**
 	@param {object} results - the object on which to set result attributes
 	*/
-	probe(basis){
+	async probe(basis){
 		const results = {
 			passed: true,
 			count: window._exceptionCount

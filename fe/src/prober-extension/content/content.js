@@ -10,13 +10,27 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 	switch(data.action){
 		case 'update-performance':
 		case 'update-heap-memory':
-			window.postMessage(data, '*')
+			window.postMessage(data, '*') // This will be caught by prober.js
 			break
-		case 'heap-snapshot-update':
-			console.log('Heap snapshot:', data.subAction)
+		case 'heap-memory-status':
+			console.log('Heap memory status: ' + data.subAction)
 			break
 		default:
-			console.error('Unknown runtime message action: ' + JSON.stringify(data) + ': ' + JSON.stringify(sender))
+			console.log('Unknown runtime message action: ' + JSON.stringify(data) + ': ' + JSON.stringify(sender))
+	}
+}
+
+function handleWindowMessage(event){
+	if(!event.data || !event.data.action) {
+		return
+	}
+	switch(event.data.action){
+		case 'relay-to-background':
+			event.data.action = 'window-to-background'
+			chrome.runtime.sendMessage(event.data)
+			break
+		//default:
+		//	console.log('Unknown window message action in content.js: ' + JSON.stringify(event.data))
 	}
 }
 
@@ -26,6 +40,7 @@ function initContentScript(){
 		return
 	}
 	chrome.runtime.onMessage.addListener(handleRuntimeMessage)
+	window.addEventListener('message', handleWindowMessage)
 	console.log("Prober extension content script loaded")
 }
 

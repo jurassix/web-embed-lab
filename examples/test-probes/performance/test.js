@@ -96,7 +96,7 @@ class PerformanceProbe {
 	/**
 	@return {object} the results of the probe
 	*/
-	probe(basis) {
+	async probe(basis) {
 		console.log('Probing performance')
 		const result = {
 			description: ''

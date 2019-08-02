@@ -43,7 +43,7 @@ function patchFetch(){
 runWebEmbedLabProbes runs the tests
 @param {Array(string)} a list of test names to run. If tests is null or of length 0 then all tests are run.
 */
-window.runWebEmbedLabProbes = function(tests=null, basis={}){
+window.runWebEmbedLabProbes = async function(tests=null, basis={}){
 	console.log('Running probes')
 	let results = {}
 	if(typeof window.__welProbes !== "object"){
@@ -60,7 +60,7 @@ window.runWebEmbedLabProbes = function(tests=null, basis={}){
 	}
 	for(let key of tests){
 		try {
-			results[key] = window.__welProbes[key].probe(basis[key] || {})
+			results[key] = await window.__welProbes[key].probe(basis[key] || {})
 		} catch(err){
 			results[key] = {
 				passed: false,
@@ -86,6 +86,8 @@ function handleWindowMessage(event) {
 		case 'update-heap-memory':
 			window._welHeapMemoryData.push(event.data)
 			console.log('new heap memory: ' + JSON.stringify(event.data))
+			break
+		case 'relay-to-background':
 			break
 		default:
 			console.error('Unknown window event action', event)
@@ -114,6 +116,13 @@ function rewriteAbsoluteURL(url){
 		return url
 	}
 }
+
+window.__welWaitFor = function(milliseconds) {
+	return new Promise((resolve, reject) => {
+		setTimeout(resolve, milliseconds)
+	})
+}
+
 
 patchXMLHttpRequest()
 patchFetch()

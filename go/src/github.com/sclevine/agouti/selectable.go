@@ -37,6 +37,7 @@ type apiSession interface {
 	Frame(frame *api.Element) error
 	FrameParent() error
 	Execute(body string, arguments []interface{}, result interface{}) error
+	ExecuteAsync(body string, arguments []interface{}, result interface{}) error
 	Forward() error
 	Back() error
 	Refresh() error

@@ -6,7 +6,7 @@ class DOMShapeProbe {
 	/**
 	@return {object} the results of the probe
 	*/
-	probe(basis){
+	async probe(basis){
 		console.log('Probing DOM shape')
 		if(!basis) return { passed: true }
 		const shape = this._findShape(document.body)

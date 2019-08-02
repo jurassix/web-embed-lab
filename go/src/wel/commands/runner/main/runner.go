@@ -241,11 +241,13 @@ func run() (string, bool) {
 				page.ReadNewLogs("browser")
 
 				// Navigate the browser to the right URL
+				logger.Printf("Navigating to %v...", pageFormulaConfig.Name)
 				err = page.Navigate(pageHostURL + controlResponse.InitialPath)
 				if err != nil {
 					logger.Println("Failed to navigate to hosted page formula", err)
 					return "", false
 				}
+				logger.Printf("Initial navigation complete.")
 
 				time.Sleep(5 * time.Second)
 
@@ -255,17 +257,21 @@ func run() (string, bool) {
 				var returnValue string
 				script := fmt.Sprintf(`
 					try {
-						return JSON.stringify(
-							runWebEmbedLabProbes(
-								%s,
-								%s
-							)
+						let results = await runWebEmbedLabProbes(
+							%s,
+							%s
 						);
+						callback(JSON.stringify(results));
 					} catch (e) {
 						console.error('Error running probes: ' + e);
-						return JSON.stringify({ 'wel-failure': { passed: false, error: '' + e }});
-					}`, testsJSON, string(probeBasis))
-				page.RunScript(script, map[string]interface{}{}, &returnValue)
+						let results = {
+							'wel-failure': { passed: false, error: 'error running the tests' }
+						}
+						callback(JSON.stringify(results));
+					}
+					`, testsJSON, string(probeBasis))
+				page.RunAsyncScript(script, &returnValue)
+
 				probeResults := &runner.ProbeResults{}
 				err = json.Unmarshal([]byte(returnValue), probeResults)
 				if err != nil {

@@ -12,7 +12,7 @@ class TextEqualsProbe {
 	/**
 	@return {object} the results of the probe
 	*/
-	probe(basis){
+	async probe(basis){
 		console.log("Probing text equals")
 		if(!basis) return { passed: true }
 		const results = {

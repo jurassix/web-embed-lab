@@ -279,6 +279,20 @@ func (p *Page) RunScript(body string, arguments map[string]interface{}, result i
 	return nil
 }
 
+func (p *Page) RunAsyncScript(body string, result interface{}) error {
+	wholeBody := fmt.Sprintf(`
+		let wrapper = async function(callback){
+			%s
+		}
+		wrapper.apply(this, arguments);
+	`, body)
+
+	if err := p.session.ExecuteAsync(wholeBody, []interface{}{}, result); err != nil {
+		return fmt.Errorf("failed to run async script: %s", err)
+	}
+	return nil
+}
+
 // PopupText returns the current alert, confirm, or prompt popup text.
 func (p *Page) PopupText() (string, error) {
 	text, err := p.session.GetAlertText()

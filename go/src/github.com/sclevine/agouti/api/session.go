@@ -241,6 +241,14 @@ func (s *Session) FrameParent() error {
 }
 
 func (s *Session) Execute(body string, arguments []interface{}, result interface{}) error {
+	return s.execute("execute", body, arguments, result)
+}
+
+func (s *Session) ExecuteAsync(body string, arguments []interface{}, result interface{}) error {
+	return s.execute("execute_async", body, arguments, result)
+}
+
+func (s *Session) execute(command string, body string, arguments []interface{}, result interface{}) error {
 	if arguments == nil {
 		arguments = []interface{}{}
 	}
@@ -250,7 +258,7 @@ func (s *Session) Execute(body string, arguments []interface{}, result interface
 		Args   []interface{} `json:"args"`
 	}{body, arguments}
 
-	if err := s.Send("POST", "execute", request, result); err != nil {
+	if err := s.Send("POST", command, request, result); err != nil {
 		return err
 	}
 

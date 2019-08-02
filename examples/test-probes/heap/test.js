@@ -60,18 +60,29 @@ class HeapProbe {
 	/**
 	@return {object} the results of the probe
 	*/
-	probe(basis) {
+	async probe(basis) {
 		console.log('Probing heap')
+
 		try {
 			const result = {
 				passed: true,
-				heapMemoryData: _latestHeapMemoryData()
+				heapMemoryData: null
 			}
 
-			if(!basis) {
+			if(!basis || Object.keys(basis).length == 0) {
 				result.passed = true
 				return result
 			}
+
+			window._welHeapMemoryData = []
+			window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
+			let waitsRemaining = 25
+			let waitMilliseconds = 500
+			while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
+				waitsRemaining -= 1
+				await window.__welWaitFor(waitMilliseconds)
+			}
+			result.heapMemoryData = _latestHeapMemoryData()
 
 			if(result.heapMemoryData === null){
 				result.passed = false

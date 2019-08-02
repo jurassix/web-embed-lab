@@ -12,7 +12,7 @@ class SelectorCountProbe {
 	/**
 	@return {object} the results of the probe
 	*/
-	probe(basis){
+	async probe(basis){
 		console.log("Probing selector count")
 		const results = {
 			passed: true,

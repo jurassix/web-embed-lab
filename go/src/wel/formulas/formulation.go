@@ -200,7 +200,9 @@ func createTemplateRoutes(
 
 		sourceInfo, ok := fileMap[request.OutputFileId]
 		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
+			if request.OutputFileId != -1 {
+				logger.Println("No such file ID", request.OutputFileId)
+			}
 			continue
 		}
 
@@ -327,7 +329,9 @@ func createStaticRoutes(
 		}
 		sourceInfo, ok := fileMap[request.OutputFileId]
 		if ok != true {
-			logger.Println("No such file ID", request.OutputFileId)
+			if request.OutputFileId != -1 {
+				logger.Println("No such file ID", request.OutputFileId)
+			}
 			continue
 		}
 

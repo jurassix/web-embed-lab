@@ -100,7 +100,7 @@ func ReadOrGenerateCa() error {
 
 	writePEMs(LocalhostCertPath, LocalhostKeyPath, localhostCert.Certificate[0], localhostCert.PrivateKey)
 
-	logger.Printf("Generated new CA PEMs, you will need to add %s to your browser certificates", CaCertPath)
+	logger.Printf("Generated new CA PEMs. If using a local browser (instead of Browserstack/Selenium) then you will need to add %s to your browser certificates", CaCertPath)
 	return nil
 }
 

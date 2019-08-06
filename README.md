@@ -23,6 +23,3 @@ These documents cover those topics:
 - [Running experiments](./docs/EXPERIMENT_RUNNING.md)
 
 If this is your first time setting up the WEL then read the [Installation guide](./docs/INSTALLATION.md).
-
-![Overview diagram](https://cowpaths.github.io/web-embed-lab/images/wel-components-002.png)
-

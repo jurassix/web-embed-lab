@@ -340,17 +340,17 @@ func printHelp() {
 	logger.Println("usage (experiment mode): runs the experiment")
 	logger.Println(aurora.Bold("runner <formulas dir> <probes dir> <embed script> <experiment json>"))
 	logger.Println("Example:")
-	logger.Println("runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js ./examples/experiments/hello-world.json\n")
+	logger.Println("runner ../pf/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js ./examples/experiments/external-experiment.json\n")
 
 	logger.Println("usage (development mode): runs the page formula host")
 	logger.Println(aurora.Bold("runner <formulas dir> <probes dir>"))
 	logger.Println("Example:")
-	logger.Println("runner ./examples/page-formulas/ ./examples/test-probes/\n")
+	logger.Println("runner ../pf/ ./examples/test-probes/\n")
 
 	logger.Println("usage (embed mode): runs the page formula host with an embed script")
 	logger.Println(aurora.Bold("runner <formulas dir> <probes dir> <embed script>"))
 	logger.Println("Example:")
-	logger.Println("runner ./examples/page-formulas/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js")
+	logger.Println("runner ../pf/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js")
 }
 
 /*

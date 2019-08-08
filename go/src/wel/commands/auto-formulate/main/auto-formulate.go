@@ -223,7 +223,7 @@ func printHelp() {
 	logger.Println("usage:")
 	logger.Println(aurora.Bold("auto-formulate <configuration json path> <formula destination dir>"))
 	logger.Println("Example:")
-	logger.Println("auto-formulate ./examples/auto-formulate/hello-world-formulate.json ../pf/\n")
+	logger.Println("auto-formulate ./examples/auto-formulate/external-auto-formulate.json ../pf/\n")
 }
 
 /*

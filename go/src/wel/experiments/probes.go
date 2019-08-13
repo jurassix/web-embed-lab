@@ -1,4 +1,4 @@
-package runner
+package experiments
 
 type ProbeResult map[string]interface{}
 

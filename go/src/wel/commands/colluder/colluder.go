@@ -4,13 +4,6 @@ That captured data is then used by the formula cli tool to draft a page formula.
 */
 package colluder
 
-import (
-	"log"
-	"os"
-)
-
-var logger = log.New(os.Stdout, "[colluder] ", 0)
-
 /*
 Copyright 2019 FullStory, Inc.
 

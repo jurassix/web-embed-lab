@@ -2,6 +2,7 @@ package experiments
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -60,6 +61,32 @@ func NewExperiment() *Experiment {
 		BrowserConfigurations:     []map[string]interface{}{},
 		TestRuns:                  []TestRun{},
 	}
+}
+
+func (experiment Experiment) IsRunnable() (bool, string) {
+	if len(experiment.TestRuns) == 0 {
+		return false, "Experiment has not defined any test-runs"
+	}
+	for _, testRun := range experiment.TestRuns {
+		if len(testRun.PageFormulas) == 0 || len(testRun.TestProbes) == 0 || len(testRun.Browsers) == 0 {
+			return false, fmt.Sprintf("Invalid Test Run: %s", testRun)
+		}
+
+		for _, browserName := range testRun.Browsers {
+			_, ok := experiment.GetBrowserConfiguration(browserName)
+			if ok == false {
+				return false, fmt.Sprintf("Unknown browser: %s", browserName)
+			}
+		}
+
+		for _, pageFormulaName := range testRun.PageFormulas {
+			_, ok := experiment.GetPageFormulaConfiguration(pageFormulaName)
+			if ok == false {
+				return false, fmt.Sprintf("Unknown page formula: %s", pageFormulaName)
+			}
+		}
+	}
+	return true, ""
 }
 
 func (experiment Experiment) GetBrowserConfiguration(name string) (map[string]interface{}, bool) {

@@ -91,10 +91,9 @@ func run() (string, bool) {
 		printHelp()
 		return "", false
 	}
-
-	if len(experiment.TestRuns) == 0 {
-		logger.Println("Experiment has not defined any test-runs:", experimentPath)
-		return "", false
+	ok, runnableErrorMessage := experiment.IsRunnable()
+	if ok == false {
+		return runnableErrorMessage, false
 	}
 
 	/*
@@ -117,7 +116,13 @@ func run() (string, bool) {
 		Start the page formula host
 	*/
 	go func() {
-		host.RunHTTP(runnerPort, frontEndDistPath, formulasPath, probesPath, embedScriptPath)
+		host.RunHTTP(
+			runnerPort,
+			frontEndDistPath,
+			formulasPath,
+			probesPath,
+			embedScriptPath,
+		)
 	}()
 
 	return experiments.RunExperiment(

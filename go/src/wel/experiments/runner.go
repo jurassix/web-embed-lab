@@ -34,12 +34,16 @@ func RunExperiment(
 	gatheredResults := []*ProbeResults{}
 	gatheredReturnValues := []string{}
 
+	// On Chrome, load the prober-extension
+	extensionPath := frontEndDistPath + "prober-extension/prober-extension.xpi"
+	crxBytes, err := ioutil.ReadFile(extensionPath)
+	if err != nil {
+		logger.Println(aurora.Red(fmt.Sprintf("Error reading extension (%v): %v", extensionPath, err)))
+		return "", false
+	}
+
 	for index, testRun := range experiment.TestRuns {
 		logger.Println(aurora.Bold("Test Run #"), aurora.Bold(index))
-		if len(testRun.PageFormulas) == 0 || len(testRun.TestProbes) == 0 || len(testRun.Browsers) == 0 {
-			logger.Println("Invalid Test Run:", testRun)
-			return "", false
-		}
 
 		// Opening the browser is the slowest part of a test run so open each browser only once
 		for _, browserName := range testRun.Browsers {
@@ -57,14 +61,6 @@ func RunExperiment(
 			capabilities["browserstack.key"] = browserstackAPIKey
 			capabilities["browserstack.console"] = "verbose"
 			capabilities["browserstack.seleniumLogs"] = "true"
-
-			// On Chrome, load the prober-extension
-			extensionPath := frontEndDistPath + "prober-extension/prober-extension.xpi"
-			crxBytes, err := ioutil.ReadFile(extensionPath)
-			if err != nil {
-				logger.Println(aurora.Red(fmt.Sprintf("Error reading extension (%v): %v", extensionPath, err)))
-				return "", false
-			}
 			capabilities["chromeOptions"] = map[string][][]byte{
 				"extensions": {crxBytes},
 			}

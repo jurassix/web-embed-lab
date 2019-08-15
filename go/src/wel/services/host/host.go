@@ -20,12 +20,17 @@ var ControlURL = "/__wel_control"
 
 var BlankURL = "/__wel_blank"
 
+type controlState struct {
+	BaselineMode bool
+}
+
 /*
 RunHTTP brings up the page formula host service
 This function blocks until the service or process is killed.
 */
 func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPath string, embeddedScriptPath string) {
 	// Check that the front end dist directory exists
+
 	feDistPathInfo, err := os.Stat(frontEndDistPath)
 	if err != nil {
 		log.Fatal("Could not read the front end dist path:", frontEndDistPath, err)
@@ -39,7 +44,7 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 	// Collect and contatenate the probe scripts
 	probeScript, err := GenerateProbesScript(probesPath)
 	if err != nil {
-		log.Fatal("Could not generate probe script at path", probesPath, err)
+		log.Fatal("Could not generate probe script at path ", probesPath, " ", err)
 		return
 	}
 
@@ -53,12 +58,20 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 		}
 	}
 
+	controlState := controlState{
+		BaselineMode: false,
+	}
+
 	mux := http.NewServeMux()
 
 	// Serve embedded script
 	mux.HandleFunc(formulas.EmbeddedScriptURL, func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Add("Content-Type", "text/javascript")
-		response.Write([]byte(embeddedScript))
+		if controlState.BaselineMode {
+			response.Write([]byte("/* baseline mode */ console.log('baseline mode embed script'); "))
+		} else {
+			response.Write([]byte(embeddedScript))
+		}
 	})
 
 	// Serve test probes' JS
@@ -68,7 +81,6 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 	})
 
 	// Serve prober JS that runs the tests
-
 	mux.Handle(formulas.ProberDistURL, http.StripPrefix(formulas.ProberDistURL, http.FileServer(http.Dir(frontEndDistPath+"/prober/"))))
 
 	formulaHost, err := NewFormulaHost(formulasPath)
@@ -89,13 +101,12 @@ func RunHTTP(port int64, frontEndDistPath string, formulasPath string, probesPat
 		The control web API is usually called by the runner command to change which page formula is being hosted
 	*/
 	mux.HandleFunc(ControlURL, func(response http.ResponseWriter, request *http.Request) {
-		HandleControlRequest(response, request, formulaHost)
+		HandleControlRequest(response, request, formulaHost, &controlState)
 	})
 
 	// Serve page formulas
 	mux.Handle("/", formulaHost)
 
-	//log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%d", port), weltls.LocalhostCertPath, weltls.LocalhostKeyPath, mux))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), mux))
 }
 

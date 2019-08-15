@@ -117,7 +117,7 @@
 			"probe-basis": {
 				"dom-shape": {
 					"depth": 10,
-					"width": 13
+					"width": [12, 13]
 				},
 				"exceptions": {
 					"count": [0, 1]

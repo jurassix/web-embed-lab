@@ -13,7 +13,7 @@ import (
 HandleControlRequest is used as an HTTP responder function in host.RunHTTP
 It implements a control API to check and set which page formula is hosted.
 */
-func HandleControlRequest(response http.ResponseWriter, request *http.Request, formulaHost *FormulaHost) {
+func HandleControlRequest(response http.ResponseWriter, request *http.Request, formulaHost *FormulaHost, ctrlState *controlState) {
 	if request.Method == "PUT" {
 		requestBodyData, err := ioutil.ReadAll(request.Body)
 		if err != nil {
@@ -31,6 +31,7 @@ func HandleControlRequest(response http.ResponseWriter, request *http.Request, f
 		if controlRequest.CurrentFormula != "" {
 			formulaHost.SetCurrentFormula(controlRequest.CurrentFormula)
 		}
+		ctrlState.BaselineMode = controlRequest.BaselineMode
 	} else if request.Method != "GET" {
 		response.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -41,7 +42,9 @@ func HandleControlRequest(response http.ResponseWriter, request *http.Request, f
 		CurrentFormula: formulaHost.CurrentFormula,
 		InitialPath:    formulaHost.PageFormulas[formulaHost.CurrentFormula].InitialPath,
 		ProbeBasis:     formulaHost.PageFormulas[formulaHost.CurrentFormula].ProbeBasis,
+		BaselineMode:   ctrlState.BaselineMode,
 	}
+
 	for formulaName := range formulaHost.PageFormulas {
 		controlResponse.Formulas = append(controlResponse.Formulas, formulaName)
 	}
@@ -60,6 +63,7 @@ A parsable data structure for reading control API PUTs
 */
 type ControlRequest struct {
 	CurrentFormula string `json:"current-formula"`
+	BaselineMode   bool   `json:"baseline-mode"`
 }
 
 /*
@@ -70,17 +74,19 @@ type ControlResponse struct {
 	CurrentFormula string              `json:"current-formula"`
 	InitialPath    string              `json:"initial-path"`
 	ProbeBasis     formulas.ProbeBasis `json:"probe-basis"`
+	BaselineMode   bool                `json:"baseline-mode"`
 }
 
 /*
 Uses the HTTP control API to request that the host change to a new page formula
 */
-func RequestPageFormulaChange(httpPort int64, formulaName string) (bool, *ControlResponse, error) {
+func RequestPageFormulaChange(httpPort int64, formulaName string, baselineMode bool) (bool, *ControlResponse, error) {
 
 	url := fmt.Sprintf("http://127.0.0.1:%v%v", httpPort, ControlURL)
 
 	data, err := json.Marshal(&ControlRequest{
 		CurrentFormula: formulaName,
+		BaselineMode:   baselineMode,
 	})
 	if err != nil {
 		return false, nil, err
@@ -106,10 +112,10 @@ func RequestPageFormulaChange(httpPort int64, formulaName string) (bool, *Contro
 	if err != nil {
 		return false, nil, err
 	}
-	if controlResponse.CurrentFormula == formulaName {
+	if controlResponse.CurrentFormula == formulaName && controlResponse.BaselineMode == baselineMode {
 		return true, controlResponse, nil
 	}
-	return false, nil, err
+	return false, controlResponse, nil
 }
 
 /*

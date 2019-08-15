@@ -1,5 +1,14 @@
 package experiments
 
+/*
+BaselineData holds test probe data from a page formula sampled without a target embed script.
+It is used by test probes during a run of an experiment to compare values with and without a target embed script.
+*/
+type BaselineData map[string]interface{}
+
+/*
+ProbeResult holds the final results of a test probe during a run of an experiment
+*/
 type ProbeResult map[string]interface{}
 
 func (probeResult ProbeResult) Passed() bool {

@@ -27,7 +27,7 @@
 	],
 	"test-runs" : [
 		{
-			"page-formulas": ["transmutable-light", "transmutable-base"],
+			"page-formulas": ["transmutable-light", "transmutable-base", "science-saints"],
 			"test-probes": [
 				"dom-shape",
 				"exceptions",

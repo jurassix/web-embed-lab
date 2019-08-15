@@ -14,7 +14,7 @@ import (
 
 var logger = log.New(os.Stdout, "[runner] ", 0)
 
-var runnerPort int64 = 9090
+var pageHostPort int64 = 9090
 
 var frontEndDistPathVar = "FRONT_END_DIST"
 
@@ -49,12 +49,12 @@ func run() (string, bool) {
 
 	if len(os.Args) == 3 {
 		// Run in developer mode
-		logger.Println("Developer mode on port", runnerPort)
-		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], "")
+		logger.Println("Developer mode on port", pageHostPort)
+		host.RunHTTP(pageHostPort, frontEndDistPath, os.Args[1], os.Args[2], "")
 	} else if len(os.Args) == 4 {
 		// Run in developer mode
-		logger.Println("Embed mode on port", runnerPort)
-		host.RunHTTP(runnerPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
+		logger.Println("Embed mode on port", pageHostPort)
+		host.RunHTTP(pageHostPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
 	} else if len(os.Args) != 5 {
 		printHelp()
 		return "", false
@@ -100,7 +100,7 @@ func run() (string, bool) {
 		Set up the ngrok tunnel and find its HTTPS endpoint URL
 	*/
 	ngrokController := tunnels.NewNgrokController()
-	err = ngrokController.Start(runnerPort, "http")
+	err = ngrokController.Start(pageHostPort, "http")
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
 		return "", false
@@ -117,7 +117,7 @@ func run() (string, bool) {
 	*/
 	go func() {
 		host.RunHTTP(
-			runnerPort,
+			pageHostPort,
 			frontEndDistPath,
 			formulasPath,
 			probesPath,
@@ -125,13 +125,36 @@ func run() (string, bool) {
 		)
 	}()
 
-	return experiments.RunExperiment(
+	experimentConfig := experiments.ExperimentConfig{
+		BrowserstackUser:   browserstackUser,
+		BrowserstackAPIKey: browserstackAPIKey,
+		FrontEndDistPath:   frontEndDistPath,
+		PublicPageHostURL:  pageHostURL,
+		PageHostPort:       pageHostPort,
+	}
+
+	/*
+		Gather the baseline data without the target embed script
+	*/
+	baselineData, err := experiments.GatherExperimentBaseline(experiment, &experimentConfig)
+	if err != nil {
+		logger.Println("Error gathering baseline", err)
+		return "", false
+	}
+	/*
+		if len(baselineData) == 0 {
+			logger.Println("Zero length baseline data!")
+			return "", false
+		}
+	*/
+
+	/*
+		Finally, run the experiment
+	*/
+	return experiments.RunExperimentTests(
 		experiment,
-		browserstackUser,
-		browserstackAPIKey,
-		frontEndDistPath,
-		pageHostURL,
-		runnerPort,
+		&experimentConfig,
+		baselineData,
 	)
 }
 

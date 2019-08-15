@@ -22,8 +22,7 @@ var frontEndDistPathVar = "FRONT_END_DIST"
 The runner command runs an experiment, using Selenium to run test probes in page formulas.
 */
 func main() {
-	_, success := run()
-	if success {
+	if run() {
 		logger.Println(aurora.Green("*PASSED*"))
 		os.Exit(0)
 	} else {
@@ -34,17 +33,16 @@ func main() {
 
 /*
 run does the work of running the experiment
-The returned string is either empty or a JSON string with test results
 The returned bool is true if all tests were run and passed
 */
-func run() (string, bool) {
+func run() bool {
 	/*
 		Read the path of the front end dist directory
 	*/
 	frontEndDistPath := os.Getenv(frontEndDistPathVar)
 	if frontEndDistPath == "" {
 		logger.Println("Environment variable", frontEndDistPathVar, "is required")
-		return "", false
+		return false
 	}
 
 	if len(os.Args) == 3 {
@@ -57,7 +55,7 @@ func run() (string, bool) {
 		host.RunHTTP(pageHostPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
 	} else if len(os.Args) != 5 {
 		printHelp()
-		return "", false
+		return false
 	}
 
 	/*
@@ -67,7 +65,7 @@ func run() (string, bool) {
 	browserstackAPIKey := os.Getenv(webdriver.BrowserstackAPIKeyVar)
 	if browserstackUser == "" || browserstackAPIKey == "" {
 		logger.Println("Environment variables", webdriver.BrowserstackUserVar, "and", webdriver.BrowserstackAPIKeyVar, "are required")
-		return "", false
+		return false
 	}
 
 	formulasPath := os.Args[1]
@@ -82,18 +80,19 @@ func run() (string, bool) {
 	if err != nil {
 		logger.Println("Error opening experiment JSON:", experimentPath, ":", err)
 		printHelp()
-		return "", false
+		return false
 	}
 	defer experimentFile.Close()
 	experiment, err := experiments.ParseExperiment(experimentFile)
 	if err != nil {
 		logger.Println("Error parsing experiment JSON:", experimentPath, ":", err)
 		printHelp()
-		return "", false
+		return false
 	}
 	ok, runnableErrorMessage := experiment.IsRunnable()
 	if ok == false {
-		return runnableErrorMessage, false
+		logger.Println("Experiment is not runnable:", runnableErrorMessage)
+		return false
 	}
 
 	/*
@@ -103,13 +102,13 @@ func run() (string, bool) {
 	err = ngrokController.Start(pageHostPort, "http")
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
-		return "", false
+		return false
 	}
 	defer ngrokController.Stop()
 	_, pageHostURL, err := ngrokController.WaitForNgrokTunnels("https")
 	if err != nil {
 		logger.Println("Error", err)
-		return "", false
+		return false
 	}
 
 	/*
@@ -136,20 +135,21 @@ func run() (string, bool) {
 	/*
 		Gather the baseline data without the target embed script
 	*/
-	baselineData, err := experiments.GatherExperimentBaseline(experiment, &experimentConfig)
+	baselineData, err := experiments.GatherExperimentBaseline(
+		experiment,
+		&experimentConfig,
+	)
 	if err != nil {
 		logger.Println("Error gathering baseline", err)
-		return "", false
+		return false
 	}
-	/*
-		if len(baselineData) == 0 {
-			logger.Println("Zero length baseline data!")
-			return "", false
-		}
-	*/
+	if len(baselineData) == 0 {
+		logger.Println("Zero length baseline data!")
+		return false
+	}
 
 	/*
-		Finally, run the experiment
+		Finally, run the experiment tests
 	*/
 	return experiments.RunExperimentTests(
 		experiment,

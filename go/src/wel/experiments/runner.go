@@ -86,7 +86,7 @@ func RunExperimentTests(
 	experiment *Experiment,
 	experimentConfig *ExperimentConfig,
 	baselineData []*BaselineData,
-) (string, bool) {
+) bool {
 	gatheredResults := []*ProbeResults{}
 	gatheredReturnValues := []string{}
 
@@ -168,25 +168,19 @@ func RunExperimentTests(
 		}
 		return nil
 	}
+
 	err := executeExperiment(experiment, experimentConfig, baselineData, testingFunc)
 	if err != nil {
 		logger.Println("Failed to run tests", err)
-		return "", false
+		return false
 	}
 
-	hasFailure := false
 	for _, probeResults := range gatheredResults {
 		if probeResults.Passed() == false {
-			hasFailure = true
+			return false
 		}
 	}
-	returnJSON, err := json.MarshalIndent(gatheredResults, "", "\t")
-	if err != nil {
-		logger.Println("Error serializing gathered results", err)
-		return "", hasFailure == false
-	}
-	return string(returnJSON), hasFailure == false
-
+	return true
 }
 
 func executeExperiment(
@@ -321,3 +315,22 @@ func openPage(experimentConfig *ExperimentConfig, browserConfiguration map[strin
 	}
 	return page, hasBrowserLog, nil
 }
+
+/*
+Copyright 2019 FullStory, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/

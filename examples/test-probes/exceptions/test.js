@@ -14,9 +14,28 @@ class ExceptionsProbe {
 	}
 
 	/**
+	@return {Object} data collected when the target embed script *is not* loaded
+	@return {Object.success} true if the data collection was successful
+	@return {Object.count} total number of throws exceptions
+	*/
+	async gatherBaselineData(){
+		console.log('Exceptions baseline')
+		if(typeof window._exceptionCount !== 'number'){
+			return {
+				success: false,
+				error: 'window._exceptionCount does not exist'
+			}
+		}
+		return {
+			success: true,
+			count: window._exceptionCount
+		}
+	}
+
+	/**
 	@param {object} results - the object on which to set result attributes
 	*/
-	async probe(basis){
+	async probe(basis, baseline){
 		const results = {
 			passed: true,
 			count: window._exceptionCount

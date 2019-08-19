@@ -10,9 +10,32 @@ Example basis:
 
 class SelectorCountProbe {
 	/**
+	The return object contains the number of matches to each selector in SelectorCountProbe.BaselineSelectors
+	{
+		success: true,
+		'h1': 1,
+		'h2': 10,
+		'div > img': 9,
+		...
+	}
+	@return {Object} data collected when the target embed script *is not* loaded
+	@return {Object.success} always true
+	*/
+	async gatherBaselineData(){
+		console.log('Selector count baseline')
+		const result = {
+			success: true,
+		}
+		for(let selector of SelectorCountProbe.BaselineSelectors) {
+			result[selector] = document.querySelectorAll(selector).length
+		}
+		return result
+	}
+
+	/**
 	@return {object} the results of the probe
 	*/
-	async probe(basis){
+	async probe(basis, baseline){
 		console.log("Probing selector count")
 		const results = {
 			passed: true,
@@ -46,6 +69,13 @@ class SelectorCountProbe {
 		return results
 	}
 }
+SelectorCountProbe.BaselineSelectors = [
+	'div > img', 
+	'h1', 'h2', 'h3', 'h4', 'h5',
+	'form', 'input', 'textarea',
+	'img', 'video', 'audio',
+	'section', 'header', 'footer'
+]
 
 window.__welProbes['selector-count'] = new SelectorCountProbe()
 

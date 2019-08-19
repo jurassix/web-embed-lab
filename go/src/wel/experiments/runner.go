@@ -55,10 +55,13 @@ func GatherExperimentBaseline(
 					}
 					`, testsJSON)
 		page.RunAsyncScript(script, &returnValue)
-		logger.Println("Baseline script returned:", returnValue)
 
-		// TODO append results to baselineData
-
+		pageBaseline := &BaselineData{}
+		err = json.Unmarshal([]byte(returnValue), pageBaseline)
+		if err != nil {
+			return err
+		}
+		baselineData = append(baselineData, pageBaseline)
 		return nil
 	}
 
@@ -88,7 +91,7 @@ func RunExperimentTests(
 	baselineData []*BaselineData,
 ) bool {
 	gatheredResults := []*ProbeResults{}
-	gatheredReturnValues := []string{}
+	baselineDataIndex := 0
 
 	// This is the logic run against every browser/page formula combination in the experiment
 	testingFunc := func(page *agouti.Page, hasBrowserLog bool, testProbes []string, probeBasis formulas.ProbeBasis) error {
@@ -104,10 +107,20 @@ func RunExperimentTests(
 			probeBasisJSON = []byte("{}")
 		}
 
+		baselineDataJSON, err := json.Marshal(baselineData[baselineDataIndex])
+		if err != nil {
+			return err
+		}
+		if baselineDataJSON == nil || string(baselineDataJSON) == "null" {
+			return errors.New("Invalid serialized baseline data")
+		}
+		baselineDataIndex = baselineDataIndex + 1
+
 		var returnValue string
 		script := fmt.Sprintf(`
 					try {
 						let results = await runWebEmbedLabProbes(
+							%s,
 							%s,
 							%s
 						);
@@ -119,7 +132,7 @@ func RunExperimentTests(
 						}
 						callback(JSON.stringify(results));
 					}
-					`, testsJSON, string(probeBasisJSON))
+					`, testsJSON, string(probeBasisJSON), string(baselineDataJSON))
 		page.RunAsyncScript(script, &returnValue)
 
 		probeResults := &ProbeResults{}
@@ -151,7 +164,6 @@ func RunExperimentTests(
 			}
 		}
 		gatheredResults = append(gatheredResults, probeResults)
-		gatheredReturnValues = append(gatheredReturnValues, returnValue)
 
 		if hasAFail {
 			if hasBrowserLog {

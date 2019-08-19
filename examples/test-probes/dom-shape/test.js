@@ -1,23 +1,34 @@
 /**
 DOM shape test probe
 */
-
 class DOMShapeProbe {
+	/**
+	@return {Object} data collected when the target embed script *is not* loaded
+	@return {Object.success} true if the data collection was successful
+	@return {Object.width} DOM width
+	@return {Object.depth} DOM depth
+	*/
+	async gatherBaselineData(){
+		console.log('Baseline DOM shape')
+		const [width, depth] = this._findWidthAndDepth()
+		return {
+			success: true,
+			width: width,
+			depth: depth
+		}
+	}
+
 	/**
 	@return {object} the results of the probe
 	*/
-	async probe(basis){
-		console.log('Probing DOM shape')
+	async probe(basis, baseline){
+		console.log('Probing DOM shape', baseline)
 		if(!basis) return { passed: true }
-		const shape = this._findShape(document.body)
-		let width = 0;
-		for(let i=0; i < shape.rows.length; i++){
-			width = Math.max(width, shape.rows[i].length)
-		}
 
+		const [width, depth] = this._findWidthAndDepth()
 		const results = {
 			passed: true,
-			depth: shape.rows.length,
+			depth: depth,
 			width: width
 		}
 		if(typeof basis.depth === 'number' && basis.depth !== results.depth){
@@ -48,6 +59,16 @@ class DOMShapeProbe {
 			}
 		}
 		return results
+	}
+
+	// returns [width, depth]
+	_findWidthAndDepth(){
+		const shape = this._findShape(document.body)
+		let width = 0;
+		for(let i=0; i < shape.rows.length; i++){
+			width = Math.max(width, shape.rows[i].length)
+		}
+		return [width, shape.rows.length]
 	}
 
 	_findShape(element, depth=0, results={ rows: [] }){

@@ -7,12 +7,29 @@ Example basis:
 		"#should-be-empty": ""
 	} 
 */
-
 class TextEqualsProbe {
+	/**
+	@return {Object} data collected when the target embed script *is not* loaded
+	@return {Object.success} always true
+	*/
+	async gatherBaselineData(){
+		console.log('Text equals baseline')
+		const result = {
+			success: true,
+		}
+		for(const selector of TextEqualsProbe.BaselineSelectors) {
+			const matchedElements = document.querySelectorAll(selector)
+			result[selector] = Array.from(matchedElements).map(el => {
+				return el.innerText || el.innerHTML
+			})
+		}
+		return result
+	}
+
 	/**
 	@return {object} the results of the probe
 	*/
-	async probe(basis){
+	async probe(basis, baseline){
 		console.log("Probing text equals")
 		if(!basis) return { passed: true }
 		const results = {
@@ -32,6 +49,10 @@ class TextEqualsProbe {
 		return results
 	}
 }
+TextEqualsProbe.BaselineSelectors = [
+	'h1', 'h2', 'h3', 'h4', 'h5',
+	'p', 'li', 'input', 'textarea'
+]
 
 window.__welProbes['text-equals'] = new TextEqualsProbe()
 

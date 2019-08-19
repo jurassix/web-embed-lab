@@ -16,11 +16,11 @@
 			"browserstack.console": "verbose"
 		},
 		{
-			"name": "Firefox 66",
+			"name": "Firefox 68",
 			"os": "Windows",
 			"osVersion": "10",
 			"browserName": "Firefox",
-			"browserVersion": "66",
+			"browserVersion": "68",
 			"resolution": "1024x768",
 			"browserstack.console": "verbose"
 		}
@@ -46,7 +46,7 @@
 				"selector-count",
 				"text-equals"
 			],
-			"browsers": ["Firefox 66"]
+			"browsers": ["Firefox 68"]
 		}
 	]
 }

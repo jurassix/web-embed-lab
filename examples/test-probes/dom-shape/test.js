@@ -23,7 +23,6 @@ class DOMShapeProbe {
 	*/
 	async probe(basis, baseline){
 		console.log('Probing DOM shape', baseline)
-		if(!basis) return { passed: true }
 
 		const [width, depth] = this._findWidthAndDepth()
 		const results = {
@@ -31,30 +30,27 @@ class DOMShapeProbe {
 			depth: depth,
 			width: width
 		}
-		if(typeof basis.depth === 'number' && basis.depth !== results.depth){
-			results.passed = false
-		} else if (Array.isArray(basis.depth)) {
-			if(basis.depth.length !== 2 || basis.depth[0] > basis.depth[1]){
-				console.error('Invalid depth range: ' + basis.depth)
-				results.passed = false
-				return results
+		if(!basis) return results
+
+		for(const prop of ["depth", "width"]){
+			if(typeof basis[prop] === 'undefined'){
+				continue
 			}
-			if(basis.depth[0] > results.depth || basis.depth[1] < results.depth){
-				console.error('Depth range failed for ' + results.depth + ': ' + basis.depth)
+			if(window.__welValueMatches(results[prop], basis[prop]) === false){
 				results.passed = false
 			}
 		}
 
-		if(typeof basis.width === 'number' && basis.width !== results.width){
-			results.passed = false
-		} else if(Array.isArray(basis.width)){
-			if(basis.width.length !== 2 || basis.width[0] > basis.width[1]){
-				console.error('Invalid width range: ' + basis.width)
-				results.passed = false
-				return results
+		if(typeof basis["relative"] !== 'object'){
+			return results
+		}
+
+		const relativeBasis = basis["relative"]
+		for(const prop of ["depth", "width"]){
+			if(typeof relativeBasis[prop] === 'undefined'){
+				continue
 			}
-			if(basis.width[0] > results.width || basis.width[1] < results.width){
-				console.error('Width range failed for ' + results.width + ': ' + basis.width)
+			if(window.__welValueMatches(results[prop], relativeBasis[prop], baseline[prop]) === false){
 				results.passed = false
 			}
 		}

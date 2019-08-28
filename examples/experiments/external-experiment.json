@@ -3,6 +3,7 @@
 		{ "name": "transmutable-light" },
 		{ "name": "transmutable-base" },
 		{ "name": "transmutable-light" },
+		{ "name": "potassium-es-light" },
 		{ "name": "science-saints" }
 	],
 	"browser-configurations": [
@@ -27,7 +28,12 @@
 	],
 	"test-runs" : [
 		{
-			"page-formulas": ["transmutable-light", "transmutable-base", "science-saints"],
+			"page-formulas": [
+				"potassium-es-light",
+				"transmutable-light",
+				"transmutable-base",
+				"science-saints"
+			],
 			"test-probes": [
 				"dom-shape",
 				"exceptions",

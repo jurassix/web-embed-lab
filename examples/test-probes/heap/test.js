@@ -58,7 +58,19 @@ class HeapProbe {
 			}
 
 			for(let key of Object.keys(basis)) {
+				if(key === 'relative') continue
 				const individualPass = this._testHeapMemoryKey(key, basis[key])
+				if(individualPass === false){
+					result.passed = false
+				}
+			}
+
+			if(typeof basis.relative === 'undefined'){
+				return result
+			} 
+
+			for(let key of Object.keys(basis.relative)){
+				const individualPass = this._testHeapMemoryKey(key, basis.relative[key], baseline[key])
 				if(individualPass === false){
 					result.passed = false
 				}
@@ -74,40 +86,15 @@ class HeapProbe {
 		}
 	}
 
-	_matchesRange(range, value){
-		if(Array.isArray(range) === false) {
-			console.error('Range is not an array: ' + range)
-			return false
-		}
-
-		if(range.length !== 2){
-			console.error('Range does not have two elements: ' + range)
-			return false
-		}
-
-		const result = value >= range[0] && value <= range[1]
-		if(result === false){
-			console.error('Range ("' + range + '") does not match: ' + value)
-		}
-		return result
-	}
-
-	_testHeapMemoryKey(key, basis){
+	_testHeapMemoryKey(key, basis, baseline=undefined){
 		const latestValue = this._latestHeapMemoryDataValue(key)
 		console.log('testing: ' + key + ' ' + latestValue + ' ' + basis)
+		if(baseline !== undefined) console.log('with baseline', baseline)
 		if(latestValue === null){
 			console.error('Heap memory test key does not exist', key)
 			return false
 		}
-
-		if(Array.isArray(basis)){
-			return this._matchesRange(basis, latestValue)
-		} if(typeof basis === 'number') {
-			return latestValue === basis
-		} 
-
-		console.error('Unsupported basis type', key, basis, typeof basis)
-		return false
+		return window.__welValueMatches(latestValue, basis, baseline)
 	}
 
 	_latestHeapMemoryData(){

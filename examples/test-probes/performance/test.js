@@ -36,6 +36,7 @@ class PerformanceProbe {
 	async probe(basis, baseline) {
 		console.log('Probing performance')
 		const result = {
+			passed: true,
 			description: ''
 		}
 
@@ -46,83 +47,94 @@ class PerformanceProbe {
 		}
 
 		if(!basis) {
-			result.passed = true
 			return result
 		}
 
-		if(!window._welPerformanceData || window._welPerformanceData.length === 0){
+		if(result.performanceData === null){
 			console.error('No performance data')
 			result.passed = false
 			return result
 		}
 
-		let passed = true
 		for(let key of Object.keys(basis)) {
+			if(key === 'relative') continue
 			const individualPass = this._testPerformanceKey(key, basis[key])
 			if(individualPass.passed === false){
-				passed = false
+				result.passed = false
 				if(individualPass.description){
 					result.description += individualPass.description + ' '
 				}
 			}
 		}
 
-		result.passed = passed
+		if(typeof basis.relative === 'undefined'){
+			return result
+		}
+
+		for(let key of Object.keys(basis.relative)){
+			const individualPass = this._testPerformanceKey(key, basis.relative[key], baseline[key])
+			if(individualPass.passed === false){
+				result.passed = false
+				if(individualPass.description){
+					result.description += individualPass.description + ' '
+				}
+			}
+		}
 
 		return result
 	}
 
-	_testPerformanceKey(key, basis={}){
-		const value =this._latestPerformanceValue(key)
-		if(value === null) {
+	_testPerformanceKey(key, basis=undefined, baseline=undefined){
+		if(typeof basis === 'undefined'){
+			return {
+				passed: false,
+				description: key + ' has no basis'
+			}
+		}
+		if(typeof basis.value === 'undefined'){
+			return {
+				passed: false,
+				description: key + ' has no basis.value'
+			}
+		}
+		let probeValue = this._latestPerformanceValue(key)
+		if(probeValue === null) {
 			console.error('Invalid performance key: ' + key)
-			return { passed: false, description: 'Invalid performance key: ' + key }
+			return {
+				passed: false,
+				description: 'Invalid performance key: ' + key
+			}
 		}
 
 		let subtractionValue = 0
 		if(typeof basis.subtract === 'string'){
-			subtractionValue =this._latestPerformanceValue(basis.subtract)
+			subtractionValue = this._latestPerformanceValue(basis.subtract)
 			if(subtractionValue === null){
 				console.error('Invalid subtract basis: ' + key + ' ' + basis.subtract)
-				return { passed: 'Invalid subtract basis: ' + key + ' ' + basis.subtract }
-			}
-		}
-
-		if(typeof basis.range !== 'undefined'){
-			if(this._matchesRange(basis.range, value - subtractionValue)){
-				return { passed: true }
-			} else {
 				return {
 					passed: false,
-					description: '' + (value - subtractionValue) + ' is not in range ' + basis.range
+					description: 'Invalid subtract basis: ' + key + ' ' + basis.subtract
 				}
 			}
-
+			probeValue = probeValue - subtractionValue
 		}
 
-		return { passed: true }
-	}
-
-	_matchesRange(range, value){
-		if(Array.isArray(range) === false) {
-			console.error('Range is not an array: ' + range)
-			return false
+		if(window.__welValueMatches(probeValue, basis.value, baseline)){
+			return { passed: true }
 		}
 
-		if(range.length !== 2){
-			console.error('Range does not have two elements: ' + range)
-			return false
+		let description = key + ' did not match ' + basis.value
+		if(baseline){
+			description += ' with baseline ' + baseline
 		}
-
-		const result = value >= range[0] && value <= range[1]
-		if(result === false){
-			console.error('Range ("' + range + '") does not match: ' + value)
+		return {
+			passed: false,
+			description: description
 		}
-		return result
 	}
 
 	_latestPerformanceValue(key){
-		const data =this._latestPerformanceData()
+		const data = this._latestPerformanceData()
 		if (data === null) return null
 		for(let metric of data.metrics){
 			if(metric.name === key) return metric.value

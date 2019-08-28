@@ -4,8 +4,13 @@ It fails if there is at least one match and the first match's text values isn't 
 Example basis:
 	{
 		"body > h1": "Vanilla",
-		"#should-be-empty": ""
+		"#should-be-empty": "",
+		"relative": [
+			"h1", "li"
+		]
 	} 
+
+	NOTE: selectors in relative array must also be in TextEqualsProbe.BaselineSelectors
 */
 class TextEqualsProbe {
 	/**
@@ -38,15 +43,50 @@ class TextEqualsProbe {
 		}
 		for(let selector of Object.keys(basis)){
 			if(basis.hasOwnProperty(selector) === false) continue
-			const matchedElement = document.querySelector(selector)
-			if(matchedElement === null
-				|| (matchedElement.innerText != basis[selector] && matchedElement.innerHTML != basis[selector])){
+			if(selector === 'relative') continue
+
+			results[selector] = this._getText(selector)
+			if(results[selector] !== basis[selector]){
 				results.passed = false
 				results.failed.push(selector)
 			}
-			results[selector] = matchedElement === null ? "" : (matchedElement.innerText || matchedElement.innerHTML)
 		}
+
+		if(typeof basis.relative === 'undefined'){
+			return results
+		}
+
+		// basis.relative is an array (not an object like other probes) of selectors
+		for(let selector of basis.relative) {
+			if(Array.isArray(baseline[selector]) === false){
+				console.error('Unknown baseline value for relative selector: ' + selector)
+				results.passed = false
+				results.failed.push('relative: ' + selector)
+				continue
+			}
+			let baselineValue = baseline[selector].length > 0 ? baseline[selector][0] : null
+
+			const probeResult = this._getText(selector)
+			results['relative: ' + selector] = probeResult
+
+			if(probeResult !== baselineValue){
+				console.error('Mismatched probe result (' + probeResult + ') and baseline value: ' + baselineValue + ' for selector ' + selector)
+				results.passed = false
+				results.failed.push('relative: ' + selector)
+				continue
+			}
+		}
+
 		return results
+	}
+
+	/**
+	@return (innerText || innerHTML) or null if no selector match
+	*/
+	_getText(selector){
+		const matchedElement = document.querySelector(selector)
+		if(matchedElement === null || typeof matchedElement === 'undefined') return null
+		return matchedElement.innerText || matchedElement.innerHTML
 	}
 }
 TextEqualsProbe.BaselineSelectors = [

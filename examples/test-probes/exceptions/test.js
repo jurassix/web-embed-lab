@@ -44,21 +44,21 @@ class ExceptionsProbe {
 			return results
 		}
 
-		if(typeof basis.count === 'number'){
-			results.passed = basis.count === window._exceptionCount
-			return results
-		} else if(Array.isArray(basis.count)){
-			if(basis.count.length !== 2 || basis.count[0] > basis.count[1]){
-				console.error('Invalid range for exceptions: ' + basis)
+		if(typeof basis.count !== 'undefined'){
+			if(window.__welValueMatches(results.count, basis.count) === false){
 				results.passed = false
-				results.error = 'Invalid range'
-				return results
 			}
-			results.passed = basis.count[0] <= window._exceptionCount && window._exceptionCount <= basis.count[1]
-			if(!results.passed){
-				console.error('Failed exception range: ' + window._exceptionCount + ' is not in ' + basis.count)
-			}
+		}
+
+		if(typeof basis.relative !== 'object'){
 			return results
+		}
+		if(typeof basis.relative.count === 'undefined'){
+			return results
+		}
+
+		if(window.__welValueMatches(results.count, basis.relative.count, baseline.count) === false){
+			results.passed = false
 		}
 
 		return results

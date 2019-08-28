@@ -107,14 +107,15 @@ func RunExperimentTests(
 			probeBasisJSON = []byte("{}")
 		}
 
-		baselineDataJSON, err := json.Marshal(baselineData[baselineDataIndex])
+		testBaselineData := baselineData[baselineDataIndex]
+		baselineDataIndex = baselineDataIndex + 1
+		baselineDataJSON, err := json.Marshal(testBaselineData)
 		if err != nil {
 			return err
 		}
 		if baselineDataJSON == nil || string(baselineDataJSON) == "null" {
 			return errors.New("Invalid serialized baseline data")
 		}
-		baselineDataIndex = baselineDataIndex + 1
 
 		var returnValue string
 		script := fmt.Sprintf(`
@@ -153,6 +154,14 @@ func RunExperimentTests(
 						logger.Println(aurora.Red("Expected:"), basis)
 					} else {
 						logger.Println(aurora.Red("Expected:"), string(marshalledBasis))
+					}
+				}
+				if probeBaseline, ok := (*testBaselineData)[testName]; ok == true {
+					marshalledProbeBaseline, err := json.MarshalIndent(probeBaseline, "", "\t")
+					if err != nil {
+						logger.Println(aurora.Red("Baseline:"), probeBaseline)
+					} else {
+						logger.Println(aurora.Red("Baseline:"), string(marshalledProbeBaseline))
 					}
 				}
 				marshalledResult, err := json.MarshalIndent(result, "", "\t")

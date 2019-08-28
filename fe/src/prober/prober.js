@@ -149,10 +149,89 @@ function rewriteAbsoluteURL(url) {
 	}
 }
 
+/**
+Returns a promise that resolves after a set time
+@param {number} milliseconds - the time to wait before resolving
+*/
 window.__welWaitFor = function(milliseconds) {
 	return new Promise((resolve, reject) => {
 		setTimeout(resolve, milliseconds)
 	})
+}
+
+/**
+Test a probed value against a basis value, possibly relative to a baseline value
+
+@param {number | string} probeValue - the probed value
+@param {number | string | object | array} basisValue - the test probe basis
+@param {number | string } baselineValue - the optional baseline for the basis value
+@returns {bool} true if probeValue is within basis description (exact match, within range, possibly relative to baseline values)
+*/
+window.__welValueMatches = function(probeValue, basisValue = undefined, baselineValue = undefined) {
+	if (typeof probeValue === 'number') {
+		return window.__welNumericValueMatches(probeValue, basisValue, baselineValue)
+	}
+	if (typeof probeValue === 'string') {
+		return window.__welStringValueMatches(probeValue, basisValue, baselineValue)
+	}
+	console.error('Unknown probe value type:', typeof probeValue, probeValue, basisValue, baselineValue)
+	return false
+}
+
+window.__welStringValueMatches = function(probeValue, basisValue = undefined, baselineValue = undefined) {
+	if (typeof probeValue !== 'string') {
+		console.error('Attempted string match for non-string probe value:', probeValue, basisValue, baselineValue)
+		return false
+	}
+	// Test against basisValue is null and baselineValue is a string
+	if (typeof baselineValue === 'string') {
+		if (basisValue === null) {
+			return probeValue === baselineValue
+		}
+	} else if (typeof baselineValue !== 'undefined') {
+		console.error('Attempted string match for non-string baseline value:', probeValue, basisValue, baselineValue)
+		return false
+	}
+
+	return probeValue === basisValue
+}
+
+window.__welNumericValueMatches = function(probeValue, basisValue = undefined, baselineValue = undefined) {
+	if (typeof probeValue !== 'number') {
+		console.log('Attempted numeric match for non-numberic probe value:', probeValue, basisValue, baselineValue)
+		return false
+	}
+	// Subtract baseline if necessary
+	if (typeof baselineValue === 'number') {
+		probeValue = probeValue - baselineValue
+	} else if (typeof baselineValue !== 'undefined') {
+		console.error('Error testing non-numeric baseline value', probeValue, basisValue, baselineValue)
+		return false
+	}
+
+	if (typeof basisValue === 'number') {
+		return probeValue === basisValue
+	} else if (Array.isArray(basisValue)) {
+		return window.__welRangeValueMatches(probeValue, basisValue)
+	}
+	console.error('Error: testing against unsupported basis type', probeValue, basisValue, baselineValue)
+	return false
+}
+
+window.__welRangeValueMatches = function(probeValue, range) {
+	if (Array.isArray(range) === false) {
+		console.error('Range is not an array: ' + range)
+		return false
+	}
+	if (range.length !== 2) {
+		console.error('Range does not have two elements: ' + range)
+		return false
+	}
+	const result = probeValue >= range[0] && probeValue <= range[1]
+	if (result === false) {
+		console.error('Range [' + range + '] does not match: ' + probeValue)
+	}
+	return result
 }
 
 patchXMLHttpRequest()

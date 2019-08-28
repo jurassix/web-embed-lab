@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var logger = log.New(os.Stdout, "[proxy] ", 0)
+var logger = log.New(os.Stdout, "[experiments] ", 0)
 
 /*
 TestProbe holds the name (and eventually configuration data) for a JS test that can be run in a hosted page formula

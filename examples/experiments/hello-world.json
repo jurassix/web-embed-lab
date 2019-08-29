@@ -7,12 +7,6 @@
 			"name": "hello-world"
 		}
 	],
-	"test-probes": [
-		{
-			"name": "dom-shape",
-			"basis": {}
-		}
-	],
 	"browser-configurations": [
 		{
 			"name": "Chrome 75",

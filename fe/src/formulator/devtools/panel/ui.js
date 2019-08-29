@@ -10,23 +10,28 @@ class Component extends EventHandler {
 	@param {Object} [options]
 	@param {HTMLElement} [options.el]
 	*/
-	constructor(options={}){
+	constructor(options = {}) {
 		super()
-		this.options = Object.assign({
-			el: document.createElement('div')
-		}, options)
+		this.options = Object.assign(
+			{
+				el: document.createElement('div')
+			},
+			options
+		)
 		this.el.addClass = addClass
 		this.el.removeClass = removeClass
 
 		this.el.addClass('component')
 	}
 
-	get el(){ return this.options.el }
+	get el() {
+		return this.options.el
+	}
 
-	appendTo(parent=null){
-		if(parent instanceof HTMLElement){
+	appendTo(parent = null) {
+		if (parent instanceof HTMLElement) {
 			parent.appendChild(this.el)
-		} else if(parent instanceof Component){
+		} else if (parent instanceof Component) {
 			parent.el.appendChild(this.el)
 		} else {
 			console.error('Unknown parent type', typeof parent, parent)
@@ -39,16 +44,21 @@ class ButtonComponent extends Component {
 	/**
 	@param {string} [options.text='']
 	*/
-	constructor(options={}){
-		super(Object.assign({
-			text: '',
-			el: document.createElement('button')
-		}, options))
+	constructor(options = {}) {
+		super(
+			Object.assign(
+				{
+					text: '',
+					el: document.createElement('button')
+				},
+				options
+			)
+		)
 		this.el.addClass('button-component')
 		this.el.setAttribute('type', 'button')
 		this.el.innerText = this.options.text
 
-		this.el.addEventListener('click', ev=> {
+		this.el.addEventListener('click', ev => {
 			this.trigger(ButtonComponent.ClickedEvent, ev, this)
 		})
 	}
@@ -56,12 +66,17 @@ class ButtonComponent extends Component {
 ButtonComponent.ClickedEvent = 'button-clicked'
 
 class KeyValueComponent extends Component {
-	constructor(options={}){
-		super(Object.assign({
-			el: document.createElement('span'),
-			key: '',
-			value: ''
-		}, options))
+	constructor(options = {}) {
+		super(
+			Object.assign(
+				{
+					el: document.createElement('span'),
+					key: '',
+					value: ''
+				},
+				options
+			)
+		)
 		this.el.addClass('key-value-component')
 
 		this._keyEl = document.createElement('span')
@@ -75,13 +90,15 @@ class KeyValueComponent extends Component {
 		this._updateFromOptions()
 	}
 
-	get value(){ return this.options.value }
-	set value(val){
+	get value() {
+		return this.options.value
+	}
+	set value(val) {
 		this.options.value = val || ''
 		this._updateFromOptions()
 	}
 
-	_updateFromOptions(){
+	_updateFromOptions() {
 		this._keyEl.innerText = `${this.options.key}:`
 		this._valueEl.innerText = `${this.options.value}`
 	}

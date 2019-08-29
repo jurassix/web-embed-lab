@@ -3,11 +3,11 @@ This is the script injected by the prober-extension into a hosted formula page
 */
 
 function handleRuntimeMessage(data, sender, sendResponse) {
-	if(!data.action) {
+	if (!data.action) {
 		console.error('Unknown runtime message', data, sender)
 		return
 	}
-	switch(data.action){
+	switch (data.action) {
 		case 'update-performance':
 		case 'update-heap-memory':
 			window.postMessage(data, '*') // This will be caught by prober.js
@@ -20,11 +20,11 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 	}
 }
 
-function handleWindowMessage(event){
-	if(!event.data || !event.data.action) {
+function handleWindowMessage(event) {
+	if (!event.data || !event.data.action) {
 		return
 	}
-	switch(event.data.action){
+	switch (event.data.action) {
 		case 'relay-to-background':
 			event.data.action = 'window-to-background'
 			chrome.runtime.sendMessage(event.data)
@@ -34,18 +34,18 @@ function handleWindowMessage(event){
 	}
 }
 
-function initContentScript(){
-	if(!chrome){
+function initContentScript() {
+	if (!chrome) {
 		console.error('The prober extension currently only works in Chrome. :-( ')
 		return
 	}
 	chrome.runtime.onMessage.addListener(handleRuntimeMessage)
 	window.addEventListener('message', handleWindowMessage)
-	console.log("Prober extension content script loaded")
+	console.log('Prober extension content script loaded')
 }
 
 // Init this script at most once in a given window
-if(!window._welContentScriptLoaded){
+if (!window._welContentScriptLoaded) {
 	initContentScript()
 	window._welContentScriptLoaded = true
 }

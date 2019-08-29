@@ -18,20 +18,20 @@ const SendWindowMessage = 'wf-send-window-message'
 Communicator handles messages between the devpanel and the background script
 */
 class Communicator extends EventHandler {
-	constructor(){
+	constructor() {
 		super()
 		// Listen for messages from the background script
 		browser.runtime.onMessage.addListener(this._handleRuntimeMessage.bind(this))
 	}
 
-	sendInit(){
+	sendInit() {
 		browser.runtime.sendMessage({
 			action: InitAction,
 			tabId: browser.devtools.inspectedWindow.tabId
 		})
 	}
 
-	sendColluderMessage(message){
+	sendColluderMessage(message) {
 		browser.runtime.sendMessage({
 			action: SendColluderMessage,
 			message: message,
@@ -39,7 +39,7 @@ class Communicator extends EventHandler {
 		})
 	}
 
-	sendWindowMessage(message){
+	sendWindowMessage(message) {
 		browser.runtime.sendMessage({
 			action: SendWindowMessage,
 			message: message,
@@ -48,21 +48,21 @@ class Communicator extends EventHandler {
 	}
 
 	_handleRuntimeMessage(request, sender, sendResponse) {
-		if(request.action == undefined){
+		if (request.action == undefined) {
 			console.error('Communicator received unknown request format', request)
 			return
 		}
-		switch(request.action){
+		switch (request.action) {
 			case ReceivedColluderMessageAction:
 				this._handleColluderMessage(request.message)
 				break
 			default:
-				console.error('Communicator received unknown action:',  request.action, request)
+				console.error('Communicator received unknown action:', request.action, request)
 		}
 	}
 
-	_handleColluderMessage(message){
-		if(message['type'] === undefined){
+	_handleColluderMessage(message) {
+		if (message['type'] === undefined) {
 			console.error('Communicator received uknown colluder message format:', message)
 			return
 		}
@@ -71,5 +71,5 @@ class Communicator extends EventHandler {
 }
 
 Communicator.ReceivedColluderMessageEvent = 'communicator-received-colluder-message'
-	
+
 export default Communicator

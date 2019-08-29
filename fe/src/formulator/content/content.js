@@ -17,7 +17,7 @@ if (window.ContentConstants === undefined) {
 	}
 
 	function handleRuntimeMessage(data, sender, sendResponse) {
-		if(data.action == undefined){
+		if (data.action == undefined) {
 			console.error('Content received unknown runtime message format:', data)
 			return
 		}
@@ -34,7 +34,7 @@ if (window.ContentConstants === undefined) {
 	}
 
 	function injectScript(url) {
-		if(document.querySelector('script[src="url"]') !== null){
+		if (document.querySelector('script[src="url"]') !== null) {
 			// Already loaded
 			return
 		}
@@ -65,7 +65,7 @@ if (window.ContentConstants === undefined) {
 		@param {string} serviceURL - A full WS url like wss://127.0.0.1:9082
 		@param {function(Event)} [messageHandler] - called with incoming messages
 		*/
-		constructor(serviceURL, messageHandler=null){
+		constructor(serviceURL, messageHandler = null) {
 			this._serviceURL = serviceURL
 			this._messageHandler = messageHandler
 			this._socket = null
@@ -80,8 +80,8 @@ if (window.ContentConstants === undefined) {
 		/**
 		Causes the client to attempt to connect and stay connected across disconnects
 		*/
-		run(){
-			if(this.running) return
+		run() {
+			if (this.running) return
 			this.running = true
 			this._startInterval()
 		}
@@ -89,13 +89,13 @@ if (window.ContentConstants === undefined) {
 		/**
 		Causes the client to close the connection and stay closed until run() is called
 		*/
-		stop(){
-			if(this.running === false) return
+		stop() {
+			if (this.running === false) return
 			this.running = false
 			this._stopInterval()
 
-			if(this._socket === null) return
-			if(this._socket.readyState !== ColluderClient.CLOSING && this._socket.readyState !== ColluderClient.CLOSED){
+			if (this._socket === null) return
+			if (this._socket.readyState !== ColluderClient.CLOSING && this._socket.readyState !== ColluderClient.CLOSED) {
 				this._socket.close()
 			}
 			this._socket = null
@@ -104,8 +104,8 @@ if (window.ContentConstants === undefined) {
 		/**
 		Attempts to send a message to the colluder service
 		*/
-		sendData(data){
-			if(this._socket === null || this._socket.readyState !== ColluderClient.OPEN) {
+		sendData(data) {
+			if (this._socket === null || this._socket.readyState !== ColluderClient.OPEN) {
 				console.error('Can not send message', this._socket)
 				return false
 			}
@@ -113,32 +113,32 @@ if (window.ContentConstants === undefined) {
 			return true
 		}
 
-		_startInterval(){
-			if(this._reconnectIntervalID !== null) return
+		_startInterval() {
+			if (this._reconnectIntervalID !== null) return
 			this._reconnectIntervalID = setInterval(this._open.bind(this), 1000)
 		}
 
-		_stopInterval(){
-			if(this._reconnectIntervalID === null) return
+		_stopInterval() {
+			if (this._reconnectIntervalID === null) return
 			clearInterval(this._reconnectIntervalID)
 			this._reconnectIntervalID = null
 		}
 
-		async _open(){
-			if(this.running === false) return
-			if(this._socket !== null) return
+		async _open() {
+			if (this.running === false) return
+			if (this._socket !== null) return
 
 			this._socket = new WebSocket(this._serviceURL)
 
 			this._socket.onopen = () => {
-				if(this.running === false){
+				if (this.running === false) {
 					// Client was stopped during a connection attempt, abort
 					this._socket.close()
 					this._socket = null
 					return
 				}
 
-				if(this._socket.readyState !== ColluderClient.OPEN){
+				if (this._socket.readyState !== ColluderClient.OPEN) {
 					// Unsuccessful connection
 					this._socket = null
 					return
@@ -146,32 +146,32 @@ if (window.ContentConstants === undefined) {
 				this._stopInterval()
 
 				this._sendMessageToHandler({
-					'data': `{"type":"${ContentConstants.WebSocketOpened}"}`
+					data: `{"type":"${ContentConstants.WebSocketOpened}"}`
 				})
 			}
 
 			this._socket.onerror = (...params) => {
 				this._socket = null
-				if(this.running){
+				if (this.running) {
 					this._startInterval()
 				}
 			}
 
 			this._socket.onclose = (...params) => {
 				this._socket = null
-				if(this.running){
+				if (this.running) {
 					this._startInterval()
 				}
 				this._sendMessageToHandler({
-					'data': `{"type":"${ContentConstants.WebSocketClosed}"}`
+					data: `{"type":"${ContentConstants.WebSocketClosed}"}`
 				})
 			}
 
 			this._socket.onmessage = this._sendMessageToHandler.bind(this)
 		}
 
-		_sendMessageToHandler(message){
-			if(this._messageHandler === null) return
+		_sendMessageToHandler(message) {
+			if (this._messageHandler === null) return
 			this._messageHandler(message)
 		}
 	}
@@ -191,7 +191,7 @@ if (window.ContentConstants === undefined) {
 	injectScript('https://localhost:' + ColluderClient.ColluderWebPort + '/target-page-colluder.js')
 
 	//  The ColluderClient WebSocket listener relays messages back to the formulator background script
-	const colluderClient = new ColluderClient('wss://localhost:' + ColluderClient.ColluderWebSocketPort + '/ws', message =>  {
+	const colluderClient = new ColluderClient('wss://localhost:' + ColluderClient.ColluderWebSocketPort + '/ws', message => {
 		browser.runtime.sendMessage({
 			action: ContentConstants.ReceivedColluderMessage,
 			message: JSON.parse(message.data)

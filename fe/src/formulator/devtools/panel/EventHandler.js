@@ -1,4 +1,3 @@
-
 /**
 EventListener holds information about listeners on an object with the EventHandler
 */

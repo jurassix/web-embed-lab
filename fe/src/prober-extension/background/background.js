@@ -4,12 +4,12 @@ const EmbedScriptPath = '/__wel_embed.js'
 
 // The handler for messages from the content.js script
 function handleRuntimeMessage(data, sender, sendResponse) {
-	if (!data.action){
+	if (!data.action) {
 		console.log('Unknown runtime message', data, sender)
 		return
 	}
-	switch(data.action){
-		case 'window-to-background': 
+	switch (data.action) {
+		case 'window-to-background':
 			if (data.subAction === 'snapshot-heap') {
 				sendHeapSnapshotInfo('window-request')
 			} else {
@@ -146,28 +146,30 @@ async function sendHeapSnapshotInfo(subAction) {
 
 		console.log('sampling')
 
-		sendDebuggerCommand('HeapProfiler.getSamplingProfile').then(samplingProfile => {
-			console.log('sampled', samplingProfile)
-			chrome.tabs.sendMessage(attachedTabId, {
-				action: 'heap-memory-status',
-				subAction: 'sampled'
-			})
+		sendDebuggerCommand('HeapProfiler.getSamplingProfile')
+			.then(samplingProfile => {
+				console.log('sampled', samplingProfile)
+				chrome.tabs.sendMessage(attachedTabId, {
+					action: 'heap-memory-status',
+					subAction: 'sampled'
+				})
 
-			const embedScriptMemory = calculateEmbedScriptMemory(samplingProfile.profile.head)
-			const sampleTotalMemory = sumHeapSamplesSizes(samplingProfile.profile.samples)
-			chrome.tabs.sendMessage(attachedTabId, {
-				action: 'update-heap-memory',
-				subAction: subAction,
-				embedScriptMemory: embedScriptMemory,
-				sampleTotalMemory: sampleTotalMemory
+				const embedScriptMemory = calculateEmbedScriptMemory(samplingProfile.profile.head)
+				const sampleTotalMemory = sumHeapSamplesSizes(samplingProfile.profile.samples)
+				chrome.tabs.sendMessage(attachedTabId, {
+					action: 'update-heap-memory',
+					subAction: subAction,
+					embedScriptMemory: embedScriptMemory,
+					sampleTotalMemory: sampleTotalMemory
+				})
 			})
-		}).catch(e => {
-			console.error('Error snapshotting 1', e)
-			chrome.tabs.sendMessage(attachedTabId, {
-				action: 'heap-snapshot-error',
-				error: '' + e
+			.catch(e => {
+				console.error('Error snapshotting 1', e)
+				chrome.tabs.sendMessage(attachedTabId, {
+					action: 'heap-snapshot-error',
+					error: '' + e
+				})
 			})
-		})
 	} catch (e) {
 		console.error('Error snapshotting 2', e)
 		chrome.tabs.sendMessage(attachedTabId, {
@@ -190,7 +192,7 @@ function calculateEmbedScriptMemory(frame) {
 }
 
 function logCallFrames(frame, depth = 0) {
-	let prefix = ''
+	const prefix = ''
 	for (let i = 0; i < depth; i++) {
 		prefix + '\t'
 	}

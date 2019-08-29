@@ -18,7 +18,7 @@ const ColluderMessageTypes = {
 The UI component for the entire WebExtension devpanel
 */
 class DevpanelComponent extends ui.Component {
-	constructor(options={}){
+	constructor(options = {}) {
 		super(options)
 		this.el.addClass('devpanel-component')
 
@@ -41,30 +41,30 @@ class DevpanelComponent extends ui.Component {
 
 		this._communicator.sendInit()
 		this._communicator.sendColluderMessage({
-			'type': ColluderMessageTypes.QuerySessionState
+			type: ColluderMessageTypes.QuerySessionState
 		})
 	}
 
-	_handleColluderMessage(message){
-		switch(message['type']){
+	_handleColluderMessage(message) {
+		switch (message['type']) {
 			case ColluderMessageTypes.Connected:
 				break
 			case ColluderMessageTypes.WebSocketOpened:
 				this._communicator.sendColluderMessage({
-					'type': ColluderMessageTypes.QuerySessionState
+					type: ColluderMessageTypes.QuerySessionState
 				})
 				break
 			case ColluderMessageTypes.UnknownMessageType:
 				console.error('DevpanelComponent received notice that colluder does not recognize a message', message)
 				break
 			//default:
-				//console.log('DevpanelComponent received colluder message type', message)
+			//console.log('DevpanelComponent received colluder message type', message)
 		}
 	}
 }
 
 class ControlComponent extends ui.Component {
-	constructor(options={}){
+	constructor(options = {}) {
 		super(options)
 		this.el.addClass('section control-component')
 
@@ -76,20 +76,23 @@ class ControlComponent extends ui.Component {
 			text: 'Toggle Capture'
 		}).appendTo(this)
 		this._toggleSessionButtonComponent.addListener(ui.ButtonComponent.ClickedEvent, (eventName, event, component) => {
-			browser.devtools.inspectedWindow.eval('document.location.hostname;').then(results => {
-				this.options.communicator.sendColluderMessage({
-					type: ColluderMessageTypes.ToggleSession,
-					hostname: results[0]
+			browser.devtools.inspectedWindow
+				.eval('document.location.hostname;')
+				.then(results => {
+					this.options.communicator.sendColluderMessage({
+						type: ColluderMessageTypes.ToggleSession,
+						hostname: results[0]
+					})
 				})
-			}).catch(err => {
-				console.error('Error getting hostname', err)
-			})
+				.catch(err => {
+					console.error('Error getting hostname', err)
+				})
 		})
 	}
 }
 
 class StateComponent extends ui.Component {
-	constructor(options={}){
+	constructor(options = {}) {
 		super(options)
 		this.el.addClass('section state-component')
 		this.options.communicator.addListener(Communicator.ReceivedColluderMessageEvent, this._handleColluderMessage.bind(this))
@@ -107,8 +110,8 @@ class StateComponent extends ui.Component {
 		}).appendTo(this)
 	}
 
-	_handleColluderMessage(eventName,  message){
-		switch(message['type']){
+	_handleColluderMessage(eventName, message) {
+		switch (message['type']) {
 			case ColluderMessageTypes.WebSocketOpened:
 				this._connectedComponent.value = 'open'
 				break
@@ -124,7 +127,7 @@ class StateComponent extends ui.Component {
 }
 
 class ConnectionsComponent extends ui.Component {
-	constructor(options={}){
+	constructor(options = {}) {
 		super(options)
 		this.el.addClass('section connections-component')
 		this._connectionComponents = new Map() // host -> ConnectionComponent
@@ -152,15 +155,15 @@ class ConnectionsComponent extends ui.Component {
 		this.options.communicator.addListener(Communicator.ReceivedColluderMessageEvent, this._handleColluderMessage.bind(this))
 	}
 
-	clear(){
+	clear() {
 		this._connectionsEl.innerHTML = ''
 		this._connectionsEl.appendChild(this._tableHeadingsRow)
 		this._connectionComponents.clear()
 	}
 
-	_getOrCreateConnectionComponent(host){
+	_getOrCreateConnectionComponent(host) {
 		let connectionComponent = this._connectionComponents.get(host)
-		if(!connectionComponent){
+		if (!connectionComponent) {
 			connectionComponent = new ConnectionComponent({
 				host: host,
 				count: 0,
@@ -172,39 +175,44 @@ class ConnectionsComponent extends ui.Component {
 		return connectionComponent
 	}
 
-	_handleColluderMessage(eventName,  message){
-		switch(message['type']){
+	_handleColluderMessage(eventName, message) {
+		switch (message['type']) {
 			case ColluderMessageTypes.WebSocketClosed:
 				this.clear()
 				break
 			case ColluderMessageTypes.SessionState:
 				this.clear()
-				for(let hostCount of message.HostCounts){
-					var connectionComponent = this._getOrCreateConnectionComponent(hostCount.Host)
+				for (const hostCount of message.HostCounts) {
+					const connectionComponent = this._getOrCreateConnectionComponent(hostCount.Host)
 					connectionComponent.count = hostCount.Count
 					connectionComponent.requests = hostCount.Requests
 				}
 				break
 			case ColluderMessageTypes.ProxyConnectionState:
-				var connectionComponent = this._getOrCreateConnectionComponent(message.Host)
-				if(message.Open){
-					connectionComponent.count = connectionComponent.count + 1 
+				const connectionComponent = this._getOrCreateConnectionComponent(message.Host)
+				if (message.Open) {
+					connectionComponent.count = connectionComponent.count + 1
 				} else {
 					connectionComponent.count = connectionComponent.count - 1
 				}
 				break
 			case ColluderMessageTypes.ProxyConnectionRequest:
-				var requestedConnectionComponent = this._getOrCreateConnectionComponent(message.Host)
+				const requestedConnectionComponent = this._getOrCreateConnectionComponent(message.Host)
 				requestedConnectionComponent.requests = requestedConnectionComponent.requests + 1
 		}
 	}
 }
 
 class ConnectionComponent extends ui.Component {
-	constructor(options={}){
-		super(Object.assign({
-			el: document.createElement('tr')
-		}, options))
+	constructor(options = {}) {
+		super(
+			Object.assign(
+				{
+					el: document.createElement('tr')
+				},
+				options
+			)
+		)
 		this.el.addClass('connection-component')
 
 		this._count = 0
@@ -226,13 +234,17 @@ class ConnectionComponent extends ui.Component {
 		this.el.appendChild(this._requestsEl)
 	}
 
-	get count(){ return this._count }
+	get count() {
+		return this._count
+	}
 	set count(val) {
 		this._count = Math.max(0, val)
 		this._countEl.innerText = `${this._count}`
 	}
 
-	get requests(){ return this._requests }
+	get requests() {
+		return this._requests
+	}
 	set requests(val) {
 		this._requests = Math.max(0, val)
 		this._requestsEl.innerText = `${this._requests}`

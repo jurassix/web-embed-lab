@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var logger = log.New(os.Stdout, "[proxy] ", 0)
@@ -34,6 +35,7 @@ func NewProxyServer() *ProxyServer {
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		Proxy:           http.ProxyFromEnvironment,
+		IdleConnTimeout: 2 * time.Second,
 	}
 
 	return &ProxyServer{transport}

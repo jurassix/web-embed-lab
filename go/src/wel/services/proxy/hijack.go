@@ -235,8 +235,10 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 			}
 		}
 
-		if outputFile != nil && session.CurrentCaptureSession != nil {
+		if outputFile != nil {
 			outputFile.Close()
+		}
+		if outputFile != nil && session.CurrentCaptureSession != nil {
 			for _, modifier := range session.CurrentCaptureSession.Modifiers {
 				matches, err := modifier.MatchesMimeType(resp.Header.Get("Content-Type"))
 				if err != nil {

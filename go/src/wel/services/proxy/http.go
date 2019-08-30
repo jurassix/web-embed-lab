@@ -58,7 +58,7 @@ func handleHTTP(writer http.ResponseWriter, clientRequest *http.Request, proxySe
 			bodyReader = io.TeeReader(targetResponse.Body, outputFile)
 			defer outputFile.Close()
 		} else {
-			logger.Printf("Could not create an output file %v", err)
+			logger.Printf("Could not create an HTTP proxy output file %v", err)
 			bodyReader = targetResponse.Body
 		}
 	}

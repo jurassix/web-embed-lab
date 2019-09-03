@@ -37,6 +37,15 @@ type TestRun struct {
 	Browsers     []string `json:"browsers"`      // Names of browsers
 }
 
+func (testRun TestRun) TestsPageFormula(pageFormulaName string) bool {
+	for _, pfName := range testRun.PageFormulas {
+		if pfName == pageFormulaName {
+			return true
+		}
+	}
+	return false
+}
+
 /*
 Experiment pulls together a set of page formulas, test probes, and browser configurations.
 

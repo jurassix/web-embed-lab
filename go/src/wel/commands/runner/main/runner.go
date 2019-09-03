@@ -53,7 +53,7 @@ func run() bool {
 		// Run in developer mode
 		logger.Println("Embed mode on port", pageHostPort)
 		host.RunHTTP(pageHostPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
-	} else if len(os.Args) != 5 {
+	} else if len(os.Args) != 5 && len(os.Args) != 6 {
 		printHelp()
 		return false
 	}
@@ -72,6 +72,10 @@ func run() bool {
 	probesPath := os.Args[2]
 	embedScriptPath := os.Args[3]
 	experimentPath := os.Args[4]
+	soloPageFormulaName := ""
+	if len(os.Args) == 6 {
+		soloPageFormulaName = os.Args[5]
+	}
 
 	/*
 		Read and parse the experiment definition
@@ -93,6 +97,15 @@ func run() bool {
 	if ok == false {
 		logger.Println("Experiment is not runnable:", runnableErrorMessage)
 		return false
+	}
+
+	if soloPageFormulaName != "" {
+		_, ok := experiment.GetPageFormulaConfiguration(soloPageFormulaName)
+		if ok == false {
+			logger.Println("Unknown page formula:", soloPageFormulaName)
+			printHelp()
+			return false
+		}
 	}
 
 	/*
@@ -138,6 +151,7 @@ func run() bool {
 	baselineData, err := experiments.GatherExperimentBaseline(
 		experiment,
 		&experimentConfig,
+		soloPageFormulaName,
 	)
 	if err != nil {
 		logger.Println("Error gathering baseline", err)
@@ -155,6 +169,7 @@ func run() bool {
 		experiment,
 		&experimentConfig,
 		baselineData,
+		soloPageFormulaName,
 	)
 }
 
@@ -163,6 +178,11 @@ func printHelp() {
 	logger.Println(aurora.Bold("runner <formulas dir> <probes dir> <embed script> <experiment json>"))
 	logger.Println("Example:")
 	logger.Println("runner ../pf/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js ./examples/experiments/external-experiment.json\n")
+
+	logger.Println("usage (single page formula experiment mode): runs only one page formula in the experiment")
+	logger.Println(aurora.Bold("runner <formulas dir> <probes dir> <embed script> <experiment json> <page formula name>"))
+	logger.Println("Example:")
+	logger.Println("runner ../pf/ ./examples/test-probes/ ./examples/embed_scripts/no-op.js ./examples/experiments/external-experiment.json transmutable-light\n")
 
 	logger.Println("usage (development mode): runs the page formula host")
 	logger.Println(aurora.Bold("runner <formulas dir> <probes dir>"))

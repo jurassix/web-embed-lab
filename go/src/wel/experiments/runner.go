@@ -30,6 +30,7 @@ type ExperimentConfig struct {
 func GatherExperimentBaseline(
 	experiment *Experiment,
 	experimentConfig *ExperimentConfig,
+	soloPageFormulaName string, // optional, indicates one page formula to test by itself (used for debugging PFs)
 ) ([]*BaselineData, error) {
 
 	baselineData := []*BaselineData{}
@@ -65,7 +66,13 @@ func GatherExperimentBaseline(
 		return nil
 	}
 
-	err := executeExperiment(experiment, experimentConfig, nil, testingFunc)
+	err := executeExperiment(
+		experiment,
+		experimentConfig,
+		nil,
+		soloPageFormulaName,
+		testingFunc,
+	)
 	if err != nil {
 		logger.Println("Failed to gather baseline", err)
 		return nil, err
@@ -79,7 +86,7 @@ RunExperiment follows this algorithm to run an experiment:
 	For each test run defined in the experiment:
 		For each browser in the test run:
 			Open a WebDriver connection
-			For each page formula:
+			For each page formula: (unless soloPageFormulaName specifies just one formula)
 				Load a blank page to stop previous pages' loads
 				Tell the host to host the page formula
 				Tell the browser to open the correct host URL
@@ -89,6 +96,7 @@ func RunExperimentTests(
 	experiment *Experiment,
 	experimentConfig *ExperimentConfig,
 	baselineData []*BaselineData,
+	soloPageFormulaName string, // optional, indicates one page formula to test by itself (used for debugging PFs)
 ) bool {
 	gatheredResults := []*ProbeResults{}
 	baselineDataIndex := 0
@@ -190,7 +198,7 @@ func RunExperimentTests(
 		return nil
 	}
 
-	err := executeExperiment(experiment, experimentConfig, baselineData, testingFunc)
+	err := executeExperiment(experiment, experimentConfig, baselineData, soloPageFormulaName, testingFunc)
 	if err != nil {
 		logger.Println("Failed to run tests", err)
 		return false
@@ -208,9 +216,15 @@ func executeExperiment(
 	experiment *Experiment,
 	experimentConfig *ExperimentConfig,
 	baselineData []*BaselineData,
+	soloPageFormulaName string,
 	testingFunc func(*agouti.Page, bool, []string, formulas.ProbeBasis) error,
 ) error {
 	for index, testRun := range experiment.TestRuns {
+		if soloPageFormulaName != "" && testRun.TestsPageFormula(soloPageFormulaName) == false {
+			// This test run doesn't use the solo page formula, to move along
+			continue
+		}
+
 		if baselineData == nil {
 			logger.Println(aurora.Bold("Baseline Run #"), aurora.Bold(index))
 		} else {
@@ -251,6 +265,11 @@ func executeExperiment(
 					return err
 				}
 
+				if soloPageFormulaName != "" && soloPageFormulaName != pageFormulaName {
+					// This is not the solo page formula so move on
+					continue
+				}
+
 				// Host the right page formula and parse the test probe basis
 				formulaSet, controlResponse, err := host.RequestPageFormulaChange(experimentConfig.PageHostPort, pageFormulaConfig.Name, baselineData == nil)
 				if err != nil {
@@ -277,12 +296,10 @@ func executeExperiment(
 					logger.Println("Failed to navigate to hosted page formula", err)
 					return err
 				}
-				logger.Printf("Initial navigation complete.")
-
 				time.Sleep(5 * time.Second)
 
 				// Run the tests
-				logger.Printf("Running '%v' on '%v':", pageFormulaConfig.Name, browserName)
+				logger.Printf("Running '%v'...", pageFormulaConfig.Name)
 				err = testingFunc(page, hasBrowserLog, testRun.TestProbes, controlResponse.ProbeBasis)
 				if err != nil {
 					logger.Println("Failed to run script", err)

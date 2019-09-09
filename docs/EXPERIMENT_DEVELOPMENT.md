@@ -18,9 +18,9 @@ For example, if you run your own web site then you will want to capture it. If y
 
 ### Create reusable page formulas
 
-Once you've captured a target site then you'll want to create a "page formula" which is sort of a "freeze-dried" version of the target site that can be tested by the WEL without directly connecting to the target site.
+Once you've captured a target site then you'll want to create a "page formula" which is sort of a freeze-dried version of the target site that can be tested by the WEL without directly connecting to the target site.
 
-Page formulas hold all of the HTML, CSS, Javascript, and image files of the target site and all of the information needed to load those assets into a test page.
+Page formulas hold all of the HTML, CSS, Javascript, and media files of the target site and all of the information needed to load those assets into a test page.
 
 ### Write test probes
 
@@ -30,13 +30,13 @@ You will often write your own test probes to make sure that specific aspects of 
 
 ### Create an experiment
 
-An experiment pulls together all of the page formulas, test probes, and types of browsers that you'd like to test. That information is held in a JSON file that is then handed to the WEL runner (as explained in [Running experiments](EXPERIMENT_RUNNING.md)).
+An experiment pulls together all of the page formulas, test probes, and browser configurations that you'd like to test. That information is held in a JSON file that is then handed to the WEL runner (as explained in [Running experiments](EXPERIMENT_RUNNING.md)).
 
 ## How to capture a target web site and formulate a page formula
 
-While you can capture browser sessions using your local browser, it involves loading a certificate into your browser and setting it to use an HTTP proxy. It is much easier to use the `auto-formulate` command which uses Browserstack to configure a browser, capture sessions, and then create page formulas.
+While you can capture browser sessions using your local browser, it involves loading a certificate and web extension into your browser and setting it to use an HTTP proxy. It is much easier to use the `auto-formulate` command which uses [Browserstack](https://www.browserstack.com) to configure a browser, capture sessions, and then create page formulas.
 
-If you'd like to capture locally, read [capturing locally](CAPTURE_LOCALLY.md).
+If you'd like to capture locally (usually because you're working on the Web Embed Lab itself) then read [capturing locally](CAPTURE_LOCALLY.md).
 
 The `auto-formulate` command reads a JSON configuration that defines which browsers to spin up, which sites to capture, and then how to translate (or formulate) those captures into page formulas.
 

@@ -3,7 +3,6 @@ package host
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"text/template"
 
 	"wel/formulas"
 )
@@ -187,7 +187,9 @@ func (host *FormulaHost) handleStaticRoute(route *formulas.Route, writer http.Re
 }
 
 func (host *FormulaHost) handleTemplateRoute(route *formulas.Route, writer http.ResponseWriter, request *http.Request) {
-	routeTemplate, err := template.ParseFiles(path.Join(host.FormulasPath, host.CurrentFormula, route.Value))
+	// We change the delimiters because so many web frameworks use the default {{ }}.
+	templatePath := path.Join(host.FormulasPath, host.CurrentFormula, route.Value)
+	routeTemplate, err := template.New(path.Base(templatePath)).Delims("[![", "]!]").ParseFiles(templatePath)
 	if err != nil {
 		logger.Println("Template error", err)
 		writer.WriteHeader(http.StatusInternalServerError)

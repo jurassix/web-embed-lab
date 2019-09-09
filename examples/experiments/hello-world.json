@@ -1,11 +1,7 @@
 {
 	"page-formulas": [
-		{
-			"name": "vanilla-site"
-		},
-		{
-			"name": "hello-world"
-		}
+		{ "name": "vanilla-site" },
+		{ "name": "hello-world" }
 	],
 	"browser-configurations": [
 		{
@@ -18,16 +14,16 @@
 			"browserstack.console": "verbose"
 		},
 		{
-			"name": "Firefox 66",
+			"name": "Firefox 69",
 			"os": "Windows",
 			"osVersion": "10",
 			"browserName": "Firefox",
-			"browserVersion": "66",
+			"browserVersion": "69",
 			"resolution": "1024x768",
 			"browserstack.console": "verbose"
 		}
 	],
-	"test-runs" : [
+	"test-runs": [
 		{
 			"page-formulas": ["vanilla-site", "hello-world"],
 			"test-probes": [
@@ -50,7 +46,7 @@
 				"text-equals"
 			],
 			"comment": "Performance and Heap only run on Chrome.",
-			"browsers": ["Firefox 66"]
+			"browsers": ["Firefox 69"]
 		}
 	]
 }

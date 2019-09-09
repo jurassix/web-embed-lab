@@ -1,6 +1,8 @@
 # Capture locally
 
-This document describes how to capture web sessions using a local browser. This is useful mostly when you're working on the Web Embed Lab code. Most of the time you'll use `auto-formulate` as described in [experiment development](EXPERIMENT_DEVELOPMENT.md).
+This document describes how to capture web sessions using a local browser. This is useful mostly when you're working on the Web Embed Lab code itself instead of using it to make and run experiments.
+
+Most of the time you'll use `auto-formulate` as described in [experiment development](EXPERIMENT_DEVELOPMENT.md) so head over to that document unless you're working on the Web Embed Lab code.
 
 To capture locally, the WEL provides a WebExtension that you'll run in your web browser and an HTTP proxy that your browser's network traffic will flow through. These two tools work together to gather information about a target web site's resources and network patterns during a browser session.
 

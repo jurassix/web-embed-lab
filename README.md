@@ -12,14 +12,38 @@ Examples of embedded scripts are:
 
 The WEL works with "experiments" which are bundles of files that hold all of the information required to test specific pages on specific browsers.
 
-Unlike other tools, the WEL is able to capture a remote web site into a "page formula" that never changes. That way tests can be run with consistent results and tests don't add load to the remote web site.
+Unlike other tools, the WEL is able to capture a remote web site into a "page formula" that never changes and never relies on the original web site. Because of page formulas, experiments can be run with consistent results and without adding load to the original web site.
 
-The overall workflow of the WEL is to capture remote web sites, write tests, and then use [WebDriver](https://www.w3.org/TR/webdriver1/) and [Selenium](https://docs.seleniumhq.org/) to run those tests on those captured sites in real browsers.
+## Workflow
 
-People using the WEL generally work in two separate phases: developing experiments and then later running experiments in their continuous integration system.
+The usual workflow is to:
+- Capture one or more web sites and freeze-dry them into "page formulas"
+- Gather page formulas and tests into an "experiment"
+- Run an experiment against each new version of an embed script to ensure that it doesn't negatively effect performance
 
-These documents cover those topics:
-- [Developing experiments](./docs/EXPERIMENT_DEVELOPMENT.md)
-- [Running experiments](./docs/EXPERIMENT_RUNNING.md)
+## Further reading
 
-If this is your first time setting up the WEL then read the [Installation guide](./docs/INSTALLATION.md).
+Guides:
+- [Install the WEL](./docs/INSTALLATION.md) ⬅️ Start Here!
+- [Develop experiments](./docs/EXPERIMENT_DEVELOPMENT.md)
+- [Run experiments](./docs/EXPERIMENT_RUNNING.md)
+
+References:
+- [Environment variables](./docs/ENVIRONMENT_VARS.md)
+- [Command line tools](./docs/COMMAND_LINE_TOOLS.md)
+- [Test probe API](./docs/TEST_PROBE_API.md)
+- [Site capture and formulation JSON](./docs/AUTO_FORMULATE_SYNTAX.md) (used by `auto-formulate`)
+- [Experiment JSON](./docs/EXPERIMENT_SYNTAX.md) (used by `runner`)
+- [Page formula JSON](./docs/PAGE_FORMULA_SYNTAX.md)
+- [Site capture JSON](./doc/CAPTURE_SYNTAX.md)
+
+## Developing the Web Embed Lab
+
+The WEL is designed to be useful for testing any embed script on any web site but occasionally it's necessary to add or improve features.
+
+Your first step should be to take a look at the [contribution guide](./doc/CONTRIBUTE.md) for the how and whys of adding to the WEL. It's easy to go down a path and realize later that the effect of your efforts could have been multiplied by understanding how contributions work. Don't let that happen to you!
+
+Reference documents:
+- [Running locally](./docs/CAPTURE_LOCALLY.md)
+- [The colluder proxy and web extension](./docs/COLLUSION.md)
+

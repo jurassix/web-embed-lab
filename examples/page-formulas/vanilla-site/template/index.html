@@ -8,18 +8,18 @@
 		<script async='/__wel_embed.js'></script>
 
 		<!-- Use a value set in formula.json's "context-data" structure -->
-		<title>{{ .title }}</title>
+		<title>[![ .title ]!]</title>
 		<link rel="stylesheet" href="/static/index.css" type='text/css'>
 	</head>
 
 	<body>
-		<h1>{{ .title }}</h1>
+		<h1>[![ .title ]!]</h1>
 
 		<!-- Read a template parameter with a non-go-friendly name (it has a dash) -->
-		<section id="complex-name">{{index . "complex-name" }}</section>
+		<section id="complex-name">[![index . "complex-name" ]!]</section>
 
 		<!-- Read a global template parameter -->
-		<section id="example-global">{{index . "example-global" }}</section>
+		<section id="example-global">[![index . "example-global" ]!]</section>
 
 		<div id='random-words'>loading...</div>
 

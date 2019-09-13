@@ -178,9 +178,7 @@
 				"performance": {
 					"relative": {
 						"DomContentLoaded": {
-							"value": [
-								-1, 1
-							],
+							"value": "15%",
 							"subtract": "NavigationStart"
 						}
 					},

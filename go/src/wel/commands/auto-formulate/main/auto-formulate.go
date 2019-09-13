@@ -137,12 +137,12 @@ func run() error {
 		capabilities := agouti.NewCapabilities()
 		capabilities.With("trustAllSSLCertificates")
 		capabilities.Proxy(proxyConfig)
-
 		capabilities["browserstack.user"] = browserstackUser
 		capabilities["browserstack.key"] = browserstackAPIKey
 		for key, value := range capture.BrowserConfiguration {
 			capabilities[key] = value
 		}
+		capabilities["name"] = "Web Embed Lab auto-formulate"
 		page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 		if err != nil {
 			return err

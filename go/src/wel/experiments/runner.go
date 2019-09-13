@@ -72,6 +72,7 @@ func GatherExperimentBaseline(
 		nil,
 		soloPageFormulaName,
 		testingFunc,
+		"baseline",
 	)
 	if err != nil {
 		logger.Println("Failed to gather baseline", err)
@@ -198,7 +199,14 @@ func RunExperimentTests(
 		return nil
 	}
 
-	err := executeExperiment(experiment, experimentConfig, baselineData, soloPageFormulaName, testingFunc)
+	err := executeExperiment(
+		experiment,
+		experimentConfig,
+		baselineData,
+		soloPageFormulaName,
+		testingFunc,
+		"test",
+	)
 	if err != nil {
 		logger.Println("Failed to run tests", err)
 		return false
@@ -218,6 +226,7 @@ func executeExperiment(
 	baselineData []*BaselineData,
 	soloPageFormulaName string,
 	testingFunc func(*agouti.Page, bool, []string, formulas.ProbeBasis) error,
+	name string,
 ) error {
 	for index, testRun := range experiment.TestRuns {
 		if soloPageFormulaName != "" && testRun.TestsPageFormula(soloPageFormulaName) == false {
@@ -241,7 +250,7 @@ func executeExperiment(
 			}
 
 			logger.Println("Connecting to browser:", browserName)
-			page, hasBrowserLog, err := openPage(experimentConfig, browserConfig)
+			page, hasBrowserLog, err := openPage(experimentConfig, browserConfig, name)
 			if err != nil {
 				logger.Println("Failed to open remote page:", err)
 				return err
@@ -316,7 +325,7 @@ func executeExperiment(
 openPage opens a WebDriver connection to a browser
 Returns (page, canProvideLogs, error)
 */
-func openPage(experimentConfig *ExperimentConfig, browserConfiguration map[string]interface{}) (*agouti.Page, bool, error) {
+func openPage(experimentConfig *ExperimentConfig, browserConfiguration map[string]interface{}, name string) (*agouti.Page, bool, error) {
 	// On Chrome, load the prober-extension
 	extensionPath := experimentConfig.FrontEndDistPath + "prober-extension/prober-extension.xpi"
 	crxBytes, err := ioutil.ReadFile(extensionPath)
@@ -336,6 +345,7 @@ func openPage(experimentConfig *ExperimentConfig, browserConfiguration map[strin
 	for key, value := range browserConfiguration {
 		capabilities[key] = value
 	}
+	capabilities["name"] = "Web Embed Lab " + name + ": " + capabilities["name"].(string)
 	page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 	if err != nil {
 		return nil, false, err

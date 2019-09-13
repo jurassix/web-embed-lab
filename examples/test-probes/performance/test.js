@@ -72,7 +72,13 @@ class PerformanceProbe {
 		}
 
 		for(let key of Object.keys(basis.relative)){
-			const individualPass = this._testPerformanceKey(key, basis.relative[key], baseline[key])
+			const baselineValue = this._readBaselineValue(key, baseline)
+			if (baselineValue === null) {
+				result.passed = false
+				result.description += 'Failed to read baseline value for relative test of ' + key + ' '
+				continue
+			}
+			const individualPass = this._testPerformanceKey(key, basis.relative[key], baselineValue, baseline)
 			if(individualPass.passed === false){
 				result.passed = false
 				if(individualPass.description){
@@ -84,7 +90,7 @@ class PerformanceProbe {
 		return result
 	}
 
-	_testPerformanceKey(key, basis=undefined, baseline=undefined){
+	_testPerformanceKey(key, basis=undefined, baselineValue=undefined, baseline=undefined){
 		if(typeof basis === 'undefined'){
 			return {
 				passed: false,
@@ -106,9 +112,8 @@ class PerformanceProbe {
 			}
 		}
 
-		let subtractionValue = 0
 		if(typeof basis.subtract === 'string'){
-			subtractionValue = this._latestPerformanceValue(basis.subtract)
+			let subtractionValue = this._latestPerformanceValue(basis.subtract)
 			if(subtractionValue === null){
 				console.error('Invalid subtract basis: ' + key + ' ' + basis.subtract)
 				return {
@@ -117,20 +122,44 @@ class PerformanceProbe {
 				}
 			}
 			probeValue = probeValue - subtractionValue
+
+			if(typeof baselineValue !== 'undefined'){
+				subtractionValue = this._readBaselineValue(basis.subtract, baseline)
+				if (typeof subtractionValue !== 'number') {
+					console.error('Did not find baseline subtraction value: ' + basis.subtract)
+					return {
+						passed: false,
+						description: 'Unknown baseline subtraction value: ' + basis.subtract
+					}
+				}
+				baselineValue = baselineValue - subtractionValue
+			}
+
 		}
 
-		if(window.__welValueMatches(probeValue, basis.value, baseline)){
+		if(window.__welValueMatches(probeValue, basis.value, baselineValue)){
 			return { passed: true }
 		}
 
 		let description = key + ' did not match ' + basis.value
-		if(baseline){
-			description += ' with baseline ' + baseline
+		if(baselineValue){
+			description += ' with baseline ' + baselineValue
 		}
 		return {
 			passed: false,
 			description: description
 		}
+	}
+
+	_readBaselineValue(key, baseline) {
+		const perfData = baseline['performanceData']
+		if (typeof perfData !== 'object') return null
+		const metrics = perfData['metrics']
+		if (Array.isArray(metrics) == false) return null
+		for(const metric of metrics) {
+			if (metric['name'] === key) return metric['value']
+		}
+		return null
 	}
 
 	_latestPerformanceValue(key){

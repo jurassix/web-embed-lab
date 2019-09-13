@@ -198,7 +198,7 @@ window.__welStringValueMatches = function(probeValue, basisValue = undefined, ba
 
 window.__welNumericValueMatches = function(probeValue, basisValue = undefined, baselineValue = undefined) {
 	if (typeof probeValue !== 'number') {
-		console.log('Attempted numeric match for non-numberic probe value:', probeValue, basisValue, baselineValue)
+		console.error('Attempted numeric match for non-numberic probe value:', probeValue, basisValue, baselineValue)
 		return false
 	}
 	// Subtract baseline if necessary
@@ -208,8 +208,28 @@ window.__welNumericValueMatches = function(probeValue, basisValue = undefined, b
 		console.error('Error testing non-numeric baseline value', probeValue, basisValue, baselineValue)
 		return false
 	}
-
-	if (typeof basisValue === 'number') {
+	if (typeof basisValue === 'string' && basisValue.endsWith('%')) {
+		const basisPercentage = Number.parseInt(basisValue.substring(0, basisValue.length - 1))
+		if (Number.isNaN(basisPercentage)) {
+			console.error('Could not parse percentage basis value: ' + basisValue)
+			return false
+		}
+		if (typeof baselineValue !== 'number') {
+			console.error('Attempted % comparison (' + basisValue + ') without a baseline value. Perhaps it is not a relative probe?')
+			return false
+		}
+		if (baselineValue == 0) {
+			console.error('Attempted % comparison with a zero baseline value')
+			return false
+		}
+		const probePercentage = (probeValue / baselineValue) * 100
+		const pass = -1 * basisPercentage <= probePercentage && probePercentage <= basisPercentage
+		if (pass === false) {
+			console.error('Relative percentage fail: Looked for +/- ' + basisValue + ' change but found ' + probePercentage.toFixed(2) + '% change')
+			console.error('Probe delta: ' + probeValue + ', Baseline value: ' + baselineValue)
+		}
+		return pass
+	} else if (typeof basisValue === 'number') {
 		return probeValue === basisValue
 	} else if (Array.isArray(basisValue)) {
 		return window.__welRangeValueMatches(probeValue, basisValue)

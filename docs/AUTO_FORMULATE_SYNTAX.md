@@ -48,7 +48,7 @@ Each `capture` entry contains the selenium configuration (aka "capabilities") fo
 
 ### `browser-configuration`
 
-These options are passed directly via selenium when asking to control a browser.
+These capabilties are passed via selenium when asking to control a browser.
 
 Example:
 

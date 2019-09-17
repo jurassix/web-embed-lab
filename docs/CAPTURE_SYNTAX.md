@@ -1,6 +1,6 @@
 # Web site capture syntax (aka timeline.json)
 
-The timeline.json created during a target site capture store the meta-data for the browsing session that are eventually used to create a page formula.
+These files are created during a target site capture. They store the meta-data for the browsing session that are eventually used to create a page formula.
 
 Example:
 
@@ -16,6 +16,8 @@ Example:
 `hostname` holds only the hostname of the capture and is used when rewriting URLs during page formulation.
 
 ## `requests`
+
+Each entry in the `requests` array holds meta-data about a single HTTP request that was intercepted by the HTTP proxy used by `auto-formulate` or the `colluder`.
 
 Examples:
 
@@ -42,6 +44,8 @@ Examples:
 `url` is the full URL of the request, including fragments and parameters.
 
 `status-code`, `content-type`, and `content-encoding` are copies of their respective HTTP headers.
+
+Note: Captured files will be encoded according to `content-encoding` so if it's `gzip` then the stored file will be gzipped. The page formulation step will unencode files as appropriate.
 
 `output-file-id` is the ID of the captured data from a single request.
 

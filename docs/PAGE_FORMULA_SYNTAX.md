@@ -81,3 +81,6 @@ Those commands also find and replace fully qualified URLs to *third-party sites*
 
 The WEL Go templates use `[![` and `]!]` as block indicators instead of `{{` and `}}` because those conflict with many JS frameworks.
 
+
+## Further reading:
+- [Parser source code (go)](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/formulas/formulas.go)

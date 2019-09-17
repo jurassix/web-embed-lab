@@ -96,6 +96,8 @@ Example:
 
 `browsers` entries each hold the name of a browser defined in a `browser-configuration` (documented above).
 
+## Further reading:
+- [Parser source code (go)](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/experiments/experiments.go)
 
 
 

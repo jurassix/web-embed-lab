@@ -1,17 +1,24 @@
 # Web site capture syntax (aka timeline.json)
 
-TODO: Document the JSON syntax used to store the capture timeline meta-data that is eventually used to create a page formula.
+The timeline.json created during a target site capture store the meta-data for the browsing session that are eventually used to create a page formula.
+
+Example:
 
 	{
 		"started": 1561999823,
 		"ended": 1561999838,
 		"hostname": "www3.hbc.com"
-		"requests": ...
+		"requests": [ see below ]
 	}
 
-## Request timeline
+`started` and `ended` are unix timestamps.
 
-	requests = [
+`hostname` holds only the hostname of the capture and is used when rewriting URLs during page formulation.
+
+## `requests`
+
+Examples:
+
 		{
 			"timestamp": 1561999827,
 			"url": "https://example.com:443/",
@@ -19,14 +26,25 @@ TODO: Document the JSON syntax used to store the capture timeline meta-data that
 			"content-type": "text/html; charset=UTF-8",
 			"content-encoding": "gzip",
 			"output-file-id": 101
-		},
+		}
+
 		{
 			"timestamp": 1561999832,
-			"url": "https://fonts.gstatic.com:443/example.woff2",
+			"url": "https://fonts.gstatic.com:443/example.woff2?foo=bar",
 			"status-code": 200,
 			"content-type": "font/woff2",
 			"content-encoding": "",
 			"output-file-id": 162
-		},
-		...
-	]
+		}
+
+`timestamp` is the time that the HTTP request occurred.
+
+`url` is the full URL of the request, including fragments and parameters.
+
+`status-code`, `content-type`, and `content-encoding` are copies of their respective HTTP headers.
+
+`output-file-id` is the ID of the captured data from a single request.
+
+## Further reading:
+- [Parser source code (go)](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/services/colluder/session/timeline.go)
+- [Page formula JSON syntax](./PAGE_FORMULA_SYNTAX.md)

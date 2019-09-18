@@ -4,9 +4,9 @@ DOM shape test probe
 class DOMShapeProbe {
 	/**
 	@return {Object} data collected when the target embed script *is not* loaded
-	@return {Object.success} true if the data collection was successful
-	@return {Object.width} DOM width
-	@return {Object.depth} DOM depth
+	@property {bool} success - true if the data collection was successful
+	@property {int} width - DOM width
+	@property {int} depth - DOM depth
 	*/
 	async gatherBaselineData(){
 		console.log('Baseline DOM shape')
@@ -19,7 +19,10 @@ class DOMShapeProbe {
 	}
 
 	/**
-	@return {object} the results of the probe
+	@return {Object} the results of the probe
+	@property {bool} passed
+	@property {int} width - DOM width
+	@property {int} depth - DOM depth
 	*/
 	async probe(basis, baseline){
 		console.log('Probing DOM shape', baseline)

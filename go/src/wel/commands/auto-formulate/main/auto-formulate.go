@@ -142,7 +142,7 @@ func run() error {
 		for key, value := range capture.BrowserConfiguration {
 			capabilities[key] = value
 		}
-		capabilities["name"] = "Web Embed Lab auto-formulate"
+		capabilities["name"] = "WEL auto-formulate"
 		page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 		if err != nil {
 			return err
@@ -151,14 +151,10 @@ func run() error {
 
 		hasNavigated := false // true after the WebDriver session has navigated once
 		for _, site := range capture.Sites {
-			parsedURL, err := url.Parse(site.URL)
+			siteHost, err := parseHostname(site.URL)
 			if err != nil {
 				logger.Println("Failed to parse URL", site.URL)
 				return err
-			}
-			siteHost := parsedURL.Host
-			if colonIndex := strings.Index(siteHost, ":"); colonIndex > 0 {
-				siteHost = siteHost[:colonIndex]
 			}
 			logger.Println("Capturing", site.Name, site.URL)
 
@@ -190,6 +186,19 @@ func run() error {
 			if site.ClosePause > 0 {
 				time.Sleep(time.Duration(site.ClosePause) * time.Second)
 			}
+
+			// Get the hostname in case it was changed via redirect
+			newURL, err := page.URL()
+			if err != nil {
+				logger.Println("Failed to get the current URL for", site.URL, err)
+				return err
+			}
+			newSiteHost, err := parseHostname(newURL)
+			if err != nil {
+				logger.Println("Failed to parse the current URL", newURL, err)
+				return err
+			}
+			session.CurrentCaptureSession.Timeline.Hostname = newSiteHost
 
 			// tell the colluder to stop the capture session
 			err = session.CurrentCaptureSession.WriteTimeline()
@@ -224,6 +233,19 @@ func printHelp() {
 	logger.Println(aurora.Bold("auto-formulate <configuration json path> <formula destination dir>"))
 	logger.Println("Example:")
 	logger.Println("auto-formulate ./examples/auto-formulate/external-auto-formulate.json ../pf/\n")
+}
+
+func parseHostname(siteURL string) (string, error) {
+	parsedURL, err := url.Parse(siteURL)
+	if err != nil {
+		logger.Println("Failed to parse URL", siteURL)
+		return "", err
+	}
+	siteHost := parsedURL.Host
+	if colonIndex := strings.Index(siteHost, ":"); colonIndex > 0 {
+		siteHost = siteHost[:colonIndex]
+	}
+	return siteHost, nil
 }
 
 /*

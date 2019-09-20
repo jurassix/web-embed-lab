@@ -342,10 +342,12 @@ func openPage(experimentConfig *ExperimentConfig, browserConfiguration map[strin
 	capabilities["chromeOptions"] = map[string][][]byte{
 		"extensions": {crxBytes},
 	}
+	// override with values in the experiment
 	for key, value := range browserConfiguration {
 		capabilities[key] = value
 	}
-	capabilities["name"] = "Web Embed Lab " + name + ": " + capabilities["name"].(string)
+	capabilities["name"] = "WEL " + name + ": " + capabilities["name"].(string)
+
 	page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 	if err != nil {
 		return nil, false, err

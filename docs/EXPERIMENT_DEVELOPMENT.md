@@ -38,6 +38,14 @@ While you can capture browser sessions using your local browser, it involves loa
 
 If you'd like to capture locally (usually because you're working on the Web Embed Lab itself) then read [capturing locally](CAPTURE_LOCALLY.md).
 
+If capturing via BrowserStack, make a copy of the setup-env.sh file and edit with your browserstack credentials:
+	
+	cd web-embed-lab/
+	cp setup-env.sh.example setup-env.sh
+	# edit setup-env.sh with your credentials
+	source setup-env.sh
+
+
 The `auto-formulate` command reads a JSON configuration that defines which browsers to spin up, which sites to capture, and then how to translate (or formulate) those captures into page formulas.
 
 Look in web-embed-lab/examples/auto-formulate/ for examples of those configuration files. The easiest way to get started is to copy and modify one of those files.
@@ -45,7 +53,6 @@ Look in web-embed-lab/examples/auto-formulate/ for examples of those configurati
 To automatically capture web sessions and formulate page formulas:
 
 	cd web-embed-lab/
-	source set-env.sh
 	./go/bin/auto-formulate \
 		./examples/auto-formulate/hello-world-formulate.json \	# A config file
 		../pf/	# The destination dir for new page formulas

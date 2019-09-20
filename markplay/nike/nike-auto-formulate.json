@@ -1,0 +1,36 @@
+{
+	"captures": [
+		{
+			"browser-configuration": {
+				"name": "Chrome 75",
+				"os": "Windows",
+				"osVersion": "10",
+				"browserName": "Chrome",
+				"browserVersion": "75.0",
+				"resolution": "1024x768"				
+			},
+			"sites": [
+				{
+					"name": "Nike homepage",
+					"url": "https://nike.com",
+					"close-pause": 0,
+					"modifiers": [
+					]
+				}		
+			]
+		}
+	],
+	"formulations": [
+		{
+			"capture-name": "Nike homepage",
+			"formula-name": "Nike homepage formula",
+			"modifiers": [
+			],
+			"probe-basis": {
+				"exceptions": {
+					"count": [0, 1]
+				}
+			}		
+		}		
+	]
+}

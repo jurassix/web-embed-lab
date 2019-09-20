@@ -1,0 +1,26 @@
+{
+	"page-formulas": [
+		{ "name": "Nike homepage formula" }
+	],
+	"browser-configurations": [
+		{
+			"name": "Chrome 75",
+			"os": "Windows",
+			"osVersion": "10",
+			"browserName": "Chrome",
+			"browserVersion": "75.0",
+			"resolution": "1024x768",
+			"browserstack.console": "verbose"
+		}
+	],
+	"test-runs": [
+		{
+			"page-formulas": ["Nike homepage formula"],
+			"test-probes": [
+				"exceptions"
+			],
+			"comment": "Nike homepage exceptions probe on chrome.",
+			"browsers": ["Chrome 75"]
+		}
+	]
+}

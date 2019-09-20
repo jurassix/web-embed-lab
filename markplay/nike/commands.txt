@@ -1,0 +1,24 @@
+
+Must be run from ~/src/web-embed-lab:
+
+To generate the formula in the "pf" subdirectory
+./go/bin/auto-formulate ./markplay/nike/nike-auto-formulate.json ./markplay/nike/nikepf
+
+To test it:
+./go/bin/runner ./markplay/nike/nikepf/ ./examples/test-probes/
+http://localhost:9090
+
+to see the formulas:
+curl http://localhost:9090/__wel_control
+
+to change the formula: 
+curl http://localhost:9090/__wel_control -X PUT --data "{\"current-formula\":\"Nike homepage formula\"}"
+
+to run the exception test probe:
+
+no errors:
+./go/bin/runner ./markplay/nike/nikepf/ ./markplay/test-probes/ ./markplay/embed-scripts/no-op.js ./markplay/nike/nike-experiment.json 
+
+with errors:
+./go/bin/runner ./markplay/nike/nikepf/ ./markplay/test-probes/ ./markplay/embed-scripts/exception-thrower.js ./markplay/nike/nike-experiment.json 
+

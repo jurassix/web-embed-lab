@@ -1,0 +1,625 @@
+{
+	"comment": "",
+	"template-data": {},
+	"routes": [
+		{
+			"id": "102.html",
+			"path": "^/([\\?].*)?$",
+			"type": 0,
+			"value": "/template/102.html",
+			"parameters": {},
+			"headers": {}
+		},
+		{
+			"id": "138.html",
+			"path": "^/__wel_absolute/unite.nike.com/session.html([\\?].*)?$",
+			"type": 0,
+			"value": "/template/138.html",
+			"parameters": {},
+			"headers": {}
+		},
+		{
+			"id": "142.html",
+			"path": "^/__wel_absolute/assets.bounceexchange.com/assets/bounce/local_storage_frame10.min.html([\\?].*)?$",
+			"type": 0,
+			"value": "/template/142.html",
+			"parameters": {},
+			"headers": {}
+		},
+		{
+			"id": "150.html",
+			"path": "^/__wel_absolute/staticxx.facebook.com/connect/xd_arbiter.php([\\?].*)?$",
+			"type": 0,
+			"value": "/template/150.html",
+			"parameters": {},
+			"headers": {}
+		},
+		{
+			"id": "163.html",
+			"path": "^/__wel_absolute/servedby.flashtalking.com/container/10472;77203;7935;iframe/([\\?].*)?$",
+			"type": 0,
+			"value": "/template/163.html",
+			"parameters": {},
+			"headers": {}
+		},
+		{
+			"id": "147.blob",
+			"path": "^/assets/experience/cart/public/configs/us.json([\\?].*)?$",
+			"type": 3,
+			"value": "/static/147.blob",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/octet-stream"
+			}
+		},
+		{
+			"id": "106.js",
+			"path": "^/assets/nessie/core/4.3.2/scaffold.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/106.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript"
+			}
+		},
+		{
+			"id": "116.js",
+			"path": "^/assets/dotcom/nav/4.22.1/dotcom-nav-client.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/116.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript"
+			}
+		},
+		{
+			"id": "118.js",
+			"path": "^/assets/dotcom/nav/experiments/dotcom-nav-experiments.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/118.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript"
+			}
+		},
+		{
+			"id": "132.js",
+			"path": "^/assets/measure/data-capture/segment-wrapper.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/132.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript"
+			}
+		},
+		{
+			"id": "133.js",
+			"path": "^/__wel_absolute/connect.facebook.net/en_US/sdk.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/133.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "143.js",
+			"path": "^/__wel_absolute/connect.facebook.net/en_US/sdk.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/143.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "145.js",
+			"path": "^/__wel_absolute/smodus.nike.com/id([\\?].*)?$",
+			"type": 3,
+			"value": "/static/145.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript"
+			}
+		},
+		{
+			"id": "157.js",
+			"path": "^/assets/measure/data-capture/cic-main/dcm.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/157.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript"
+			}
+		},
+		{
+			"id": "159.js",
+			"path": "^/__wel_absolute/connect.facebook.net/en_US/fbevents.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/159.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "107.js",
+			"path": "^/assets/experience/ciclp/static/v2/786-c53cea82ccd/polyfills.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/107.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "109.js",
+			"path": "^/assets/experience/ciclp/static/v2/786-c53cea82ccd/vendor.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/109.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "110.js",
+			"path": "^/akam/11/5c3992([\\?].*)?$",
+			"type": 3,
+			"value": "/static/110.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "111.js",
+			"path": "^/assets/vendor/react/16.5.1/react.production.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/111.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "112.js",
+			"path": "^/__wel_absolute/s3.nikecdn.com/unite/scripts/unite.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/112.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "113.js",
+			"path": "^/__wel_absolute/cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/113.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "114.js",
+			"path": "^/assets/vendor/react/16.5.1/react-dom.production.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/114.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "115.js",
+			"path": "^/assets/experience/ciclp/static/v2/786-c53cea82ccd/client.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/115.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "117.js",
+			"path": "^/__wel_absolute/s3.nikecdn.com/unite/app/637/scripts/app.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/117.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "119.js",
+			"path": "^/static/d26929a2d7e182d932fab637185737d([\\?].*)?$",
+			"type": 3,
+			"value": "/static/119.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "120.js",
+			"path": "^/__wel_absolute/cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/120.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "127.js",
+			"path": "^/__wel_absolute/s3.nikecdn.com/unite/experiences/637/com.nike.commerce.nikedotcom.web/en_US.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/127.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "128.js",
+			"path": "^/__wel_absolute/c.go-mpulse.net/boomerang/R6SH7-84RFL-GQQ8S-CW6MF-W5RWR([\\?].*)?$",
+			"type": 3,
+			"value": "/static/128.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript;charset=UTF-8"
+			}
+		},
+		{
+			"id": "129.js",
+			"path": "^/__wel_absolute/s.go-mpulse.net/boomerang/R6SH7-84RFL-GQQ8S-CW6MF-W5RWR([\\?].*)?$",
+			"type": 3,
+			"value": "/static/129.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "161.js",
+			"path": "^/__wel_absolute/js-agent.newrelic.com/nr-1130.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/161.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "162.js",
+			"path": "^/__wel_absolute/bat.bing.com/bat.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/162.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "164.js",
+			"path": "^/__wel_absolute/www.googletagmanager.com/gtag/js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/164.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript; charset=UTF-8"
+			}
+		},
+		{
+			"id": "165.js",
+			"path": "^/__wel_absolute/fullstory.com/s/fs.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/165.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript"
+			}
+		},
+		{
+			"id": "166.js",
+			"path": "^/__wel_absolute/www.googletagmanager.com/gtag/js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/166.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/javascript; charset=UTF-8"
+			}
+		},
+		{
+			"id": "135.json",
+			"path": "^/assets/vendor/optimizely/prod/5aUCtZvFuDLjvdqdf2w53M.json([\\?].*)?$",
+			"type": 3,
+			"value": "/static/135.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		},
+		{
+			"id": "141.json",
+			"path": "^/__wel_absolute/c.go-mpulse.net/api/config.json([\\?].*)?$",
+			"type": 3,
+			"value": "/static/141.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		},
+		{
+			"id": "144.json",
+			"path": "^/__wel_absolute/insights-collector.newrelic.com/v1/accounts/714737/events([\\?].*)?$",
+			"type": 3,
+			"value": "/static/144.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json; charset=UTF-8"
+			}
+		},
+		{
+			"id": "151.json",
+			"path": "^/__wel_absolute/analytics.nike.com/v1/p([\\?].*)?$",
+			"type": 3,
+			"value": "/static/151.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		},
+		{
+			"id": "152.json",
+			"path": "^/__wel_absolute/api2.branch.io/v1/open([\\?].*)?$",
+			"type": 3,
+			"value": "/static/152.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		},
+		{
+			"id": "153.json",
+			"path": "^/__wel_absolute/api.nike.com/product_feed/threads/v2([\\?].*)?$",
+			"type": 3,
+			"value": "/static/153.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json;charset=UTF-8"
+			}
+		},
+		{
+			"id": "154.json",
+			"path": "^/__wel_absolute/analytics.nike.com/v1/batch([\\?].*)?$",
+			"type": 3,
+			"value": "/static/154.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json"
+			}
+		},
+		{
+			"id": "155.json",
+			"path": "^/__wel_absolute/api2.branch.io/v1/pageview([\\?].*)?$",
+			"type": 3,
+			"value": "/static/155.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/json; charset=utf-8"
+			}
+		},
+		{
+			"id": "123.woff",
+			"path": "^/assets/ncss/1.0/dotcom/fonts/e88bf468-18a2-4baa-a8a3-4410b37bab61.woff([\\?].*)?$",
+			"type": 3,
+			"value": "/static/123.woff",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-font-woff"
+			}
+		},
+		{
+			"id": "125.woff",
+			"path": "^/assets/ncss/glyphs/2.1/fonts/nike-glyphs.woff([\\?].*)?$",
+			"type": 3,
+			"value": "/static/125.woff",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-font-woff"
+			}
+		},
+		{
+			"id": "130.woff",
+			"path": "^/assets/ncss/1.0/dotcom/fonts/257c802f-349c-4b4d-aefa-546d5de15ec6.woff([\\?].*)?$",
+			"type": 3,
+			"value": "/static/130.woff",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "application/x-font-woff"
+			}
+		},
+		{
+			"id": "103.css",
+			"path": "^/assets/ncss/glyphs/2.1/css/glyphs.min.css([\\?].*)?$",
+			"type": 3,
+			"value": "/static/103.css",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/css"
+			}
+		},
+		{
+			"id": "104.css",
+			"path": "^/assets/ncss/1.0/dotcom/desktop/css/ncss.en-us.min.css([\\?].*)?$",
+			"type": 3,
+			"value": "/static/104.css",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/css"
+			}
+		},
+		{
+			"id": "105.css",
+			"path": "^/assets/experience/ciclp/static/v2/786-c53cea82ccd/client.css([\\?].*)?$",
+			"type": 3,
+			"value": "/static/105.css",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/css"
+			}
+		},
+		{
+			"id": "108.css",
+			"path": "^/assets/dotcom/nav/4.22.1/dotcom-nav-client.css([\\?].*)?$",
+			"type": 3,
+			"value": "/static/108.css",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/css"
+			}
+		},
+		{
+			"id": "131.css",
+			"path": "^/__wel_absolute/s3.nikecdn.com/unite/app/637/styles/uniteTheme/import.css([\\?].*)?$",
+			"type": 3,
+			"value": "/static/131.css",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/css"
+			}
+		},
+		{
+			"id": "146.json",
+			"path": "^/__wel_absolute/insights-collector.newrelic.com/v1/accounts/714737/events([\\?].*)?$",
+			"type": 3,
+			"value": "/static/146.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/json; charset=utf-8"
+			}
+		},
+		{
+			"id": "149.json",
+			"path": "^/__wel_absolute/insights-collector.newrelic.com/v1/accounts/714737/events([\\?].*)?$",
+			"type": 3,
+			"value": "/static/149.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/json; charset=utf-8"
+			}
+		},
+		{
+			"id": "160.json",
+			"path": "^/__wel_absolute/insights-collector.newrelic.com/v1/accounts/714737/events([\\?].*)?$",
+			"type": 3,
+			"value": "/static/160.json",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/json; charset=utf-8"
+			}
+		},
+		{
+			"id": "121.txt",
+			"path": "^/__wel_absolute/tag.bounceexchange.com/2163/i.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/121.txt",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/plain; charset=utf-8"
+			}
+		},
+		{
+			"id": "136.js",
+			"path": "^/__wel_absolute/cdn.branch.io/branch-latest.min.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/136.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/javascript"
+			}
+		},
+		{
+			"id": "140.js",
+			"path": "^/__wel_absolute/assets.bounceexchange.com/assets/smart-tag/versioned/ijs_all_modules_27b453b1ae67ae0b506ee6950a99e6ac.js([\\?].*)?$",
+			"type": 3,
+			"value": "/static/140.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/javascript"
+			}
+		},
+		{
+			"id": "148.js",
+			"path": "^/__wel_absolute/app.link/_r([\\?].*)?$",
+			"type": 3,
+			"value": "/static/148.js",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "text/javascript; charset=utf-8"
+			}
+		},
+		{
+			"id": "122.image",
+			"path": "^/__wel_absolute/c.static-nike.com/a/images/f_auto/w_1536,c_limit/ffr3wbwcjdwcegcz7hue/image.jpg([\\?].*)?$",
+			"type": 3,
+			"value": "/static/122.image",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "image/webp"
+			}
+		},
+		{
+			"id": "124.image",
+			"path": "^/__wel_absolute/c.static-nike.com/a/images/f_auto/w_1536,c_limit/o6mvtrew1ogvh6nirqwf/image.jpg([\\?].*)?$",
+			"type": 3,
+			"value": "/static/124.image",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "image/webp"
+			}
+		},
+		{
+			"id": "126.image",
+			"path": "^/__wel_absolute/c.static-nike.com/a/images/f_auto/w_1536,c_limit/na8kzg56qdu2lg2pcls4/image.jpg([\\?].*)?$",
+			"type": 3,
+			"value": "/static/126.image",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "image/webp"
+			}
+		},
+		{
+			"id": "137.image",
+			"path": "^/__wel_absolute/c.static-nike.com/a/images/f_auto/w_1920,c_limit/adfgqgq36os1rrul1vmi/nikecom-homepage-na.jpg([\\?].*)?$",
+			"type": 3,
+			"value": "/static/137.image",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "image/webp"
+			}
+		},
+		{
+			"id": "158.image",
+			"path": "^/assets/experience/ciclp/static/v2/786-c53cea82ccd/static/android-icon-128x128.png([\\?].*)?$",
+			"type": 3,
+			"value": "/static/158.image",
+			"parameters": {},
+			"headers": {
+				"Content-Type": "image/png"
+			}
+		}
+	],
+	"initial-path": "/",
+	"probe-basis": {
+		"exceptions": {
+			"count": [
+				0,
+				600
+			]
+		}
+	}
+}

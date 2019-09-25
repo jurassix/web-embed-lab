@@ -124,7 +124,7 @@
 			"probe-basis": {
 				"dom-shape": {
 					"depth": 10,
-					"width": [12, 13],
+					"width": [12, 15],
 					"relative": {
 						"depth": 0,
 						"width": 0

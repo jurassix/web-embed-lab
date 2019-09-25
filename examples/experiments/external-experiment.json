@@ -13,8 +13,7 @@
 			"osVersion": "10",
 			"browserName": "Chrome",
 			"browserVersion": "75.0",
-			"resolution": "1024x768",
-			"browserstack.console": "verbose"
+			"resolution": "1024x768"
 		},
 		{
 			"name": "Firefox 68",
@@ -22,8 +21,15 @@
 			"osVersion": "10",
 			"browserName": "Firefox",
 			"browserVersion": "68",
-			"resolution": "1024x768",
-			"browserstack.console": "verbose"
+			"resolution": "1024x768"
+		},
+		{
+			"name": "Safari 12",
+			"os" : "OS X",
+			"os_version" : "Mojave",
+			"browserName" : "Safari",
+			"browser_version" : "12.0",
+			"resolution": "1024x768"
 		}
 	],
 	"test-runs" : [
@@ -52,7 +58,7 @@
 				"selector-count",
 				"text-equals"
 			],
-			"browsers": ["Firefox 68"]
+			"browsers": ["Firefox 68", "Safari 12"]
 		}
 	]
 }

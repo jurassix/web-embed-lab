@@ -83,4 +83,4 @@ The WEL Go templates use `[![` and `]!]` as block indicators instead of `{{` and
 
 
 ## Further reading:
-- [Parser source code (go)](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/formulas/formulas.go)
+- [Parser source code (go)](../go/src/wel/formulas/formulas.go)

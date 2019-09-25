@@ -50,5 +50,5 @@ Note: Captured files will be encoded according to `content-encoding` so if it's 
 `output-file-id` is the ID of the captured data from a single request.
 
 ## Further reading:
-- [Parser source code (go)](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/services/colluder/session/timeline.go)
+- [Parser source code (go)](../go/src/wel/services/colluder/session/timeline.go)
 - [Page formula JSON syntax](./PAGE_FORMULA_SYNTAX.md)

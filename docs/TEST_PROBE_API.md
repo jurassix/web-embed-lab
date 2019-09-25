@@ -80,8 +80,8 @@ Read the comments in this example class to discover how the baseline data is col
 
 	}
 
-You can find example (fully functional) test probes in `web-embed-lab/examples/test-probes/`. The [`dom-shape`](https://github.com/cowpaths/web-embed-lab/blob/master/examples/test-probes/dom-shape/test.js) probe is a relatively simple example to start.
+You can find example (fully functional) test probes in `web-embed-lab/examples/test-probes/`. The [`dom-shape`](../examples/test-probes/dom-shape/test.js) probe is a relatively simple example to start.
 
 ## Further reading
 
-- [Prober.js](https://github.com/cowpaths/web-embed-lab/blob/master/fe/src/prober/prober.js) where `window.__welValueMatches` and other helper functions are defined.
+- [Prober.js](../fe/src/prober/prober.js) where `window.__welValueMatches` and other helper functions are defined.

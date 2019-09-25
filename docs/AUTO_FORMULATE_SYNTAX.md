@@ -169,6 +169,6 @@ Example:
 This is test probe configuration information that is copied verbatim into the page formula's formula.json file ([documented here](PAGE_FORMULA_SYNTAX.md)). This allows `auto-formulate` to create a complete page formula that is ready to be run in tests by the `runner`.
 
 ## Further reading:
-- [Parser source code (go)](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/formulas/auto-formulas.go)
+- [Parser source code (go)](../go/src/wel/formulas/auto-formulas.go)
 - [Capture JSON syntax](./CAPTURE_SYNTAX.md)
 - [Page formula JSON syntax](./PAGE_FORMULA_SYNTAX.md)

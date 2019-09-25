@@ -12,7 +12,7 @@ The WEL `colluder` and `auto-formulate` command call ngrok and automatically use
 
 The colluder service exposes a WebSocket endpoint that allows either the Formulator WebExtension (below) or the `auto-formulate` command to control the beginning and end of capture sessions. This allows the colluder to capture several target sites without starting a new process.
 
-You can see the definitions of each control message in the [parser source](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/services/colluder/ws/messages.go#L12).
+You can see the definitions of each control message in the [parser source](../go/src/wel/services/colluder/ws/messages.go#L12).
 
 ## Static files
 
@@ -25,4 +25,4 @@ If you're not using `auto-formulate` (usually during development on the WEL itse
 To install the Formulator WebExtension follow the instructions in the "[Load the Formulator WebExtension](CAPTURE_LOCALLY.md#load-the-formulator-webextension)" section of the ["capture locally"](CAPTURE_LOCALLY.md) document.
 
 ## Further reading
-- [Colluder service source code](https://github.com/cowpaths/web-embed-lab/blob/master/go/src/wel/services/colluder/colluder.go)
+- [Colluder service source code](../go/src/wel/services/colluder/colluder.go)

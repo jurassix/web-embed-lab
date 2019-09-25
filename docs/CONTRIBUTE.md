@@ -10,7 +10,7 @@ First, read the [code of conduct](CODE_OF_CONDUCT.md) document. By contributing 
 
 ## License
 
-All of the WEL source code is licensed under the MIT license, as noted in the [license](../LICENSE.md) document. All contributions to the WEL repository are covered by that license.
+All of the WEL source code is licensed under the MIT license, as noted in the [license](../LICENSE) document. All contributions to the WEL repository are covered by that license.
 
 ## Style guidelines
 
@@ -18,7 +18,7 @@ Mostly TBD, but in general we use the Go formatter and the Javascript prettifier
 
 ## Good first bugs and features
 
-Find a small bug in [Issues]() that hasn't been assigned to anyone and **let us know** that you're working on it so you're not accidentally duplicating someone else's effort.
+Find a small bug in [Issues](/fullstorydev/web-embed-lab/issues) that hasn't been assigned to anyone and **let us know** that you're working on it so you're not accidentally duplicating someone else's effort.
 
 PRs are welcome for new test probes and example files.
 

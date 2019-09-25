@@ -57,7 +57,7 @@ Once you have a page formula you'll probably need to edit it a bit to make it a 
 
 The `runner` command used when running experiments (explained in [Experiment running](EXPERIMENT_RUNNING.md)) has a developer mode that enables you to host a specific page formula and look at it with your browser.
 
-Assuming that you have run `make` to build the `runner` command (explained in [Installation](Installation.md)) you can put the `runner` into development mode like this:
+Assuming that you have run `make` to build the `runner` command (explained in [Installation](INSTALLATION.md)) you can put the `runner` into development mode like this:
 
 	cd web-embed-lab/
 	./go/bin/runner \

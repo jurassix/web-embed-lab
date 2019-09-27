@@ -41,7 +41,7 @@ References:
 
 The WEL is designed to be useful for testing any embed script on any web site but occasionally it's necessary to add or improve features.
 
-Your first step should be to take a look at the [contribution guide](./doc/CONTRIBUTE.md) for the how and whys of adding to the WEL. It's easy to go down a path and realize later that the effect of your efforts could have been multiplied by understanding how contributions work. Don't let that happen to you!
+Your first step should be to take a look at the [contribution guide](./docs/CONTRIBUTE.md) for the how and whys of adding to the WEL. It's easy to go down a path and realize later that the effect of your efforts could have been multiplied by understanding how contributions work. Don't let that happen to you!
 
 Reference documents:
 - [Running locally](./docs/CAPTURE_LOCALLY.md)

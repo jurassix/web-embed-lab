@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/fullstorydev/web-embed-lab#readme",
   "scripts": {
-    "postinstall": "go-npm install && mv ./tmp/* ../.bin/",
+    "postinstall": "go-npm install && mv ./node_modules/.bin/* ./tmp/* ../.bin/",
     "preuninstall": "go-npm uninstall"
   },
   "goBinary": {

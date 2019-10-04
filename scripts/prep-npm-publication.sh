@@ -24,6 +24,9 @@ cp -r ./package-src/* "${DIST_PACKAGE}/"
 mkdir "${DIST_PACKAGE}/static"
 cp -r ./fe/dist/* "${DIST_PACKAGE}/static/"
 
+# Copy over the example files
+cp -r ./examples/test-probes "${DIST_PACKAGE}/test-probes"
+
 # Write the correct version into the package.json
 sed -i -e "s/XXX_VERSION_XXX/${GIT_TAG}/" "${DIST_PACKAGE}/package.json"
 if [[ -f "${DIST_PACKAGE}/package.json-e" ]]; then

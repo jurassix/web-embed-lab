@@ -6,13 +6,15 @@ before:
 builds:
   -
     env:
-      - CGO_ENABLED=0
+    - CGO_ENABLED=0
+    - GOSRC=./go/src
     id: "runner"
     binary: "runner"
     main: ./go/src/wel/commands/runner/main/runner.go
   -
     env:
     - CGO_ENABLED=0
+    - GOSRC=./go/src
     id: "auto-formulate"
     binary: "auto-formulate"
     main: ./go/src/wel/commands/auto-formulate/main/auto-formulate.go

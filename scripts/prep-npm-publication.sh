@@ -26,5 +26,7 @@ cp -r ./fe/dist/* "${DIST_PACKAGE}/static/"
 
 # Write the correct version into the package.json
 sed -i -e "s/XXX_VERSION_XXX/${GIT_TAG}/" "${DIST_PACKAGE}/package.json"
-rm "${DIST_PACKAGE}/package.json-e"
+if [[ -f "${DIST_PACKAGE}/package.json-e" ]]; then
+	rm "${DIST_PACKAGE}/package.json-e"
+fi
 

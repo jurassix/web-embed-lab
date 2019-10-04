@@ -6,7 +6,7 @@ export TZ          := UTC
 
 SHELL = /bin/bash
 
-.PHONY: all commands services tools fe
+.PHONY: all commands services tools fe npm-install
 all: tools commands services fe
 
 # Infer Go commands based on the pattern wel/commands/<cmd>/main/<cmd>.go
@@ -39,6 +39,10 @@ services: $(SVCS)
 tools:
 	go build -o $(WEL_HOME)/go/bin/gorepoman github.com/fullstorydev/gorepoman/main/gorepoman
 
+
+make npm-install:
+	cd fe && npm install
+
 fe:
 	cd fe && npm run build
 
@@ -53,4 +57,5 @@ clean:
 	rm -rf $(GOPATH)/bin/*
 	rm -rf $(GOPKG)/*
 	rm -rf ./fe/dist
+	rm -rf ./package-dist
 

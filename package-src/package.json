@@ -1,0 +1,33 @@
+{
+  "name": "web-embed-lab",
+  "version": "XXX_VERSION_XXX",
+  "description": "A testing tool for embedded javascripts",
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fullstorydev/web-embed-lab.git"
+  },
+  "keywords": [
+    "javascript",
+    "embedded",
+    "testing"
+  ],
+  "author": "Trevor F. Smith <trevor@trevor.smith.name>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/fullstorydev/web-embed-lab/issues"
+  },
+  "homepage": "https://github.com/fullstorydev/web-embed-lab#readme",
+  "scripts": {
+    "postinstall": "go-npm install && mv ./tmp/* ../.bin/",
+    "preuninstall": "go-npm uninstall"
+  },
+  "goBinary": {
+    "name": "runner",
+    "path": "./tmp",
+    "url": "https://github.com/fullstorydev/web-embed-lab/releases/download/v{{version}}/web-embed-lab_{{version}}_{{platform}}_{{arch}}.tar.gz"
+  },
+  "dependencies": {
+    "go-npm": "^0.1.9"
+  }
+}

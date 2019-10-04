@@ -1,0 +1,35 @@
+name: Build and release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@master
+      -
+        name: Set up go
+        uses: actions/setup-go@master
+      -
+        name: Build and release
+        uses: goreleaser/goreleaser-action@master
+        with:
+          version: latest
+          args: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.ReleaseToken }}
+      -
+        name: Publish to npm
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NpmAuthToken }}" > ~/.npmrc
+          git config --global user.email "trevor@trevor.smith.name"
+          git config --global user.name "trevorfsmith"
+          ./scripts/prep-npm-publication.sh
+          cd package-dist
+          npm publish
+

@@ -1,6 +1,7 @@
 # front end
 /fe/dist
 /fe/node_modules
+/package-dist
 
 # go
 /go/bin

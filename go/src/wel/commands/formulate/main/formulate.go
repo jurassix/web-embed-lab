@@ -38,13 +38,18 @@ var codedTypes = [...]string{
 }
 
 func main() {
+	err := commands.SetupEnvironment()
+	if err != nil {
+		commands.PrintEnvUsage()
+		os.Exit(1)
+	}
+
 	if len(os.Args) != 3 {
 		printHelp()
 		return
 	}
-	commands.EnvOverrideDotEnv(".env")
 
-	err := formulas.Formulate(os.Args[1], os.Args[2], []modifiers.FileModifier{}, formulas.ProbeBasis{})
+	err = formulas.Formulate(os.Args[1], os.Args[2], []modifiers.FileModifier{}, formulas.ProbeBasis{})
 	if err != nil {
 		logger.Println("Error:", err)
 		os.Exit(1)

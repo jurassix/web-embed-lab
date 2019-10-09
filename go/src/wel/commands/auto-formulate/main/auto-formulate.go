@@ -16,7 +16,6 @@ import (
 	"wel/services/colluder/session"
 	"wel/services/proxy"
 	"wel/tunnels"
-	"wel/webdriver"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/sclevine/agouti"
@@ -25,8 +24,13 @@ import (
 var logger = log.New(os.Stdout, "[auto-formulate] ", 0)
 
 func main() {
-	commands.EnvOverrideDotEnv(".env")
-	err := run()
+	err := commands.SetupEnvironment()
+	if err != nil {
+		commands.PrintEnvUsage()
+		os.Exit(1)
+	}
+
+	err = run()
 	if err != nil {
 		logger.Println("Error", err)
 		os.Exit(1)
@@ -85,10 +89,11 @@ func run() error {
 	}
 
 	// Read the Browserstack configuration info
-	browserstackUser := os.Getenv(webdriver.BrowserstackUserVar)
-	browserstackAPIKey := os.Getenv(webdriver.BrowserstackAPIKeyVar)
-	if browserstackUser == "" || browserstackAPIKey == "" {
-		return errors.New("Environment variables " + webdriver.BrowserstackUserVar + " and " + webdriver.BrowserstackAPIKeyVar + " are required")
+	browserstackUrl := os.Getenv(commands.BrowserstackUrlVar)
+	browserstackUser := os.Getenv(commands.BrowserstackUserVar)
+	browserstackAPIKey := os.Getenv(commands.BrowserstackAPIKeyVar)
+	if browserstackUser == "" || browserstackAPIKey == "" || browserstackUrl == "" {
+		return errors.New("Environment variables " + commands.BrowserstackUserVar + " and " + commands.BrowserstackAPIKeyVar + " are required")
 	}
 
 	// Start the colluder web app, control web socket, and HTTP proxy services
@@ -145,7 +150,7 @@ func run() error {
 			capabilities[key] = value
 		}
 		capabilities["name"] = "WEL auto-formulate"
-		page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
+		page, err := agouti.NewPage(browserstackUrl, []agouti.Option{agouti.Desired(capabilities)}...)
 		if err != nil {
 			return err
 		}

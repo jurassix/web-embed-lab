@@ -13,9 +13,13 @@ import (
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 
 func main() {
-	commands.EnvOverrideDotEnv(".env")
+	err := commands.SetupEnvironment()
+	if err != nil {
+		commands.PrintEnvUsage()
+		os.Exit(1)
+	}
 
-	err := colluder.PrepForCollusion()
+	err = colluder.PrepForCollusion()
 	if err != nil {
 		logger.Printf("Could not prep for collusion: %s", err)
 		return

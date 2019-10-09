@@ -9,7 +9,6 @@ import (
 
 	"wel/formulas"
 	"wel/services/host"
-	"wel/webdriver"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/sclevine/agouti"
@@ -19,6 +18,7 @@ import (
 ExperimentConfig holds information needed while running any Experiment
 */
 type ExperimentConfig struct {
+	BrowserstackURL    string
 	BrowserstackUser   string
 	BrowserstackAPIKey string
 	FrontEndDistPath   string // A file path to the build front-end resources
@@ -348,7 +348,7 @@ func openPage(experimentConfig *ExperimentConfig, browserConfiguration map[strin
 	}
 	capabilities["name"] = "WEL " + name + ": " + capabilities["name"].(string)
 
-	page, err := agouti.NewPage(webdriver.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
+	page, err := agouti.NewPage(experimentConfig.BrowserstackURL, []agouti.Option{agouti.Desired(capabilities)}...)
 	if err != nil {
 		return nil, false, err
 	}

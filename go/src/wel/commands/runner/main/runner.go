@@ -8,7 +8,6 @@ import (
 	"wel/experiments"
 	"wel/services/host"
 	"wel/tunnels"
-	"wel/webdriver"
 
 	"github.com/logrusorgru/aurora"
 )
@@ -17,13 +16,17 @@ var logger = log.New(os.Stdout, "[runner] ", 0)
 
 var pageHostPort int64 = 9090
 
-var frontEndDistPathVar = "FRONT_END_DIST"
-
 /*
 The runner command runs an experiment, using Selenium to run test probes in page formulas.
 */
 func main() {
-	commands.EnvOverrideDotEnv(".env")
+	err := commands.SetupEnvironment()
+	if err != nil {
+		commands.PrintEnvUsage()
+		logger.Println(aurora.Red("*FAILED*"))
+		os.Exit(1)
+	}
+
 	if run() {
 		logger.Println(aurora.Green("*PASSED*"))
 		os.Exit(0)
@@ -41,9 +44,9 @@ func run() bool {
 	/*
 		Read the path of the front end dist directory
 	*/
-	frontEndDistPath := os.Getenv(frontEndDistPathVar)
+	frontEndDistPath := os.Getenv(commands.FrontEndDistPathVar)
 	if frontEndDistPath == "" {
-		logger.Println("Environment variable", frontEndDistPathVar, "is required")
+		logger.Println("Environment variable", commands.FrontEndDistPathVar, "is required")
 		return false
 	}
 
@@ -63,10 +66,11 @@ func run() bool {
 	/*
 		Read the WebDriver configuration
 	*/
-	browserstackUser := os.Getenv(webdriver.BrowserstackUserVar)
-	browserstackAPIKey := os.Getenv(webdriver.BrowserstackAPIKeyVar)
-	if browserstackUser == "" || browserstackAPIKey == "" {
-		logger.Println("Environment variables", webdriver.BrowserstackUserVar, "and", webdriver.BrowserstackAPIKeyVar, "are required")
+	browserstackUrl := os.Getenv(commands.BrowserstackUrlVar)
+	browserstackUser := os.Getenv(commands.BrowserstackUserVar)
+	browserstackAPIKey := os.Getenv(commands.BrowserstackAPIKeyVar)
+	if browserstackUser == "" || browserstackAPIKey == "" || browserstackUrl == "" {
+		logger.Println("Browserstack environment variables are required")
 		return false
 	}
 
@@ -140,6 +144,7 @@ func run() bool {
 	}()
 
 	experimentConfig := experiments.ExperimentConfig{
+		BrowserstackURL:    browserstackUrl,
 		BrowserstackUser:   browserstackUser,
 		BrowserstackAPIKey: browserstackAPIKey,
 		FrontEndDistPath:   frontEndDistPath,

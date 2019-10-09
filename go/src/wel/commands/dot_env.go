@@ -2,16 +2,13 @@ package commands
 
 import (
 	"bufio"
-	"log"
 	"os"
 	"strings"
 )
 
-var logger = log.New(os.Stdout, "[auto-formulate] ", 0)
-
 // Set .env values to process env values if process env key doesn't already exist
-func EnvOverrideDotEnv(filePath string) error {
-	dotEnvVals, err := ParseDotEnv(filePath)
+func setupDotEnv() error {
+	dotEnvVals, err := ParseDotEnv(".env")
 	if err != nil {
 		return err
 	}

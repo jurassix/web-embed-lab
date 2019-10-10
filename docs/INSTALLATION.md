@@ -24,7 +24,7 @@ The Web Embed Lab is available from npm in the [`web-embed-lab` package](https:/
 
 Example:
 
-	cd dir-containing-your-package.json
+	cd /dir/containing/your/package.json
 	npm install --save-dev web-embed-lab
 
 The `runner` and `auto-formulate` binaries should end up in `node_modules/.bin/` and will be in the PATH for running using `npm run-script ...` commands.

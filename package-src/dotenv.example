@@ -2,6 +2,10 @@
 # This file can be used to set common process environment variables
 # The commands will look for a .env file only in the current working directory
 
+# You can also use node package config variables instead of a dotenv file.
+# Details here:
+# https://github.com/fullstorydev/web-embed-lab/blob/master/docs/ENVIRONMENT_VARS.md
+
 # Copy this file to .env in the directory where you run commands.
 # Then, edit the .env file to enter your values.
 

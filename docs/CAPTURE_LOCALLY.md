@@ -35,7 +35,7 @@ To set up the HTTP proxy in Firefox:
 - Click the "Settings..." button to open the connection settings
 - Choose "Manual proxy configuration"
 - Set the proxy host for every protocol to `localhost` (not 127.0.0.1 because the certs won't work)
-- Set each proxy port to 8080
+- Set each proxy port to 9180
 - Choose SOCKS_v5
 
 You probably want to close all of the tabs other than the one you're using to browse the target page so that the colluder doesn't capture unrelated network traffic.

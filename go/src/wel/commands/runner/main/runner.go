@@ -14,7 +14,7 @@ import (
 
 var logger = log.New(os.Stdout, "[runner] ", 0)
 
-var pageHostPort int64 = 9090
+var pageHostPort int64 = 9190
 
 /*
 The runner command runs an experiment, using Selenium to run test probes in page formulas.
@@ -51,11 +51,9 @@ func run() bool {
 	}
 
 	if len(os.Args) == 3 {
-		// Run in developer mode
 		logger.Println("Developer mode on port", pageHostPort)
 		host.RunHTTP(pageHostPort, frontEndDistPath, os.Args[1], os.Args[2], "")
 	} else if len(os.Args) == 4 {
-		// Run in developer mode
 		logger.Println("Embed mode on port", pageHostPort)
 		host.RunHTTP(pageHostPort, frontEndDistPath, os.Args[1], os.Args[2], os.Args[3])
 	} else if len(os.Args) != 5 && len(os.Args) != 6 {

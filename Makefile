@@ -3,10 +3,11 @@ export GOPATH      := $(WEL_HOME)/go
 export GOSRC       := $(GOPATH)/src
 export GOPKG       := $(GOPATH)/pkg
 export TZ          := UTC
+export ARCH			:= $(shell uname)
 
 SHELL = /bin/bash
 
-.PHONY: all commands services tools fe npm-install
+.PHONY: all commands services tools fe npm-install sign
 all: tools commands services fe
 
 # Infer Go commands based on the pattern wel/commands/<cmd>/main/<cmd>.go
@@ -39,6 +40,10 @@ services: $(SVCS)
 tools:
 	go build -o $(WEL_HOME)/go/bin/gorepoman github.com/fullstorydev/gorepoman/main/gorepoman
 
+sign:
+ifeq ($(ARCH),Darwin)
+	codesign --force --deep --sign - $(bintarget)
+endif
 
 make npm-install:
 	cd fe && npm install

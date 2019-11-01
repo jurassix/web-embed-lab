@@ -11,6 +11,8 @@ builds:
     id: "runner"
     binary: "runner"
     main: ./go/src/wel/commands/runner/main/runner.go
+    hooks:
+      post: make bintarget=dist/web-embed-lab_darwin_amd64/runner sign
   -
     env:
     - CGO_ENABLED=0
@@ -18,6 +20,8 @@ builds:
     id: "auto-formulate"
     binary: "auto-formulate"
     main: ./go/src/wel/commands/auto-formulate/main/auto-formulate.go
+    hooks:
+      post: make bintarget=dist/web-embed-lab_darwin_amd64/auto-formulate sign
 
 archives:
   -

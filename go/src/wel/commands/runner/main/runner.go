@@ -72,6 +72,12 @@ func run() bool {
 		return false
 	}
 
+	ngrokAuthToken := os.Getenv(commands.NgrokAuthTokenVar)
+	if ngrokAuthToken == "" {
+		logger.Println("Ngrok auth token is required")
+		return false
+	}
+
 	formulasPath := os.Args[1]
 	probesPath := os.Args[2]
 	embedScriptPath := os.Args[3]
@@ -116,17 +122,20 @@ func run() bool {
 		Set up the ngrok tunnel and find its HTTPS endpoint URL
 	*/
 	ngrokController := tunnels.NewNgrokController()
-	err = ngrokController.Start(pageHostPort, "http")
+	err = ngrokController.StartAll([]tunnels.TunnelConfig{
+		{Port: pageHostPort, Protocol: "http"},
+	}, ngrokAuthToken)
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
 		return false
 	}
 	defer ngrokController.Stop()
-	_, pageHostURL, err := ngrokController.WaitForNgrokTunnels("https")
+	ngrokTunnel, err := ngrokController.WaitForFirstNgrokTunnel("https")
 	if err != nil {
 		logger.Println("Error", err)
 		return false
 	}
+	pageHostURL := ngrokTunnel.PublicURL
 
 	/*
 		Start the page formula host

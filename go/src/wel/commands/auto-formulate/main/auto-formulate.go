@@ -116,12 +116,12 @@ func run() error {
 		return err
 	}
 	defer ngrokController.Stop()
-	_, pageHostURL, err := ngrokController.WaitForNgrokTunnels("tcp")
+	ngrokTunnel, err := ngrokController.WaitForFirstNgrokTunnel("tcp")
 	if err != nil {
 		logger.Println("Error", err)
 		return err
 	}
-	pageHostURL = pageHostURL[6:] // remove the tcp:// leaving just the <hostname>:<port>
+	pageHostURL := ngrokTunnel.PublicURL[6:] // remove the tcp:// leaving just the <hostname>:<port>
 
 	proxyConfig := agouti.ProxyConfig{
 		ProxyType: "manual",

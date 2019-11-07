@@ -1,18 +1,28 @@
 package tunnels
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
-	"strconv"
+	"strings"
 	"time"
 )
 
 var tunnelsURL = "http://localhost:4040/api/tunnels"
+
+/*
+TunnelConf the port and protocol used when writing ngrok config files
+*/
+type TunnelConfig struct {
+	Port     int64  // the local destination port
+	Protocol string // "http" | "tcp"
+}
 
 /*
 NgrokTunnel holds an individual tunnel info returned by ngrok from /api/tunnels
@@ -63,6 +73,8 @@ type NgrokController struct {
 	Command    *exec.Cmd
 	Context    context.Context
 	CancelFunc context.CancelFunc
+	Stdout     bytes.Buffer
+	Stderr     bytes.Buffer
 }
 
 func NewNgrokController() *NgrokController {
@@ -77,20 +89,69 @@ Start will spin off an ngrok process and return without blocking
 If the controller has already started and has not been stopped it will return an error
 protocol should be "http" or "tcp"
 */
-func (controller *NgrokController) Start(port int64, protocol string) error {
+func (controller *NgrokController) Start(port int64, protocol string, authToken string) error {
+	return controller.StartAll([]TunnelConfig{
+		{
+			Port:     port,
+			Protocol: protocol,
+		},
+	}, authToken)
+}
+
+func (controller *NgrokController) StartAll(tunnelConfigs []TunnelConfig, authToken string) error {
 	if controller.Command != nil {
 		return errors.New("Already started")
 	}
+	path, err := controller.writeConf(tunnelConfigs, authToken)
+	if err != nil {
+		return err
+	}
+
 	controller.Context, controller.CancelFunc = context.WithCancel(context.Background())
-	arguments := make([]string, 2)
-	arguments[0] = protocol
-	arguments[1] = strconv.FormatInt(port, 10)
+	arguments := []string{
+		"start",
+		"--all",
+		"--config",
+		fmt.Sprintf("%v", path),
+	}
 	controller.Command = exec.CommandContext(controller.Context, "ngrok", arguments...)
 	controller.Command.Env = os.Environ()
+	controller.Stdout = bytes.Buffer{}
+	controller.Command.Stdout = &controller.Stdout
+	controller.Stderr = bytes.Buffer{}
+	controller.Command.Stderr = &controller.Stderr
 	go func() {
 		controller.Command.Run()
 	}()
 	return nil
+}
+
+/*
+Returns (path-to-temp-config-file, error)
+*/
+func (controller *NgrokController) writeConf(tunnelConfigs []TunnelConfig, authToken string) (string, error) {
+	if len(tunnelConfigs) == 0 {
+		return "", errors.New("No tunnels defined")
+	}
+	var config strings.Builder
+	config.WriteString(fmt.Sprintf("authtoken: %s\n", authToken))
+	config.WriteString("tunnels:\n")
+	for index, tunnelConfig := range tunnelConfigs {
+		config.WriteString(fmt.Sprintf("  web%d:\n", index))
+		config.WriteString(fmt.Sprintf("    proto: %s\n", tunnelConfig.Protocol))
+		config.WriteString(fmt.Sprintf("    addr: %d\n", tunnelConfig.Port))
+	}
+
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "ngrok-conf-")
+	var name = tmpFile.Name()
+	if err != nil {
+		return "", err
+	}
+	if _, err = tmpFile.Write([]byte(config.String())); err != nil {
+		return "", err
+	}
+	tmpFile.Close()
+	return name, nil
 }
 
 /*
@@ -106,17 +167,31 @@ func (controller NgrokController) Stop() {
 	controller.Command = nil
 }
 
+func (controller *NgrokController) WaitForFirstNgrokTunnel(desiredProtocol string) (*NgrokTunnel, error) {
+	ngrokTunnels, err := controller.WaitForNgrokTunnels(desiredProtocol)
+	if err != nil {
+		logger.Println("Error", err)
+		return nil, err
+	}
+	for _, tunnel := range ngrokTunnels.Tunnels {
+		if tunnel.Protocol == desiredProtocol {
+			return &tunnel, nil
+		}
+	}
+	return nil, errors.New("Did not find desired tunnel")
+}
+
 /*
 WaitForNgrokTunnels return the tunnels list and the page host URL of the HTTPS tunnel
 desiredProtocol should be "http", "https", or "tcp"
 */
-func (controller *NgrokController) WaitForNgrokTunnels(desiredProtocol string) (*NgrokTunnels, string, error) {
+func (controller *NgrokController) WaitForNgrokTunnels(desiredProtocol string) (*NgrokTunnels, error) {
 	var ngrokTunnels *NgrokTunnels = nil
 	var err error = nil
 	tryCount := 0
 	for {
 		if tryCount > 100 {
-			return nil, "", errors.New("Could not read ngrok process")
+			return nil, errors.New("Could not read ngrok process")
 		}
 		tryCount += 1
 		// wait for ngrok to start or fail
@@ -125,7 +200,9 @@ func (controller *NgrokController) WaitForNgrokTunnels(desiredProtocol string) (
 			continue
 		}
 		if controller.Command.ProcessState != nil {
-			return nil, "", errors.New("ngrok process ended")
+			logger.Println("ngrok stdout", controller.Stdout.String())
+			logger.Println("ngrok stderr", controller.Stderr.String())
+			return nil, errors.New("ngrok process ended")
 		}
 		ngrokTunnels, err = FetchNgrokTunnels()
 		if err != nil || len(ngrokTunnels.Tunnels) == 0 {
@@ -133,10 +210,10 @@ func (controller *NgrokController) WaitForNgrokTunnels(desiredProtocol string) (
 		}
 		for _, tunnel := range ngrokTunnels.Tunnels {
 			if tunnel.Protocol == desiredProtocol {
-				return ngrokTunnels, tunnel.PublicURL, nil
+				return ngrokTunnels, nil
 			}
 		}
-		return nil, "", errors.New("No ngrok tunnel is " + desiredProtocol)
+		return nil, errors.New("No ngrok tunnel is " + desiredProtocol)
 	}
 }
 

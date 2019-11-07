@@ -18,6 +18,7 @@ var BrowserstackUserVar = "BROWSERSTACK_USER"
 var BrowserstackAPIKeyVar = "BROWSERSTACK_API_KEY"
 var BrowserstackBuildVar = "BROWSERSTACK_BUILD"
 var BrowserstackProjectVar = "BROWSERSTACK_PROJECT"
+var NgrokAuthTokenVar = "NGROK_AUTH_TOKEN"
 
 var EnvVars = []struct {
 	envKey     string
@@ -31,6 +32,7 @@ var EnvVars = []struct {
 	{BrowserstackUserVar, "browserstackUser", true, ""},
 	{BrowserstackBuildVar, "browserstackBuild", false, ""},
 	{BrowserstackProjectVar, "browserstackProject", false, ""},
+	{NgrokAuthTokenVar, "ngrokAuthToken", true, ""},
 }
 
 var DirExistenceVars = []string{

@@ -18,6 +18,12 @@ type TestProbe struct {
 	//ProbeBasis formulas.ProbeBasis
 }
 
+func (testProbe TestProbe) Copy() *TestProbe {
+	return &TestProbe{
+		Name: testProbe.Name,
+	}
+}
+
 /*
 PageFormulaConfiguration holds a reference (and eventually configuration data) for a page formula
 The Name references the name of the directory that holds the formula.json file.
@@ -25,6 +31,12 @@ The Name references the name of the directory that holds the formula.json file.
 type PageFormulaConfiguration struct {
 	Name string `json:"name"`
 	//TemplateData
+}
+
+func (pfConfig PageFormulaConfiguration) Copy() *PageFormulaConfiguration {
+	return &PageFormulaConfiguration{
+		Name: pfConfig.Name,
+	}
 }
 
 /*
@@ -35,6 +47,28 @@ type TestRun struct {
 	PageFormulas []string `json:"page-formulas"` // Names of page formulas
 	TestProbes   []string `json:"test-probes"`   // Names of test probes
 	Browsers     []string `json:"browsers"`      // Names of browsers
+}
+
+func NewTestRun() *TestRun {
+	return &TestRun{
+		PageFormulas: []string{},
+		TestProbes:   []string{},
+		Browsers:     []string{},
+	}
+}
+
+func (testRun TestRun) Copy() *TestRun {
+	result := NewTestRun()
+	for _, pfName := range testRun.PageFormulas {
+		result.PageFormulas = append(result.PageFormulas, pfName)
+	}
+	for _, tpName := range testRun.TestProbes {
+		result.TestProbes = append(result.TestProbes, tpName)
+	}
+	for _, browserName := range testRun.Browsers {
+		result.Browsers = append(result.Browsers, browserName)
+	}
+	return result
 }
 
 func (testRun TestRun) TestsPageFormula(pageFormulaName string) bool {
@@ -70,6 +104,63 @@ func NewExperiment() *Experiment {
 		BrowserConfigurations:     []map[string]interface{}{},
 		TestRuns:                  []TestRun{},
 	}
+}
+
+/*
+Returns an Experiment with only the named browser's test runs
+*/
+func (experiment *Experiment) SplitOutBrowser(browserName string) (*Experiment, bool) {
+	browserConfig, ok := experiment.GetBrowserConfiguration(browserName)
+	if ok == false {
+		return nil, false
+	}
+
+	result := NewExperiment()
+	result.Name = experiment.Name
+	result.TestProbes = experiment.TestProbes
+	result.BrowserConfigurations = append(result.BrowserConfigurations, browserConfig)
+
+	pageFormulaNames := map[string]bool{}
+	testProbeNames := map[string]bool{}
+
+	for _, testRun := range experiment.TestRuns {
+		usesTest := false
+		for _, testRunBrowserName := range testRun.Browsers {
+			if testRunBrowserName == browserName {
+				usesTest = true
+				break
+			}
+		}
+		if usesTest == false {
+			continue
+		}
+		newTR := testRun.Copy()
+		newTR.Browsers = []string{browserName}
+		for _, pageFormulaName := range newTR.PageFormulas {
+			pageFormulaNames[pageFormulaName] = true
+		}
+		for _, testProbeName := range newTR.TestProbes {
+			testProbeNames[testProbeName] = true
+		}
+		result.TestRuns = append(result.TestRuns, *newTR)
+	}
+
+	for pfName := range pageFormulaNames {
+		pfConfig, ok := experiment.GetPageFormulaConfiguration(pfName)
+		if ok == false {
+			logger.Println("Unknown page formula name", pfName)
+			return nil, false
+		}
+		result.PageFormulaConfigurations = append(result.PageFormulaConfigurations, *pfConfig.Copy())
+	}
+
+	for tpName := range testProbeNames {
+		result.TestProbes = append(result.TestProbes, TestProbe{
+			Name: tpName,
+		})
+	}
+
+	return result, true
 }
 
 func (experiment Experiment) IsRunnable() (bool, string) {
@@ -112,6 +203,17 @@ func (experiment Experiment) GetPageFormulaConfiguration(name string) (*PageForm
 	for _, configuration := range experiment.PageFormulaConfigurations {
 		if name == configuration.Name {
 			return &configuration, true
+		}
+	}
+	return nil, false
+}
+
+func (experiment Experiment) GetTestProbe(name string) (*TestProbe, bool) {
+	logger.Println("TP exp", experiment.TestProbes)
+	for _, testProbe := range experiment.TestProbes {
+		logger.Println("TP", testProbe, name)
+		if name == testProbe.Name {
+			return &testProbe, true
 		}
 	}
 	return nil, false

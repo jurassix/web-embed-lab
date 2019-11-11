@@ -119,23 +119,58 @@ func run() bool {
 	}
 
 	/*
-		Set up the ngrok tunnel and find its HTTPS endpoint URL
+		Split out experiments by browser configuration
 	*/
+	perBrowserExperiments := []*experiments.Experiment{}
+	for _, browserConfig := range experiment.BrowserConfigurations {
+		bcName, ok := browserConfig["name"]
+		if ok == false {
+			logger.Println("Non-named browser config", browserConfig)
+			return false
+		}
+		splitExperiment, ok := experiment.SplitOutBrowser(bcName.(string))
+		if ok == false {
+			logger.Println("Could not split browser config", bcName)
+			return false
+		}
+		perBrowserExperiments = append(perBrowserExperiments, splitExperiment)
+	}
+
+	/*
+		Set up the ngrok tunnels
+	*/
+	tunnelConfigs := []tunnels.TunnelConfig{}
+	for index, _ := range perBrowserExperiments {
+		tunnelConfigs = append(tunnelConfigs, tunnels.TunnelConfig{
+			Port:     pageHostPort + int64(index),
+			Protocol: "http",
+		})
+	}
 	ngrokController := tunnels.NewNgrokController()
-	err = ngrokController.StartAll([]tunnels.TunnelConfig{
-		{Port: pageHostPort, Protocol: "http"},
-	}, ngrokAuthToken)
+	err = ngrokController.StartAll(tunnelConfigs, ngrokAuthToken)
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
 		return false
 	}
 	defer ngrokController.Stop()
-	ngrokTunnel, err := ngrokController.WaitForFirstNgrokTunnel("https")
+
+	/*
+		Find the ngrok tunnels
+	*/
+	ngrokTunnels, err := ngrokController.WaitForNgrokTunnels("https")
 	if err != nil {
 		logger.Println("Error", err)
 		return false
 	}
-	pageHostURL := ngrokTunnel.PublicURL
+
+	/*
+		TODO
+		Create channel to receive results
+		Split of go funcs to run and collect results
+	*/
+
+	// TEMP: use just one tunnel for the slow path
+	pageHostURL := ngrokTunnels.Tunnels[0].PublicURL
 
 	/*
 		Start the page formula host

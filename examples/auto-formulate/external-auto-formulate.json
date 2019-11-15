@@ -123,7 +123,7 @@
 			"formula-name": "science-saints",
 			"probe-basis": {
 				"dom-shape": {
-					"depth": 10,
+					"depth": [9,10],
 					"width": [12, 15],
 					"relative": {
 						"depth": 0,
@@ -135,7 +135,7 @@
 				},
 				"selector-count": {
 					"body h1": 1,
-					"body img": 6
+					"body img": [5,6]
 				},
 				"text-equals": {
 					".day-detail-deets > ul:nth-child(1) > h3:nth-child(1)": "Themes"
@@ -177,7 +177,7 @@
 				"performance": {
 					"relative": {
 						"DomContentLoaded": {
-							"value": "15%",
+							"value": "65%",
 							"subtract": "NavigationStart"
 						}
 					},

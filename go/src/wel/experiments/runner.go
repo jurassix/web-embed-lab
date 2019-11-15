@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"wel/formulas"
@@ -27,6 +28,30 @@ type ExperimentConfig struct {
 	BaselineMode       bool // True if the target embed script should be served as a no-op script
 }
 
+type RunResult struct {
+	PageFormula string
+	Test        string
+	Basis       map[string]interface{}
+	Baseline    map[string]interface{}
+	Result      ProbeResult
+	Log         string
+}
+
+type CollectorUpdate struct {
+	Browser string
+	Partial bool
+	Results []RunResult
+}
+
+func (update *CollectorUpdate) Passed() bool {
+	for _, result := range update.Results {
+		if result.Result.Passed() == false {
+			return false
+		}
+	}
+	return true
+}
+
 func GatherExperimentBaseline(
 	experiment *Experiment,
 	experimentConfig *ExperimentConfig,
@@ -36,7 +61,7 @@ func GatherExperimentBaseline(
 	baselineData := []*BaselineData{}
 
 	// This is the logic run against every browser/page formula combination in the experiment
-	testingFunc := func(page *agouti.Page, hasBrowserLog bool, testProbes []string, probeBasis formulas.ProbeBasis) error {
+	testingFunc := func(browserName string, formulaName string, page *agouti.Page, hasBrowserLog bool, testProbes []string, probeBasis formulas.ProbeBasis) error {
 		testsJSON, err := json.Marshal(testProbes)
 		if err != nil {
 			return err
@@ -98,12 +123,13 @@ func RunExperimentTests(
 	experimentConfig *ExperimentConfig,
 	baselineData []*BaselineData,
 	soloPageFormulaName string, // optional, indicates one page formula to test by itself (used for debugging PFs)
+	updateReceiver chan CollectorUpdate,
 ) bool {
-	gatheredResults := []*ProbeResults{}
+	gatheredRunResults := []RunResult{}
 	baselineDataIndex := 0
 
 	// This is the logic run against every browser/page formula combination in the experiment
-	testingFunc := func(page *agouti.Page, hasBrowserLog bool, testProbes []string, probeBasis formulas.ProbeBasis) error {
+	testingFunc := func(browserName string, formulaName string, page *agouti.Page, hasBrowserLog bool, testProbes []string, probeBasis formulas.ProbeBasis) error {
 		testsJSON, err := json.Marshal(testProbes)
 		if err != nil {
 			return err
@@ -150,50 +176,45 @@ func RunExperimentTests(
 		if err != nil {
 			return err
 		}
-		hasAFail := false
-		for testName, result := range *probeResults {
-			if result.Passed() {
-				logger.Println(testName+":", aurora.Green("passed"))
+
+		var logBuilder strings.Builder
+		if hasBrowserLog {
+			if logs, err := page.ReadNewLogs("browser"); err != nil {
+				logBuilder.WriteString(fmt.Sprintf("Error fetching logs: %v", err))
 			} else {
-				hasAFail = true
-				logger.Println(testName+":", aurora.Red("failed"))
-				if basis, ok := probeBasis[testName]; ok == true {
-					marshalledBasis, err := json.MarshalIndent(basis, "", "\t")
-					if err != nil {
-						logger.Println(aurora.Red("Expected:"), basis)
-					} else {
-						logger.Println(aurora.Red("Expected:"), string(marshalledBasis))
-					}
-				}
-				if probeBaseline, ok := (*testBaselineData)[testName]; ok == true {
-					marshalledProbeBaseline, err := json.MarshalIndent(probeBaseline, "", "\t")
-					if err != nil {
-						logger.Println(aurora.Red("Baseline:"), probeBaseline)
-					} else {
-						logger.Println(aurora.Red("Baseline:"), string(marshalledProbeBaseline))
-					}
-				}
-				marshalledResult, err := json.MarshalIndent(result, "", "\t")
-				if err != nil {
-					logger.Println(aurora.Red("Received:"), result)
-				} else {
-					logger.Println(aurora.Red("Received:"), string(marshalledResult))
+				for _, log := range logs {
+					logBuilder.WriteString(log.Message)
+					logBuilder.WriteString("\n")
 				}
 			}
+		} else {
+			logBuilder.WriteString("Browser does not provide logs")
 		}
-		gatheredResults = append(gatheredResults, probeResults)
 
-		if hasAFail {
-			if hasBrowserLog {
-				if logs, err := page.ReadNewLogs("browser"); err != nil {
-					logger.Println("Error fetching logs", err)
-				} else {
-					for _, log := range logs {
-						logger.Println("Log:", log.Message)
-					}
-				}
-			} else {
-				logger.Println("Browser does not provide logs :-(")
+		for testName, testResult := range *probeResults {
+			testBaseline, ok := (*testBaselineData)[testName]
+			if ok == false {
+				testBaseline = map[string]interface{}{}
+			}
+			testBasis, ok := probeBasis[testName]
+			if ok == false {
+				testBasis = map[string]interface{}{}
+			}
+
+			runResult := RunResult{
+				PageFormula: formulaName,
+				Test:        testName,
+				Baseline:    testBaseline.(map[string]interface{}),
+				Basis:       testBasis.(map[string]interface{}),
+				Result:      testResult,
+				Log:         logBuilder.String(),
+			}
+			gatheredRunResults = append(gatheredRunResults, runResult)
+
+			updateReceiver <- CollectorUpdate{
+				Browser: browserName,
+				Partial: true,
+				Results: []RunResult{runResult},
 			}
 		}
 		return nil
@@ -212,10 +233,10 @@ func RunExperimentTests(
 		return false
 	}
 
-	for _, probeResults := range gatheredResults {
-		if probeResults.Passed() == false {
-			return false
-		}
+	updateReceiver <- CollectorUpdate{
+		Browser: "TODO",
+		Partial: false,
+		Results: gatheredRunResults,
 	}
 	return true
 }
@@ -225,19 +246,13 @@ func executeExperiment(
 	experimentConfig *ExperimentConfig,
 	baselineData []*BaselineData,
 	soloPageFormulaName string,
-	testingFunc func(*agouti.Page, bool, []string, formulas.ProbeBasis) error,
+	testingFunc func(string, string, *agouti.Page, bool, []string, formulas.ProbeBasis) error,
 	name string,
 ) error {
-	for index, testRun := range experiment.TestRuns {
+	for _, testRun := range experiment.TestRuns {
 		if soloPageFormulaName != "" && testRun.TestsPageFormula(soloPageFormulaName) == false {
 			// This test run doesn't use the solo page formula, to move along
 			continue
-		}
-
-		if baselineData == nil {
-			logger.Println(aurora.Bold("Baseline Run #"), aurora.Bold(index))
-		} else {
-			logger.Println(aurora.Bold("Testing Run #"), aurora.Bold(index))
 		}
 
 		// Opening the browser is the slowest part of a test run so open each browser only once
@@ -249,7 +264,6 @@ func executeExperiment(
 				return errors.New("Unknown browser configuration")
 			}
 
-			logger.Println("Connecting to browser:", browserName)
 			page, hasBrowserLog, err := openPage(experimentConfig, browserConfig, name)
 			if err != nil {
 				logger.Println("Failed to open remote page:", err)
@@ -299,7 +313,6 @@ func executeExperiment(
 				page.ReadNewLogs("browser")
 
 				// Navigate the browser to the right URL
-				logger.Printf("Navigating to %v...", pageFormulaConfig.Name)
 				err = page.Navigate(experimentConfig.PublicPageHostURL + controlResponse.InitialPath)
 				if err != nil {
 					logger.Println("Failed to navigate to hosted page formula", err)
@@ -308,8 +321,7 @@ func executeExperiment(
 				time.Sleep(5 * time.Second)
 
 				// Run the tests
-				logger.Printf("Running '%v'...", pageFormulaConfig.Name)
-				err = testingFunc(page, hasBrowserLog, testRun.TestProbes, controlResponse.ProbeBasis)
+				err = testingFunc(browserName, pageFormulaName, page, hasBrowserLog, testRun.TestProbes, controlResponse.ProbeBasis)
 				if err != nil {
 					logger.Println("Failed to run script", err)
 					return err

@@ -43,6 +43,11 @@ func run() error {
 		return errors.New("Incorrect arguments")
 	}
 
+	ngrokAuthToken := os.Getenv(commands.NgrokAuthTokenVar)
+	if ngrokAuthToken == "" {
+		return errors.New("Ngrok auth token is required")
+	}
+
 	// Read and validate the configuration JSON argument
 	configFile, err := os.Open(os.Args[1])
 	if err != nil {
@@ -110,7 +115,7 @@ func run() error {
 		Set up the ngrok TCP tunnel to the colluder proxy and find its endpoint URL
 	*/
 	ngrokController := tunnels.NewNgrokController()
-	err = ngrokController.Start(int64(colluder.ColluderProxyPort), "tcp")
+	err = ngrokController.Start(int64(colluder.ColluderProxyPort), "tcp", ngrokAuthToken)
 	if err != nil {
 		logger.Println("Could not start ngrok", err)
 		return err

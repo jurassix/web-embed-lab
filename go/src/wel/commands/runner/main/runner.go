@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -109,15 +112,6 @@ func run() bool {
 		return false
 	}
 
-	if soloPageFormulaName != "" {
-		_, ok := experiment.GetPageFormulaConfiguration(soloPageFormulaName)
-		if ok == false {
-			logger.Println("Unknown page formula:", soloPageFormulaName)
-			printHelp()
-			return false
-		}
-	}
-
 	/*
 		Split out experiments by browser configuration
 	*/
@@ -133,7 +127,18 @@ func run() bool {
 			logger.Println("Could not split browser config", bcName)
 			return false
 		}
+		if soloPageFormulaName != "" {
+			if _, ok := splitExperiment.GetPageFormulaConfiguration(soloPageFormulaName); ok == false {
+				continue
+			}
+		}
+
 		perBrowserExperiments = append(perBrowserExperiments, splitExperiment)
+	}
+
+	if len(perBrowserExperiments) == 0 {
+		logger.Println("Found no valid browser / page formula combinations")
+		return false
 	}
 
 	/*
@@ -157,69 +162,128 @@ func run() bool {
 	/*
 		Find the ngrok tunnels
 	*/
-	ngrokTunnels, err := ngrokController.WaitForNgrokTunnels("https")
+	ngrokTunnels, err := ngrokController.WaitForNgrokTunnels("https", len(perBrowserExperiments))
 	if err != nil {
 		logger.Println("Error", err)
 		return false
 	}
 
-	/*
-		TODO
-		Create channel to receive results
-		Split of go funcs to run and collect results
-	*/
+	updateReceiver := make(chan experiments.CollectorUpdate)
 
-	// TEMP: use just one tunnel for the slow path
-	pageHostURL := ngrokTunnels.Tunnels[0].PublicURL
-
-	/*
-		Start the page formula host
-	*/
-	go func() {
-		host.RunHTTP(
-			pageHostPort,
+	for index, experiment := range perBrowserExperiments {
+		// Spin up host
+		go func(pageHostPort int64, frontEndDistPath string, formulasPath string, probesPath string, embedScriptPath string) {
+			host.RunHTTP(
+				pageHostPort,
+				frontEndDistPath,
+				formulasPath,
+				probesPath,
+				embedScriptPath,
+			)
+		}(
+			ngrokTunnels.Tunnels[index].LocalPort(),
 			frontEndDistPath,
 			formulasPath,
 			probesPath,
 			embedScriptPath,
 		)
-	}()
 
-	experimentConfig := experiments.ExperimentConfig{
-		BrowserstackURL:    browserstackUrl,
-		BrowserstackUser:   browserstackUser,
-		BrowserstackAPIKey: browserstackAPIKey,
-		FrontEndDistPath:   frontEndDistPath,
-		PublicPageHostURL:  pageHostURL,
-		PageHostPort:       pageHostPort,
+		experimentConfig := experiments.ExperimentConfig{
+			BrowserstackURL:    browserstackUrl,
+			BrowserstackUser:   browserstackUser,
+			BrowserstackAPIKey: browserstackAPIKey,
+			FrontEndDistPath:   frontEndDistPath,
+			PublicPageHostURL:  ngrokTunnels.Tunnels[index].PublicURL,
+			PageHostPort:       ngrokTunnels.Tunnels[index].LocalPort(),
+		}
+
+		// Spin up experiment run
+		go func(experiment *experiments.Experiment, experimentConfig experiments.ExperimentConfig, updateReceiver chan experiments.CollectorUpdate) {
+			// Gather the baseline data without the target embed script
+			baselineData, err := experiments.GatherExperimentBaseline(
+				experiment,
+				&experimentConfig,
+				soloPageFormulaName,
+			)
+			if err != nil {
+				logger.Println("Error gathering baseline", err)
+				return
+			}
+			if len(baselineData) == 0 {
+				logger.Println("Zero length baseline data!")
+				return
+			}
+			experiments.RunExperimentTests(
+				experiment,
+				&experimentConfig,
+				baselineData,
+				soloPageFormulaName,
+				updateReceiver,
+			)
+		}(experiment, experimentConfig, updateReceiver)
 	}
 
-	/*
-		Gather the baseline data without the target embed script
-	*/
-	baselineData, err := experiments.GatherExperimentBaseline(
-		experiment,
-		&experimentConfig,
-		soloPageFormulaName,
-	)
+	failureLog, err := ioutil.TempFile(os.TempDir(), "wel-failures-")
 	if err != nil {
-		logger.Println("Error gathering baseline", err)
+		logger.Println("Could not open failure log", err)
 		return false
 	}
-	if len(baselineData) == 0 {
-		logger.Println("Zero length baseline data!")
-		return false
+	defer failureLog.Close()
+	logger.Println("Writing any failures to ", failureLog.Name())
+
+	completedCount := 0
+	passedCount := 0
+	failed := false
+	for update := range updateReceiver {
+		if update.Partial {
+			if update.Passed() {
+				passedCount += 1
+				for _, result := range update.Results {
+					logger.Println(aurora.Green("Passed:"), fmt.Sprintf("%v / %v / %v", update.Browser, result.PageFormula, result.Test))
+				}
+			} else {
+				failed = true
+				for _, result := range update.Results {
+					logger.Println(aurora.Red("Failed:"), fmt.Sprintf("%v / %v / %v", update.Browser, result.PageFormula, result.Test))
+					if _, err = failureLog.Write([]byte(fmt.Sprintf("****\nFailed: %v / %v / %v\n\n", update.Browser, result.PageFormula, result.Test))); err != nil {
+						logger.Println("Could not write failure header", err)
+					}
+					if _, err = failureLog.Write([]byte(fmt.Sprintf("Baseline:\n%s\n\n", marshal(result.Baseline)))); err != nil {
+						logger.Println("Could not write failure baseline", err)
+					}
+					if _, err = failureLog.Write([]byte(fmt.Sprintf("Basis:\n%s\n\n", marshal(result.Basis)))); err != nil {
+						logger.Println("Could not write failure basis", err)
+					}
+					if _, err = failureLog.Write([]byte(fmt.Sprintf("Received:\n%s\n\n", marshal(result.Result)))); err != nil {
+						logger.Println("Could not write failure result", err)
+					}
+					if _, err = failureLog.Write([]byte(fmt.Sprintf("Log:\n%v\n\n", result.Log))); err != nil {
+						logger.Println("Could not write failure log", err)
+					}
+				}
+			}
+		} else {
+			completedCount += 1
+			if len(perBrowserExperiments) == completedCount {
+				break
+			}
+		}
 	}
 
-	/*
-		Finally, run the experiment tests
-	*/
-	return experiments.RunExperimentTests(
-		experiment,
-		&experimentConfig,
-		baselineData,
-		soloPageFormulaName,
-	)
+	if failed == false {
+		os.Remove(failureLog.Name())
+	}
+
+	return failed == false
+}
+
+func marshal(data map[string]interface{}) []byte {
+	result, err := json.MarshalIndent(data, "", "\t")
+	if err != nil {
+		logger.Println("Error marshalling", err)
+		return []byte("Error")
+	}
+	return result
 }
 
 func printHelp() {

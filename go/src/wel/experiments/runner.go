@@ -318,7 +318,7 @@ func executeExperiment(
 					logger.Println("Failed to navigate to hosted page formula", err)
 					return err
 				}
-				time.Sleep(5 * time.Second)
+				time.Sleep(10 * time.Second)
 
 				// Run the tests
 				err = testingFunc(browserName, pageFormulaName, page, hasBrowserLog, testRun.TestProbes, controlResponse.ProbeBasis)

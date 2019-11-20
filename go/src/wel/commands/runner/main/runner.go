@@ -199,18 +199,31 @@ func run() bool {
 
 		// Spin up experiment run
 		go func(experiment *experiments.Experiment, experimentConfig experiments.ExperimentConfig, updateReceiver chan experiments.CollectorUpdate) {
+			bcName, _ := experiment.BrowserConfigurations[0]["name"]
 			// Gather the baseline data without the target embed script
 			baselineData, err := experiments.GatherExperimentBaseline(
 				experiment,
 				&experimentConfig,
 				soloPageFormulaName,
 			)
-			if err != nil {
-				logger.Println("Error gathering baseline", err)
-				return
-			}
-			if len(baselineData) == 0 {
-				logger.Println("Zero length baseline data!")
+			if err != nil || len(baselineData) == 0 {
+				logger.Println("Error gathering baseline", err, len(baselineData))
+				updateReceiver <- experiments.CollectorUpdate{
+					Browser: bcName.(string),
+					Partial: false,
+					Results: []experiments.RunResult{
+						experiments.RunResult{
+							PageFormula: "Baseline",
+							Test:        "All",
+							Basis:       map[string]interface{}{},
+							Baseline:    map[string]interface{}{},
+							Result: experiments.ProbeResult{
+								"passed": false,
+							},
+							Log: fmt.Sprintf("Error gathering baseline: %v", err),
+						},
+					},
+				}
 				return
 			}
 			experiments.RunExperimentTests(

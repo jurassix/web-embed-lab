@@ -31,6 +31,24 @@ type Capture struct {
 	Sites                []Site                 `json:"sites"`
 }
 
+func (capture *Capture) HasSite(siteName string) bool {
+	for _, site := range capture.Sites {
+		if site.Name == siteName {
+			return true
+		}
+	}
+	return false
+}
+
+func (capture *Capture) GetSite(siteName string) (*Site, bool) {
+	for _, site := range capture.Sites {
+		if site.Name == siteName {
+			return &site, true
+		}
+	}
+	return nil, false
+}
+
 /*
 Formulation holds the configuration for the conversion of capture data into a page formula
 Usually it's a part of AutoFormulate

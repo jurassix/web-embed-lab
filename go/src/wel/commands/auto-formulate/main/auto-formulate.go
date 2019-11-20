@@ -38,9 +38,14 @@ func main() {
 }
 
 func run() error {
-	if len(os.Args) != 3 {
+	if len(os.Args) != 3 && len(os.Args) != 4 {
 		printHelp()
 		return errors.New("Incorrect arguments")
+	}
+
+	soloFormulaName := ""
+	if len(os.Args) == 4 {
+		soloFormulaName = os.Args[3]
 	}
 
 	ngrokAuthToken := os.Getenv(commands.NgrokAuthTokenVar)
@@ -83,6 +88,36 @@ func run() error {
 		}
 		if matchesCapture == false {
 			return errors.New(fmt.Sprintf("Invalid capture name (%v) referenced by formulation (%v)", formulation.CaptureName, formulation.FormulaName))
+		}
+	}
+
+	liveCaptures := config.Captures
+	liveFormulations := config.Formulations
+	var soloFormulation *formulas.Formulation = nil
+	if soloFormulaName != "" {
+		for _, formulation := range config.Formulations {
+			if formulation.FormulaName == soloFormulaName {
+				soloFormulation = &formulation
+				liveFormulations = []formulas.Formulation{*soloFormulation}
+				break
+			}
+		}
+		if soloFormulation == nil {
+			return errors.New(fmt.Sprintf("Did not find the specified formula: %v", soloFormulaName))
+		}
+		// Find the one capture that the solo formula needs
+		liveCaptures = []formulas.Capture{}
+		for _, capture := range config.Captures {
+			site, ok := capture.GetSite(soloFormulation.CaptureName)
+			if ok == false {
+				continue
+			}
+			capture.Sites = []formulas.Site{*site}
+			liveCaptures = append(liveCaptures, capture)
+			break
+		}
+		if len(liveCaptures) == 0 {
+			return errors.New("Could not find the capture for this formulation: " + soloFormulaName)
 		}
 	}
 
@@ -136,7 +171,7 @@ func run() error {
 
 	captureDirPaths := map[string]string{} // capture name -> capture dir path
 
-	for _, capture := range config.Captures {
+	for _, capture := range liveCaptures {
 		if len(capture.BrowserConfiguration) == 0 {
 			return errors.New(fmt.Sprintf("Capture has no browser configuration: %v", capture))
 		}
@@ -223,7 +258,7 @@ func run() error {
 		}
 	}
 
-	for _, formulation := range config.Formulations {
+	for _, formulation := range liveFormulations {
 		captureDirPath, ok := captureDirPaths[formulation.CaptureName]
 		if ok == false {
 			return errors.New(fmt.Sprintf("Invalid capture name (%v) in formulation (%v)", formulation.CaptureName, formulation.FormulaName))
@@ -241,10 +276,14 @@ func run() error {
 }
 
 func printHelp() {
-	logger.Println("usage:")
+	logger.Println("usage: capture all")
 	logger.Println(aurora.Bold("auto-formulate <configuration json path> <formula destination dir>"))
 	logger.Println("Example:")
 	logger.Println("auto-formulate ./examples/auto-formulate/external-auto-formulate.json ../pf/\n")
+	logger.Println("usage: capture one")
+	logger.Println(aurora.Bold("auto-formulate <configuration json path> <formula destination dir> <formula name>"))
+	logger.Println("Example:")
+	logger.Println("auto-formulate ./examples/auto-formulate/external-auto-formulate.json ../pf/ transmutable-light\n")
 }
 
 func parseHostname(siteURL string) (string, error) {

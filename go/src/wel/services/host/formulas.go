@@ -19,6 +19,7 @@ type FormulaHost struct {
 	FormulasPath   string
 	CurrentFormula string
 	PageFormulas   map[string]*formulas.PageFormula
+	HeadSnippet    string
 }
 
 func NewFormulaHost(formulasPath string) (*FormulaHost, error) {
@@ -39,6 +40,7 @@ func NewFormulaHost(formulasPath string) (*FormulaHost, error) {
 		FormulasPath:   formulasPath,
 		CurrentFormula: "",
 		PageFormulas:   map[string]*formulas.PageFormula{},
+		HeadSnippet:    "<!-- Empty Head Snippet -->",
 	}
 
 	var firstName = ""
@@ -199,6 +201,7 @@ func (host *FormulaHost) handleTemplateRoute(route *formulas.Route, writer http.
 
 	// Set up the context by merging the route template data and the formula template data
 	context := map[string]string{}
+	context["head_snippet"] = host.HeadSnippet
 	for k, v := range host.PageFormulas[host.CurrentFormula].TemplateData {
 		context[k] = v
 	}

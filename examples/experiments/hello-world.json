@@ -35,7 +35,8 @@
 				"heap"
 			],
 			"comment": "Performance and Heap only run on Chrome.",
-			"browsers": ["Chrome 75"]
+			"browsers": ["Chrome 75"],
+			"head-snippet": "<script> console.log('hello world'); </script>"
 		},
 		{
 			"page-formulas": ["vanilla-site", "hello-world"],
@@ -46,7 +47,8 @@
 				"text-equals"
 			],
 			"comment": "Performance and Heap only run on Chrome.",
-			"browsers": ["Firefox 69"]
+			"browsers": ["Firefox 69"],
+			"head-snippet": "<script> console.log('hi there'); </script>"
 		}
 	]
 }

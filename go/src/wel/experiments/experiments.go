@@ -47,6 +47,7 @@ type TestRun struct {
 	PageFormulas []string `json:"page-formulas"` // Names of page formulas
 	TestProbes   []string `json:"test-probes"`   // Names of test probes
 	Browsers     []string `json:"browsers"`      // Names of browsers
+	HeadSnippet  string   `json:"head-snippet"`  // Injected into the head, useful for embed script helper snippets
 }
 
 func NewTestRun() *TestRun {
@@ -54,6 +55,7 @@ func NewTestRun() *TestRun {
 		PageFormulas: []string{},
 		TestProbes:   []string{},
 		Browsers:     []string{},
+		HeadSnippet:  "",
 	}
 }
 
@@ -68,6 +70,7 @@ func (testRun TestRun) Copy() *TestRun {
 	for _, browserName := range testRun.Browsers {
 		result.Browsers = append(result.Browsers, browserName)
 	}
+	result.HeadSnippet = testRun.HeadSnippet
 	return result
 }
 

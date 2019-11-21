@@ -299,7 +299,7 @@ func injectProbes(templatePath string) error {
 	}
 
 	newTemplate := fmt.Sprintf(
-		"%v\n<script src='%v'></script>\n<script src='%v'></script>\n<script async src='%v'></script>\n%v",
+		"%v\n<script src='%v'></script>\n<script src='%v'></script>\n[![ if .head_snippet ]!][![ .head_snippet ]!][![ end ]!]\n<script async src='%v'></script>\n%v",
 		string(templateBytes[0:location[1]]),
 		ProbesURL,         // test probe scripts
 		ProberURL,         // test runner script

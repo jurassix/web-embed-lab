@@ -48,7 +48,8 @@
 				"performance",
 				"heap"
 			],
-			"browsers": ["Chrome 75"]
+			"browsers": ["Chrome 75"],
+			"head-snippet": "<script> console.log('head snippet has run'); </script>"
 		},
 		{
 			"page-formulas": ["science-saints"],
@@ -58,7 +59,8 @@
 				"selector-count",
 				"text-equals"
 			],
-			"browsers": ["Firefox 68", "Safari 12"]
+			"browsers": ["Firefox 68", "Safari 12"],
+			"head-snippet": "<script> console.log('head snippet has run'); </script>"
 		}
 	]
 }

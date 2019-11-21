@@ -281,6 +281,12 @@ func executeExperiment(
 				return err
 			}
 
+			headSnippet := "<!-- Empty Runtime Head Snippet -->"
+			// Only set the headSnippet when running with baseline data (the actual tests)
+			if baselineData != nil {
+				headSnippet = testRun.HeadSnippet
+			}
+
 			for _, pageFormulaName := range testRun.PageFormulas {
 				pageFormulaConfig, ok := experiment.GetPageFormulaConfiguration(pageFormulaName)
 				if ok == false {
@@ -294,7 +300,12 @@ func executeExperiment(
 				}
 
 				// Host the right page formula and parse the test probe basis
-				formulaSet, controlResponse, err := host.RequestPageFormulaChange(experimentConfig.PageHostPort, pageFormulaConfig.Name, baselineData == nil)
+				formulaSet, controlResponse, err := host.RequestPageFormulaChange(
+					experimentConfig.PageHostPort,
+					pageFormulaConfig.Name,
+					baselineData == nil,
+					headSnippet,
+				)
 				if err != nil {
 					logger.Println("Failed to reach host control API", err)
 					return err

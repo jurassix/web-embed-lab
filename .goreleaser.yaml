@@ -7,7 +7,7 @@ builds:
   -
     env:
     - CGO_ENABLED=0
-    - GOPATH=/Users/runner/runners/2.159.2/work/web-embed-lab/web-embed-lab/go
+    - GOPATH=/Users/runner/runners/2.162.2/work/web-embed-lab/web-embed-lab/go
     id: "runner"
     binary: "runner"
     main: ./go/src/wel/commands/runner/main/runner.go
@@ -16,7 +16,7 @@ builds:
   -
     env:
     - CGO_ENABLED=0
-    - GOPATH=/Users/runner/runners/2.159.2/work/web-embed-lab/web-embed-lab/go
+    - GOPATH=/Users/runner/runners/2.162.2/work/web-embed-lab/web-embed-lab/go
     id: "auto-formulate"
     binary: "auto-formulate"
     main: ./go/src/wel/commands/auto-formulate/main/auto-formulate.go

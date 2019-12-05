@@ -147,6 +147,15 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		}
 
 		clientReq.RemoteAddr = req.RemoteAddr
+
+		// Ignore Chrome's annoying pre-HTML requests
+		if strings.HasPrefix(clientReq.URL.String(), "/chrome/intelligence/assist/") || strings.HasPrefix(clientReq.URL.String(), "/ListAccounts?gpsia") {
+			if _, err := io.WriteString(rawClientTls, fmt.Sprintf("%v 404 Ignoring\r\n", clientReq.Proto)); err != nil {
+				logger.Printf("Cannot write 404 HTTP status: %v", err)
+				continue
+			}
+		}
+
 		if !httpsRegexp.MatchString(clientReq.URL.String()) {
 			clientReq.URL, _ = url.Parse("https://" + req.Host + clientReq.URL.String())
 		}

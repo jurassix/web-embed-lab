@@ -15,11 +15,20 @@ class HeapProbe {
 	*/
 	async gatherBaselineData(){
 		console.log('Heap baseline')
-		await this._requestAndWaitForHeapMemory()
-		const heapMemoryData = this._latestHeapMemoryData()
-		return {
-			success: heapMemoryData !== null,
-			heapMemoryData: heapMemoryData
+		try {
+			await this._requestAndWaitForHeapMemory()
+			const heapMemoryData = this._latestHeapMemoryData()
+			return {
+				success: heapMemoryData !== null,
+				heapMemoryData: heapMemoryData
+			}
+		} catch (e) {
+			console.log('Error gathing heap baseline ' + e)
+			return {
+				success: false,
+				heapMemoryData: null,
+				comment: 'Error gathing heap baseline ' + e
+			}
 		}
 	}
 
@@ -30,7 +39,6 @@ class HeapProbe {
 	*/
 	async probe(basis, baseline) {
 		console.log('Probing heap')
-
 		try {
 			const result = {
 				passed: true,
@@ -41,7 +49,6 @@ class HeapProbe {
 				result.passed = true
 				return result
 			}
-
 			await this._requestAndWaitForHeapMemory()
 			result.heapMemoryData = this._latestHeapMemoryData()
 
@@ -67,7 +74,7 @@ class HeapProbe {
 
 			if(typeof basis.relative === 'undefined'){
 				return result
-			} 
+			}
 
 			for(let key of Object.keys(basis.relative)){
 				const individualPass = this._testHeapMemoryKey(key, basis.relative[key], baseline[key])
@@ -110,13 +117,48 @@ class HeapProbe {
 	}
 
 	async _requestAndWaitForHeapMemory(){
+		console.log("Starting heap profiler...")
+		window.postMessage({ action: 'relay-to-background', subAction: 'enable-heap-profiler' }, '*')
+		window.__welWaitFor(1000)
+
 		window._welHeapMemoryData = []
+		console.log("Requesting heap...")
 		window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
-		let waitsRemaining = 25
-		let waitMilliseconds = 500
+
+		let waitMilliseconds = 1000
+		let startTime = Date.now()
+
+		let waitsRemaining = 3
 		while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
 			waitsRemaining -= 1
 			await window.__welWaitFor(waitMilliseconds)
+		}
+		if (window._welHeapMemoryData.length > 0) {
+			return
+		}
+
+		console.log("Requesting heap a second time...")
+		window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
+		waitsRemaining = 3
+		waitMilliseconds = 1000
+		while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
+			waitsRemaining -= 1
+			await window.__welWaitFor(waitMilliseconds)
+		}
+		if (window._welHeapMemoryData.length > 0) {
+			return
+		}
+
+		console.log("Requesting heap a third time...")
+		window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
+		waitsRemaining = 3
+		waitMilliseconds = 1000
+		while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
+			waitsRemaining -= 1
+			await window.__welWaitFor(waitMilliseconds)
+		}
+		if (window._welHeapMemoryData.length == 0) {
+			console.log("Did not receive a heap snapshot")
 		}
 	}
 }

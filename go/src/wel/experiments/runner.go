@@ -81,6 +81,24 @@ func GatherExperimentBaseline(
 					}
 					`, testsJSON)
 		page.RunAsyncScript(script, &returnValue)
+		if len(returnValue) == 0 {
+			var logBuilder strings.Builder
+			if hasBrowserLog {
+				if logs, err := page.ReadNewLogs("browser"); err != nil {
+					logBuilder.WriteString(fmt.Sprintf("Error fetching logs: %v", err))
+				} else {
+					for _, log := range logs {
+						logBuilder.WriteString(log.Message)
+						logBuilder.WriteString("\n")
+					}
+				}
+			} else {
+				logBuilder.WriteString("Browser does not provide logs")
+			}
+			logger.Println(aurora.Red("Error testing baseline\n"), logBuilder.String())
+
+			return errors.New("Attempted baseline run returned zero length result")
+		}
 
 		pageBaseline := &BaselineData{}
 		err = json.Unmarshal([]byte(returnValue), pageBaseline)
@@ -171,12 +189,6 @@ func RunExperimentTests(
 					`, testsJSON, string(probeBasisJSON), string(baselineDataJSON))
 		page.RunAsyncScript(script, &returnValue)
 
-		probeResults := &ProbeResults{}
-		err = json.Unmarshal([]byte(returnValue), probeResults)
-		if err != nil {
-			return err
-		}
-
 		var logBuilder strings.Builder
 		if hasBrowserLog {
 			if logs, err := page.ReadNewLogs("browser"); err != nil {
@@ -191,6 +203,30 @@ func RunExperimentTests(
 			logBuilder.WriteString("Browser does not provide logs")
 		}
 
+		if len(returnValue) == 0 {
+			runResult := RunResult{
+				PageFormula: formulaName,
+				Test:        "WEL failure",
+				Baseline:    map[string]interface{}{},
+				Basis:       map[string]interface{}{},
+				Result: ProbeResult{
+					"passed": false,
+				},
+				Log: logBuilder.String(),
+			}
+			updateReceiver <- CollectorUpdate{
+				Browser: browserName,
+				Partial: true,
+				Results: []RunResult{runResult},
+			}
+			return errors.New("Received zero-length result from baseline")
+		}
+
+		probeResults := &ProbeResults{}
+		err = json.Unmarshal([]byte(returnValue), probeResults)
+		if err != nil {
+			return err
+		}
 		for testName, testResult := range *probeResults {
 			testBaseline, ok := (*testBaselineData)[testName]
 			if ok == false {
@@ -329,9 +365,10 @@ func executeExperiment(
 					logger.Println("Failed to navigate to hosted page formula", err)
 					return err
 				}
-				time.Sleep(10 * time.Second)
+				time.Sleep(5 * time.Second) // Give the page time to settle
 
 				// Run the tests
+				page.SetScriptTimeout(30 * 1000) //ms
 				err = testingFunc(browserName, pageFormulaName, page, hasBrowserLog, testRun.TestProbes, controlResponse.ProbeBasis)
 				if err != nil {
 					logger.Println("Failed to run script", err)

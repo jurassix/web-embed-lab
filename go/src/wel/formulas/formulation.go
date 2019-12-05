@@ -183,8 +183,8 @@ func createTemplateRoutes(
 			continue
 		}
 
-		if request.URL == "/favicon.ico" {
-			return
+		if request.URL == "/favicon.ico" || strings.HasPrefix(request.URL, "/chrome/intelligence/assist/") || strings.HasPrefix(request.URL, "/ListAccounts?gpsia") {
+			continue
 		}
 
 		regex := goRegexpForURL(request.URL, hostname)

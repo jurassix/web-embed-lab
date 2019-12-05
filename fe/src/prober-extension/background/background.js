@@ -3,7 +3,7 @@ let attachedTabId = null
 const EmbedScriptPath = '/__wel_embed.js'
 
 // The handler for messages from the content.js script
-function handleRuntimeMessage(data, sender, sendResponse) {
+async function handleRuntimeMessage(data, sender, sendResponse) {
 	if (!data.action) {
 		console.log('Unknown runtime message', data, sender)
 		return
@@ -12,6 +12,10 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 		case 'window-to-background':
 			if (data.subAction === 'snapshot-heap') {
 				sendHeapSnapshotInfo('window-request')
+			} else if (data.subAction === 'enable-heap-profiler') {
+				console.log('Awaiting')
+				await enableHeapProfiler()
+				console.log('Awaited')
 			} else {
 				console.error('Unknown sub-action on runtime message: ' + JSON.stringify(data))
 			}
@@ -121,6 +125,18 @@ async function sendPerformanceInfo(subAction) {
 	})
 }
 
+async function enableHeapProfiler() {
+	console.log('Enabling heap profiler')
+	await sendDebuggerCommand('HeapProfiler.enable')
+	await sendDebuggerCommand('HeapProfiler.startSampling')
+	await sendDebuggerCommand('HeapProfiler.startTrackingHeapObjects')
+	console.log('Enabled heap profiler')
+	chrome.tabs.sendMessage(attachedTabId, {
+		action: 'heap-memory-status',
+		subAction: 'enabled'
+	})
+}
+
 async function sendHeapSnapshotInfo(subAction) {
 	try {
 		chrome.tabs.sendMessage(attachedTabId, {
@@ -135,14 +151,6 @@ async function sendHeapSnapshotInfo(subAction) {
 			action: 'heap-memory-status',
 			subAction: 'cleared'
 		})
-
-		/*
-		const result = await sendDebuggerCommand('HeapProfiler.takeHeapSnapshot', { reportProgress: false })
-		chrome.tabs.sendMessage(attachedTabId, {
-			action: 'heap-memory-status',
-			subAction: 'took-snapshot'
-		})
-		*/
 
 		console.log('sampling')
 
@@ -247,14 +255,18 @@ async function handleDebuggerEvent(source, method, params) {
 	}
 	if (method === 'Page.frameStartedLoading') {
 		if (childFrameIds.has(params.frameId)) return
-		await sendDebuggerCommand('HeapProfiler.startTrackingHeapObjects')
+		console.log('Frame started loading')
 		await enablePerformance()
 		await sendPerformanceInfo('frame-started-loading')
+		try {
+			await sendDebuggerCommand('HeapProfiler.disable') // enabled by the test probes
+		} catch (e) {
+			console.error('Error disabling heap profiler', e)
+		}
 		return
 	}
 	if (method === 'Page.frameStoppedLoading') {
 		if (childFrameIds.has(params.frameId)) return
-
 		await sendPerformanceInfo('frame-stopped-loading')
 		await disablePerformance()
 
@@ -294,9 +306,10 @@ async function handleInitAction(tabId) {
 		await sendDebuggerCommand('Debugger.enable')
 		await sendDebuggerCommand('Page.enable')
 		await sendDebuggerCommand('DOM.enable')
-		await sendDebuggerCommand('HeapProfiler.enable')
-		await sendDebuggerCommand('HeapProfiler.startSampling')
-		await sendDebuggerCommand('HeapProfiler.startTrackingHeapObjects')
+		chrome.tabs.sendMessage(attachedTabId, {
+			action: 'heap-memory-status',
+			subAction: 'attached-success'
+		})
 	} catch (e) {
 		console.error('Error sending debugger setup commands', e)
 	}

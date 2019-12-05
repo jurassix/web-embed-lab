@@ -207,10 +207,9 @@ func run() bool {
 				soloPageFormulaName,
 			)
 			if err != nil || len(baselineData) == 0 {
-				logger.Println("Error gathering baseline", err, len(baselineData))
 				updateReceiver <- experiments.CollectorUpdate{
 					Browser: bcName.(string),
-					Partial: false,
+					Partial: true,
 					Results: []experiments.RunResult{
 						experiments.RunResult{
 							PageFormula: "Baseline",
@@ -220,9 +219,15 @@ func run() bool {
 							Result: experiments.ProbeResult{
 								"passed": false,
 							},
-							Log: fmt.Sprintf("Error gathering baseline: %v", err),
+							Log: fmt.Sprintf("Error gathering baseline OI: %v", err),
 						},
 					},
+				}
+				// To indicate that this browser run is complete
+				updateReceiver <- experiments.CollectorUpdate{
+					Browser: bcName.(string),
+					Partial: false,
+					Results: []experiments.RunResult{},
 				}
 				return
 			}

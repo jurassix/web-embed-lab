@@ -14,9 +14,9 @@ import (
 )
 
 var DistDirPath = "fe/dist/colluder"
-var ColluderProxyPort int = 9180
-var ColluderWebPort int64 = 9181
-var ColluderWebSocketPort int64 = 9182
+var ColluderProxyPort int = 8610
+var ColluderWebPort int64 = 8611
+var ColluderWebSocketPort int64 = 8612
 
 var logger = log.New(os.Stdout, "[colluder] ", 0)
 

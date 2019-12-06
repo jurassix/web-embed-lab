@@ -63,15 +63,15 @@ Assuming that you have run `make` to build the `runner` command (explained in [I
 		./examples/page-formulas/ \	# a directory holding page formula sub-directories
 		./examples/test-probes/		# a directory holding test probe sub-directories
 
-You should see a message that the `runner` is hosting one of your formulas and listening on port 9190.
+You should see a message that the `runner` is hosting one of your formulas and listening on port 8650.
 
-You can point your web browser at http://127.0.0.1:9190/ to see the currently hosted formula.
+You can point your web browser at http://127.0.0.1:8650/ to see the currently hosted formula.
 
 The `runner` only hosts one page formula at a time but it knows about all of the formulas in the directory of page formulas that you passed it above.
 
 You can list the available page formulas and learn which formula is currently hosted by GETing this URL:
 
-	curl http://127.0.0.1:9190/__wel_control
+	curl http://127.0.0.1:8650/__wel_control
 
 The return value will list the formulas and which formula is currently hosted:
 
@@ -91,7 +91,7 @@ The return value will list the formulas and which formula is currently hosted:
 
 You can change which page formula `runner` is hosting by PUTing to the same URL:
 
-	curl http://127.0.0.1:9190/__wel_control -X PUT --data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
+	curl http://127.0.0.1:8650/__wel_control -X PUT --data "{\"current-formula\":\"PAGE_FORMULA_NAME\"}"
 
 If you want to test a page formula with an embed script then use the embed mode of the `runner`:
 

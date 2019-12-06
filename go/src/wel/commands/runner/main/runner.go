@@ -17,7 +17,7 @@ import (
 
 var logger = log.New(os.Stdout, "[runner] ", 0)
 
-var pageHostPort int64 = 9190
+var pageHostPort int64 = 8650
 
 /*
 The runner command runs an experiment, using Selenium to run test probes in page formulas.

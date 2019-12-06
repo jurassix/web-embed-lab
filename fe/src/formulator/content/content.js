@@ -181,9 +181,9 @@ if (window.ContentConstants === undefined) {
 	ColluderClient.CLOSING = 2
 	ColluderClient.CLOSED = 3
 
-	ColluderClient.ColluderProxyPort = 9180
-	ColluderClient.ColluderWebPort = 9181
-	ColluderClient.ColluderWebSocketPort = 9182
+	ColluderClient.ColluderProxyPort = 8610
+	ColluderClient.ColluderWebPort = 8611
+	ColluderClient.ColluderWebSocketPort = 8612
 
 	window.addEventListener('message', handleWindowMessage)
 	browser.runtime.onMessage.addListener(handleRuntimeMessage)

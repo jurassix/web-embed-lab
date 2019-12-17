@@ -23,11 +23,11 @@ class HeapProbe {
 				heapMemoryData: heapMemoryData
 			}
 		} catch (e) {
-			console.log('Error gathing heap baseline ' + e)
+			console.log('Error gathering heap baseline ' + e)
 			return {
 				success: false,
 				heapMemoryData: null,
-				comment: 'Error gathing heap baseline ' + e
+				comment: 'Error gathering heap baseline ' + e
 			}
 		}
 	}
@@ -117,47 +117,24 @@ class HeapProbe {
 	}
 
 	async _requestAndWaitForHeapMemory(){
-		console.log("Starting heap profiler...")
+		console.log("Starting heap profiler")
 		window.postMessage({ action: 'relay-to-background', subAction: 'enable-heap-profiler' }, '*')
 		window.__welWaitFor(1000)
 
 		window._welHeapMemoryData = []
-		console.log("Requesting heap...")
-		window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
-
 		let waitMilliseconds = 1000
 		let startTime = Date.now()
-
-		let waitsRemaining = 3
-		while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
+		const totalWaits = 9
+		let waitsRemaining = totalWaits
+		while(window._welHeapMemoryData.length === 0 && waitsRemaining >= 0){
+			if (waitsRemaining % 3 === 0) {
+				console.log("Requesting heap")
+				window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
+			}
 			waitsRemaining -= 1
 			await window.__welWaitFor(waitMilliseconds)
 		}
-		if (window._welHeapMemoryData.length > 0) {
-			return
-		}
-
-		console.log("Requesting heap a second time...")
-		window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
-		waitsRemaining = 3
-		waitMilliseconds = 1000
-		while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
-			waitsRemaining -= 1
-			await window.__welWaitFor(waitMilliseconds)
-		}
-		if (window._welHeapMemoryData.length > 0) {
-			return
-		}
-
-		console.log("Requesting heap a third time...")
-		window.postMessage({ action: 'relay-to-background', subAction: 'snapshot-heap' }, '*')
-		waitsRemaining = 3
-		waitMilliseconds = 1000
-		while(window._welHeapMemoryData.length == 0 && waitsRemaining > 0){
-			waitsRemaining -= 1
-			await window.__welWaitFor(waitMilliseconds)
-		}
-		if (window._welHeapMemoryData.length == 0) {
+		if (window._welHeapMemoryData.length === 0) {
 			console.log("Did not receive a heap snapshot")
 		}
 	}

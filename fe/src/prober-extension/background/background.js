@@ -2,6 +2,8 @@ let attachedTabId = null
 
 const EmbedScriptPath = '/__wel_embed.js'
 
+let latestPerfData = null
+
 // The handler for messages from the content.js script
 function handleRuntimeMessage(data, sender, sendResponse) {
 	if (!data.action) {
@@ -12,6 +14,11 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 		case 'window-to-background':
 			if (data.subAction === 'snapshot-heap') {
 				sendHeapSnapshotInfo('window-request')
+			} else if (data.subAction === 'request-performance') {
+				chrome.tabs.sendMessage(attachedTabId, {
+					action: 'latest-performance',
+					metrics: latestPerfData
+				})
 			} else {
 				console.error('Unknown sub-action on runtime message: ' + JSON.stringify(data))
 			}
@@ -110,6 +117,18 @@ async function getPerformanceMetrics() {
 }
 
 async function sendPerformanceInfo(subAction) {
+	if (performanceEnabled == true) {
+		chrome.tabs.sendMessage(attachedTabId, {
+			action: 'background-message',
+			message: 'Performance enabled: ' + subAction
+		})
+	} else {
+		chrome.tabs.sendMessage(attachedTabId, {
+			action: 'background-message',
+			message: 'Performance disabled: ' + subAction
+		})
+	}
+
 	if (performanceEnabled === false) {
 		return
 	}
@@ -119,6 +138,7 @@ async function sendPerformanceInfo(subAction) {
 		subAction: subAction,
 		metrics: perfMetrics.metrics
 	})
+	latestPerfData = perfMetrics.metrics
 }
 
 async function sendHeapSnapshotInfo(subAction) {

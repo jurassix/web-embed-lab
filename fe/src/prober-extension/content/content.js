@@ -9,8 +9,12 @@ function handleRuntimeMessage(data, sender, sendResponse) {
 	}
 	switch (data.action) {
 		case 'update-performance':
+		case 'latest-performance':
 		case 'update-heap-memory':
 			window.postMessage(data, '*') // This will be caught by prober.js
+			break
+		case 'background-message':
+			console.log('Background message: ' + data.message)
 			break
 		case 'heap-memory-status':
 			console.log('Heap memory status: ' + data.subAction)
@@ -41,7 +45,7 @@ function initContentScript() {
 	}
 	chrome.runtime.onMessage.addListener(handleRuntimeMessage)
 	window.addEventListener('message', handleWindowMessage)
-	console.log('Prober extension content script loaded')
+	console.log('Prober extension content script loaded: ' + document.location.href)
 }
 
 // Init this script at most once in a given window

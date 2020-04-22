@@ -64,7 +64,7 @@ func GatherPerformanceData(config *Config) (*PerformanceData, error) {
 	defer page.Destroy() // Close the WebDriver session
 
 	// Warm up the WebExtension
-	err = page.Navigate("https://github.com/fullstorydev/relay-core/")
+	err = page.Navigate("https://github.com/fullstorydev/web-embed-lab/")
 	if err != nil {
 		return nil, err
 	}

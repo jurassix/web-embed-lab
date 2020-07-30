@@ -42,7 +42,9 @@ tools:
 
 sign:
 ifeq ($(ARCH),Darwin)
-	codesign --force --deep --sign - $(bintarget)
+	if [ -a $(bintarget) ]; then \
+		codesign --force --deep --sign - $(bintarget); \
+	fi
 endif
 
 make npm-install:

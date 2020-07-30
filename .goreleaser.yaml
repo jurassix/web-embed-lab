@@ -21,7 +21,7 @@ builds:
     binary: "auto-formulate"
     main: ./go/src/wel/commands/auto-formulate/main/auto-formulate.go
     hooks:
-      post: make bintarget=bintarget={{ .Path }} sign
+      post: make bintarget={{ .Path }} sign
 
 archives:
   -

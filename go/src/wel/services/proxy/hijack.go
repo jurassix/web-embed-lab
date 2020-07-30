@@ -103,6 +103,7 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		if session.CurrentCaptureSession != nil {
 			session.CurrentCaptureSession.IncrementHostRequests(host)
 		}
+
 		broadcastIfPossible(ws.NewProxyConnectionRequestMessage(host))
 
 		if clientReq.Header.Get("Upgrade") == "websocket" {
@@ -197,13 +198,16 @@ func hijackConnect(req *http.Request, clientConn net.Conn, proxyServer *ProxySer
 		}
 
 		if session.CurrentCaptureSession != nil {
-			session.CurrentCaptureSession.Timeline.AddRequest(
-				clientReq.URL.String(),
-				resp.StatusCode,
-				resp.Header.Get("Content-Type"),
-				resp.Header.Get("Content-Encoding"),
-				outputFileId,
-			)
+			// Don't write the Chrome tracking and account requests
+			if clientReq.Host != "www.gstatic.com" && clientReq.Host != "accounts.google.com" {
+				session.CurrentCaptureSession.Timeline.AddRequest(
+					clientReq.URL.String(),
+					resp.StatusCode,
+					resp.Header.Get("Content-Type"),
+					resp.Header.Get("Content-Encoding"),
+					outputFileId,
+				)
+			}
 		}
 
 		// Send the response prelude to the client

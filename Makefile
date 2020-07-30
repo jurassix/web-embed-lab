@@ -42,8 +42,8 @@ tools:
 
 sign:
 ifeq ($(ARCH),Darwin)
-	if [ -a $(bintarget) ]; then \
-		codesign --force --deep --sign - $(bintarget); \
+	if test -f "$(bintarget)"; then \
+		codesign --force --deep --sign - "$(bintarget)"; \
 	fi
 endif
 

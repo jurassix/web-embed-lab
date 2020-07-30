@@ -12,7 +12,7 @@ builds:
     binary: "runner"
     main: ./go/src/wel/commands/runner/main/runner.go
     hooks:
-      post: make bintarget=dist/runner_darwin_amd64/runner sign
+      post: make bintarget={{ .Path }} sign
   -
     env:
     - CGO_ENABLED=0
@@ -21,7 +21,7 @@ builds:
     binary: "auto-formulate"
     main: ./go/src/wel/commands/auto-formulate/main/auto-formulate.go
     hooks:
-      post: make bintarget=dist/auto-formulate_darwin_amd64/auto-formulate sign
+      post: make bintarget=bintarget={{ .Path }} sign
 
 archives:
   -
